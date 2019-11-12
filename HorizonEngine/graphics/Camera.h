@@ -26,7 +26,7 @@ public:
 	XMFLOAT2 GetNDCFrom3DPos(XMVECTOR objectPosition);
 
 private:
-	void UpdateMatrix() override;
+	void UpdateModelMatrix() override;
 
 	XMMATRIX view;
 	XMMATRIX projection;

@@ -47,7 +47,9 @@ void Horizon::Update() {
 			if (mouse.IsRightDown()) {
 				float moveFactor = this->graphics.camera.GetZoom() / 90.0f;
 				if (moveFactor > 1.0f) moveFactor = 1.0f;
-				this->graphics.camera.AdjustRotation((float)mouseEvent.GetPosY() * 0.01f * moveFactor, (float)mouseEvent.GetPosX() * 0.01f * moveFactor, 0.0f);
+				this->graphics.camera.RotateAxisVectors(this->graphics.camera.GetRightVector(), -(float)mouseEvent.GetPosY() * 0.01f * moveFactor);
+				this->graphics.camera.RotateAxisVectors(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), (float)mouseEvent.GetPosX() * 0.01f * moveFactor);
+				//this->graphics.camera.AdjustRotation((float)mouseEvent.GetPosY() * 0.01f * moveFactor, (float)mouseEvent.GetPosX() * 0.01f * moveFactor, 0.0f);
 			}
 		}
 		
@@ -87,10 +89,10 @@ void Horizon::Update() {
 		this->graphics.camera.AdjustPosition(this->graphics.camera.GetBackVector() * cameraSpeed * deltaTime);
 	}
 	if (keyboard.KeyIsPressed('A')) {
-		this->graphics.camera.AdjustPosition(this->graphics.camera.GetLeftVector() * cameraSpeed * deltaTime);
+		this->graphics.camera.AdjustPosition(this->graphics.camera.GetRightVector() * cameraSpeed * deltaTime);
 	}
 	if (keyboard.KeyIsPressed('D')) {
-		this->graphics.camera.AdjustPosition(this->graphics.camera.GetRightVector() * cameraSpeed * deltaTime);
+		this->graphics.camera.AdjustPosition(this->graphics.camera.GetLeftVector() * cameraSpeed * deltaTime);
 	}
 	if (keyboard.KeyIsPressed('E')) {
 		this->graphics.camera.AdjustPosition(0.0f, cameraSpeed * deltaTime, 0.0f);

@@ -21,8 +21,6 @@ public:
 
 	const XMVECTOR& GetPositionVector() const;
 	const XMFLOAT3& GetPositionFloat3() const;
-	const XMVECTOR& GetRotationVector() const;
-	const XMFLOAT3& GetRotationFloat3() const;
 
 	void SetPosition(const XMVECTOR& position);
 	void SetPosition(const XMFLOAT3& position);
@@ -34,16 +32,17 @@ public:
 	void SetRotation(const XMVECTOR& rotation);
 	void SetRotation(const XMFLOAT3& rotation);
 	void SetRotation(float x, float y, float z);
-	void AdjustRotation(const XMVECTOR& rotDiff);
-	void AdjustRotation(const XMFLOAT3& rotDiff);
-	void AdjustRotation(float x, float y, float z);
 
 	void SetLookAtPos(XMFLOAT3 lookAtPos);
+
+	void RotateAxisVectors(XMVECTOR axis, float angle);
+	void CopyAxisVectorsFrom(GameObject* gameObject);
 
 	const XMVECTOR& GetFrontVector(bool noY = false);
 	const XMVECTOR& GetBackVector(bool noY = false);
 	const XMVECTOR& GetLeftVector(bool noY = false);
 	const XMVECTOR& GetRightVector(bool noY = false);
+	const XMVECTOR& GetUpVector();
 
 	void SetObjectTrack(ObjectTrack* objectTrack);
 	ObjectTrack* GetObjectTrack();
@@ -59,31 +58,28 @@ public:
 	GameObjectType GetType();
 	std::string GetLabel();
 
+	XMMATRIX GetModelMatrix();
+	XMMATRIX GetRotationMatrix();
+	
+	virtual void UpdateModelMatrix();
+
 protected:
-	virtual void UpdateMatrix();
 	virtual void SetObjectDelta(float objectTrackDelta);
 
-	void UpdateDirectionVectors();
+	void CreateAxisVectorsFromRotMat();
 
 	XMVECTOR positionVector;
-	XMVECTOR rotationVector;
 	XMFLOAT3 position;
-	XMFLOAT3 rotation;
 
 	const XMVECTOR DEFAULT_FRONT_VECTOR = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 	const XMVECTOR DEFAULT_UP_VECTOR = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	const XMVECTOR DEFAULT_BACK_VECTOR = XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f);
-	const XMVECTOR DEFAULT_LEFT_VECTOR = XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f);
 	const XMVECTOR DEFAULT_RIGHT_VECTOR = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 
 	XMVECTOR front;
-	XMVECTOR back;
-	XMVECTOR left;
 	XMVECTOR right;
+	XMVECTOR up;
 
 	XMVECTOR frontNoY;
-	XMVECTOR backNoY;
-	XMVECTOR leftNoY;
 	XMVECTOR rightNoY;
 
 	ObjectTrack* objectTrack;
@@ -93,5 +89,8 @@ protected:
 	GameObjectType type;
 
 	std::string label;
+
+	XMMATRIX modelMatrix = XMMatrixIdentity();
+	XMMATRIX rotationMatrix = XMMatrixIdentity();
 };
 

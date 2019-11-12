@@ -14,7 +14,7 @@ bool Light::Initialize(std::string label, ID3D11Device* device, ID3D11DeviceCont
 
 	this->SetPosition(0.0f, 0.0f, 0.0f);
 	this->SetRotation(0.0f, 0.0f, 0.0f);
-	this->UpdateMatrix();
+	this->UpdateModelMatrix();
 
 	return true;
 }

@@ -163,7 +163,7 @@ bool Graphics::InitializeScene()
 		directionalLight.SetColour(XMFLOAT3(0.0f, 0.0f, 0.0f));
 
 		spotLight.SetPosition(-10.0f, 10.0f, -10.0f);
-		spotLight.SetLookAtPos(XMFLOAT3(0.0f, 10.0f, 0.0f));
+		//spotLight.SetLookAtPos(XMFLOAT3(0.0f, 10.0f, 0.0f));
 		spotLight.SetObjectTrack(objectTracks.at("spot_light_track"));
 		spotLight.SetFollowingObjectTrack(true);
 
@@ -220,12 +220,6 @@ void Graphics::RenderFrame(float deltaTime) {
 	this->deviceContext->PSSetShader(pixelShader.GetShader(), NULL, 0);
 
 	UINT offset = 0;
-
-	static float nanoRotationTotal = 0.0f;
-	static float womanRotationTotal = 0.0f;
-
-	nano.AdjustRotation(0.0f, nanoRotationTotal, 0.0f);
-	woman.AdjustRotation(0.0f, womanRotationTotal, 0.0f);
 
 	this->cb_vs_vertexShader.data.gameTime += deltaTime;
 
@@ -297,9 +291,9 @@ void Graphics::RenderFrame(float deltaTime) {
 	this->swapChain->Present(useVSync, NULL);// using vsync
 }
 
-void Graphics::SlideSelectedObject() {
+void Graphics::UpdateSelectedObject() {
 	if (mouseNDCX > -1.0f && mouseNDCX < 1.0f && mouseNDCY > -1.0f && mouseNDCY < 1.0f) {
-		if (this->axisEditState != AxisEditState::EDIT_NONE) {
+		if (this->axisEditState == AxisEditState::EDIT_TRANSLATE) {
 			XMFLOAT3 objectPos = selectedObject->GetPositionFloat3();
 			switch (this->axisEditSubState) {
 			case AxisEditSubState::EDIT_X:
@@ -337,6 +331,68 @@ void Graphics::SlideSelectedObject() {
 			}
 			}
 		}
+		else if (this->axisEditState == AxisEditState::EDIT_ROTATE) {
+			XMFLOAT3 objectPos = selectedObject->GetPositionFloat3();
+			XMMATRIX modelRotationMatrix = selectedObject->GetRotationMatrix();
+			XMMATRIX inverseModelRotationMatrix = XMMatrixInverse(nullptr, modelRotationMatrix);
+
+			switch (this->axisEditSubState) {
+			case AxisEditSubState::EDIT_X:
+			{
+				XMVECTOR planeNormal = XMVector3Normalize(XMVector3Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), modelRotationMatrix));
+				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetPositionVector();
+				XMVECTOR modelSpaceCentreDiff = XMVector3Transform(centreDiff, inverseModelRotationMatrix);
+				float rotation = atan2(XMVectorGetY(modelSpaceCentreDiff), XMVectorGetZ(modelSpaceCentreDiff));
+				if (this->lastAxisGrabOffset != FLT_MAX) {
+					float rotationDiff = rotation - this->lastAxisGrabOffset;
+					selectedObject->RotateAxisVectors(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), rotationDiff);
+					this->lastAxisGrabOffset = rotation - rotationDiff;
+				}
+				else {
+					this->lastAxisGrabOffset = rotation;
+				}
+				break;
+			}
+			case AxisEditSubState::EDIT_Y:
+			{
+				XMVECTOR planeNormal = XMVector3Normalize(XMVector3Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), modelRotationMatrix));
+				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetPositionVector();
+				XMVECTOR modelSpaceCentreDiff = XMVector3Transform(centreDiff, inverseModelRotationMatrix);
+				float x = XMVectorGetX(modelSpaceCentreDiff);
+				float y = XMVectorGetY(modelSpaceCentreDiff);
+				float z = XMVectorGetZ(modelSpaceCentreDiff);
+				float rotation = atan2(XMVectorGetZ(modelSpaceCentreDiff), XMVectorGetX(modelSpaceCentreDiff));
+				if (this->lastAxisGrabOffset != FLT_MAX) {
+					float rotationDiff = rotation - this->lastAxisGrabOffset;
+					selectedObject->RotateAxisVectors(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), rotationDiff);
+					this->lastAxisGrabOffset = rotation - rotationDiff;
+				}
+				else {
+					this->lastAxisGrabOffset = rotation;
+				}
+				break;
+			}
+			case AxisEditSubState::EDIT_Z:
+			{
+				XMVECTOR planeNormal = XMVector3Normalize(XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), modelRotationMatrix));
+				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetPositionVector();
+				XMVECTOR modelSpaceCentreDiff = XMVector3Transform(centreDiff, inverseModelRotationMatrix);
+				float rotation = atan2(XMVectorGetY(modelSpaceCentreDiff), XMVectorGetX(modelSpaceCentreDiff));
+				if (this->lastAxisGrabOffset != FLT_MAX) {
+					float rotationDiff = rotation - this->lastAxisGrabOffset;
+					selectedObject->RotateAxisVectors(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), -rotationDiff);
+					this->lastAxisGrabOffset = rotation - rotationDiff;
+				}
+				else {
+					this->lastAxisGrabOffset = rotation;
+				}
+				break;
+			}
+			}
+		}
 	}
 }
 
@@ -349,10 +405,22 @@ void Graphics::UpdateImGui()
 	if (selectingGameObject) {
 		ImGui::Begin("Game Object Settings");
 		ImGui::Text(("Label: " + selectedObject->GetLabel()).c_str());
+		XMFLOAT3 pos = selectedObject->GetPositionFloat3();
+		ImGui::Text(("X: " + std::to_string(pos.x) + "Y: " + std::to_string(pos.y) + "Z: " + std::to_string(pos.z)).c_str());
 		if (selectedObject->GetObjectTrack() != nullptr) {
 			bool followingTrack = selectedObject->GetFollowingObjectTrack();
 			ImGui::Checkbox("Follow Track", &followingTrack);
 			selectedObject->SetFollowingObjectTrack(followingTrack);
+		}
+		if (ImGui::Button("Edit Translation")) {
+			this->axisEditState = AxisEditState::EDIT_TRANSLATE;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Edit Rotation")) {
+			this->axisEditState = AxisEditState::EDIT_ROTATE;
+		}
+		if (ImGui::Button("Reset Rotation")) {
+			this->selectedObject->SetRotation(0.0f, 0.0f, 0.0f);
 		}
 		GameObjectType type = selectedObject->GetType();
 		if (type == GameObjectType::RENDERABLE) {
@@ -367,7 +435,7 @@ void Graphics::UpdateImGui()
 				XMVECTOR lightPosition = this->camera.GetPositionVector();
 				lightPosition += this->camera.GetFrontVector();
 				lightObj->SetPosition(lightPosition);
-				lightObj->SetRotation(this->camera.GetRotationFloat3());
+				lightObj->CopyAxisVectorsFrom(&camera);
 				lightObj->SetFollowingObjectTrack(false);
 			}
 		}
@@ -410,35 +478,6 @@ void Graphics::UpdateImGui()
 	ImGui::Checkbox("Use VSync", &useVSync);
 
 	ImGui::End();
-
-	//ImGui::Begin("Game Objects");
-
-	/*static float nanopos[3] = { nano.GetPositionFloat3().x, nano.GetPositionFloat3().y, nano.GetPositionFloat3().z };
-	ImGui::DragFloat3("Nano Pos", &nanopos[0], 0.2f, -20.0f, 20.0f);
-	nano.SetPosition(nanopos[0], nanopos[1], nanopos[2]);*/
-
-	/*static float nanorot[3] = { 0.0f, 0.0f, 0.0f };
-	ImGui::DragFloat3("Nano Rot", &nanorot[0], 0.025f, -XM_PI, XM_PI);
-	environment.SetRotation(nanorot[0], nanorot[1], nanorot[2]);*/
-
-	/*static float womanpos[3] = { woman.GetPositionFloat3().x, woman.GetPositionFloat3().y, woman.GetPositionFloat3().z };
-	ImGui::DragFloat3("Woman Pos", &womanpos[0], 0.2f, -20.0f, 20.0f);
-	woman.SetPosition(womanpos[0], womanpos[1], womanpos[2]);*/
-
-	/*static float womanrot[3] = { 0.0f, 0.0f, 0.0f };
-	ImGui::DragFloat3("Woman Rot", &womanrot[0], 0.025f, -XM_PI, XM_PI);
-	gameObject.SetRotation(womanrot[0], womanrot[1], womanrot[2]);*/
-
-	//static float nanoRotationSpeed = -0.05f;
-	//ImGui::DragFloat("Nano Rot Speed", &nanoRotationSpeed, 0.01f, -1.0f, 1.0f);
-	//nanoRotationTotal += nanoRotationSpeed * deltaTime * 0.05f;
-
-	//static float womanRotationSpeed = 0.05f;
-	//ImGui::DragFloat("Woman Rot Speed", &womanRotationSpeed, 0.01f, -1.0f, 1.0f);
-	//womanRotationTotal += womanRotationSpeed * deltaTime * 0.05f;
-
-	//ImGui::End();
-
 }
 
 void Graphics::Update(float deltaTime)
@@ -446,7 +485,7 @@ void Graphics::Update(float deltaTime)
 	this->ComputeMouseNDC();
 	this->camera.ComputeMouseToWorldVectorDirection(mouseNDCX, mouseNDCY);
 	if (selectingGameObject) {
-		SlideSelectedObject();
+		UpdateSelectedObject();
 	}
 
 	camera.Update(deltaTime);
@@ -742,6 +781,60 @@ void Graphics::CheckSelectingObject()
 				return;
 			}
 		}
+		else if (this->axisEditState == AxisEditState::EDIT_ROTATE) {
+
+			XMMATRIX modelRotationMatrix = selectedObject->GetRotationMatrix();
+
+			{
+				XMVECTOR planeNormal = XMVector3Normalize(XMVector4Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), modelRotationMatrix));
+				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetPositionVector();
+				float distanceToCentre = XMVectorGetX(XMVector3Length(centreDiff));
+				if (distanceToCentre > 0.9f && distanceToCentre < 1.1f) {
+					XMVECTOR camToIntersect = planeIntersectPoint - camera.GetPositionVector();
+					float camToIntersectDist = XMVectorGetX(XMVector3Length(camToIntersect));
+					if (camToIntersectDist < closestDist) {
+						closestDist = camToIntersectDist;
+						this->axisEditSubState = AxisEditSubState::EDIT_X;
+					}
+				}
+			}
+			{
+				XMVECTOR planeNormal = XMVector3Normalize(XMVector3Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), modelRotationMatrix));
+				float planeNormalx = XMVectorGetX(planeNormal);
+				float planeNormaly = XMVectorGetY(planeNormal);
+				float planeNormalz = XMVectorGetZ(planeNormal);
+				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetPositionVector();
+				float distanceToCentre = XMVectorGetX(XMVector3Length(centreDiff));
+				if (distanceToCentre > 0.9f && distanceToCentre < 1.1f) {
+					XMVECTOR camToIntersect = planeIntersectPoint - camera.GetPositionVector();
+					float camToIntersectDist = XMVectorGetX(XMVector3Length(camToIntersect));
+					if (camToIntersectDist < closestDist) {
+						closestDist = camToIntersectDist;
+						this->axisEditSubState = AxisEditSubState::EDIT_Y;
+					}
+				}
+			}
+			{
+				XMVECTOR planeNormal = XMVector3Normalize(XMVector4Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), modelRotationMatrix));
+				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetPositionVector();
+				float distanceToCentre = XMVectorGetX(XMVector3Length(centreDiff));
+				if (distanceToCentre > 0.9f && distanceToCentre < 1.1f) {
+					XMVECTOR camToIntersect = planeIntersectPoint - camera.GetPositionVector();
+					float camToIntersectDist = XMVectorGetX(XMVector3Length(camToIntersect));
+					if (camToIntersectDist < closestDist) {
+						closestDist = camToIntersectDist;
+						this->axisEditSubState = AxisEditSubState::EDIT_Z;
+					}
+				}
+			}
+			if (closestDist != FLT_MAX) {
+				this->selectedObject->SetFollowingObjectTrack(false);
+				return;
+			}
+		}
 	}
 
 	distance = this->nano.GetRayIntersectDist(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection());
@@ -774,7 +867,6 @@ void Graphics::CheckSelectingObject()
 	else {
 		this->selectingGameObject = false;
 		this->selectedObject = nullptr;
-		this->axisEditState = AxisEditState::EDIT_NONE;
 		this->axisEditSubState = AxisEditSubState::EDIT_NONE;
 		this->lastAxisGrabOffset = FLT_MAX;
 	}
@@ -788,8 +880,8 @@ void Graphics::DrawAxisForObject(GameObject* gameObject, const XMMATRIX& viewPro
 	if (this->axisEditState == AxisEditState::EDIT_TRANSLATE) {
 		this->axisTranslateModel.Draw(modelMatrix, viewProjection);
 	}
-	else if (this->axisEditState == AxisEditState::EDIT_TRANSLATE) {
-		this->axisRotateModel.Draw(modelMatrix, viewProjection);
+	else if (this->axisEditState == AxisEditState::EDIT_ROTATE) {
+		this->axisRotateModel.Draw(this->selectedObject->GetModelMatrix(), viewProjection);
 	}
 }
 
@@ -800,7 +892,7 @@ AxisEditSubState Graphics::GetAxisEditSubState()
 
 void Graphics::StopAxisEdit()
 {
-	this->axisEditState = AxisEditState::EDIT_NONE;
+	this->axisEditSubState = AxisEditSubState::EDIT_NONE;
 	this->lastAxisGrabOffset = FLT_MAX;
 }
 

@@ -18,10 +18,6 @@ protected:
 	Model model;
 	Model* axisModel;
 
-	void UpdateMatrix() override;
-
-	XMMATRIX modelMatrix = XMMatrixIdentity();
-
 	XMFLOAT3 scale;
 
 	BoundingSphere boundingSphere;

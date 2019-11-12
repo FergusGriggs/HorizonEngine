@@ -12,7 +12,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	}
 
 	Horizon engine = Horizon();
-	if (engine.Initialize(hInstance, "HorizonEngine", "windowClass", 1600, 900)) {
+	if (engine.Initialize(hInstance, "HorizonEngine", "windowClass", 1280, 720)) {
 		while (engine.ProcessMessages()) {
 			engine.Update();
 			engine.RenderFrame();

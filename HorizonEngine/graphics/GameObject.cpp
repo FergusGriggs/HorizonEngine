@@ -15,28 +15,18 @@ const XMFLOAT3& GameObject::GetPositionFloat3() const
 	return this->position;
 }
 
-const XMVECTOR& GameObject::GetRotationVector() const
-{
-	return this->rotationVector;
-}
-
-const XMFLOAT3& GameObject::GetRotationFloat3() const
-{
-	return this->rotation;
-}
-
 void GameObject::SetPosition(const XMVECTOR& position)
 {
 	XMStoreFloat3(&this->position, position);
 	this->positionVector = position;
-	this->UpdateMatrix();
+	this->UpdateModelMatrix();
 }
 
 void GameObject::SetPosition(const XMFLOAT3& position)
 {
 	this->position = position;
 	this->positionVector = XMLoadFloat3(&this->position);
-	this->UpdateMatrix();
+	this->UpdateModelMatrix();
 }
 
 
@@ -44,14 +34,14 @@ void GameObject::SetPosition(float x, float y, float z)
 {
 	this->position = XMFLOAT3(x, y, z);
 	this->positionVector = XMLoadFloat3(&this->position);
-	this->UpdateMatrix();
+	this->UpdateModelMatrix();
 }
 
 void GameObject::AdjustPosition(const XMVECTOR& diff)
 {
 	this->positionVector += diff;
 	XMStoreFloat3(&this->position, this->positionVector);
-	this->UpdateMatrix();
+	this->UpdateModelMatrix();
 }
 
 void GameObject::AdjustPosition(const XMFLOAT3& diff)
@@ -60,7 +50,7 @@ void GameObject::AdjustPosition(const XMFLOAT3& diff)
 	this->position.y += diff.y;
 	this->position.z += diff.z;
 	this->positionVector = XMLoadFloat3(&this->position);
-	this->UpdateMatrix();
+	this->UpdateModelMatrix();
 }
 
 void GameObject::AdjustPosition(float x, float y, float z)
@@ -69,58 +59,74 @@ void GameObject::AdjustPosition(float x, float y, float z)
 	this->position.y += y;
 	this->position.z += z;
 	this->positionVector = XMLoadFloat3(&this->position);
-	this->UpdateMatrix();
+	this->UpdateModelMatrix();
 }
 
 void GameObject::SetRotation(const XMVECTOR& rotation)
 {
-	XMStoreFloat3(&this->rotation, rotation);
-	this->rotationVector = rotation;
-	this->UpdateMatrix();
+	this->rotationMatrix = XMMatrixRotationRollPitchYaw(XMVectorGetX(rotation), XMVectorGetY(rotation), XMVectorGetZ(rotation));
+	this->CreateAxisVectorsFromRotMat();
+	this->UpdateModelMatrix();
 }
 
 void GameObject::SetRotation(const XMFLOAT3& rotation)
 {
-	this->rotation = rotation;
-	this->rotationVector = XMLoadFloat3(&this->rotation);
-	this->UpdateMatrix();
+	this->rotationMatrix = XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
+	this->CreateAxisVectorsFromRotMat();
+	this->UpdateModelMatrix();
 }
 
 void GameObject::SetRotation(float x, float y, float z)
 {
-	this->rotation = XMFLOAT3(x, y, z);
-	this->rotationVector = XMLoadFloat3(&this->rotation);
-	this->UpdateMatrix();
+	this->rotationMatrix = XMMatrixRotationRollPitchYaw(x, y, z);
+	this->CreateAxisVectorsFromRotMat();
+	this->UpdateModelMatrix();
 }
 
-void GameObject::AdjustRotation(const XMVECTOR& rotDiff)
+void GameObject::UpdateModelMatrix()
 {
-	this->rotationVector += rotDiff;
-	XMStoreFloat3(&this->rotation, this->rotationVector);
-	this->UpdateMatrix();
+	this->modelMatrix = this->rotationMatrix * XMMatrixTranslation(this->position.x, this->position.y, this->position.z);
 }
 
-void GameObject::AdjustRotation(const XMFLOAT3& rotDiff)
+void GameObject::RotateAxisVectors(XMVECTOR axis, float angle)
 {
-	this->rotation.x += rotation.x;
-	this->rotation.y += rotation.y;
-	this->rotation.z += rotation.z;
-	this->rotationVector = XMLoadFloat3(&this->rotation);
-	this->UpdateMatrix();
+	XMMATRIX rotation = XMMatrixRotationAxis(axis, angle);
+
+	this->front = XMVector3Transform(this->front, rotation);
+	this->right = XMVector3Transform(this->right, rotation);
+	this->up = XMVector3Transform(this->up, rotation);
+
+	this->rotationMatrix = XMMatrixLookToLH(XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), this->front, this->up);
+	//this->rotationMatrix = 
+	//this->rotationMatrix = XMMATRIX(front, right, up, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+	//this->rotationMatrix = XMMATRIX(-right, up, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+	//this->rotationMatrix = XMMatrixTranspose(XMMATRIX(front, up, right, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)));
+
+	UpdateModelMatrix();
 }
 
-void GameObject::AdjustRotation(float x, float y, float z)
+void GameObject::CopyAxisVectorsFrom(GameObject* gameObject)
 {
-	this->rotation.x += x;
-	this->rotation.y += y;
-	this->rotation.z += z;
-	this->rotationVector = XMLoadFloat3(&this->rotation);
-	this->UpdateMatrix();
+	this->front = gameObject->front;
+	this->right = gameObject->right;
+	this->up = gameObject->up;
 }
 
 void GameObject::SetLookAtPos(XMFLOAT3 lookAtPos)
 {
-	if (lookAtPos.x == this->position.x && lookAtPos.y == this->position.y && lookAtPos.z == this->position.z) {
+	this->front = XMVector3Normalize(XMVectorSet(lookAtPos.x, lookAtPos.y, lookAtPos.z, 0.0f) - this->positionVector);
+	this->right = XMVector3Normalize(XMVector3Cross(this->front, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)));
+	if (XMVector3Equal(right, XMVectorZero())) {
+		this->right = XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f);
+		this->up = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	}
+	else {
+		this->up = XMVector3Normalize(XMVector3Cross(this->right, this->front));
+	}
+
+	this->rotationMatrix = XMMATRIX(-right, up, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+
+	/*if (lookAtPos.x == this->position.x && lookAtPos.y == this->position.y && lookAtPos.z == this->position.z) {
 		return;
 	}
 
@@ -143,7 +149,7 @@ void GameObject::SetLookAtPos(XMFLOAT3 lookAtPos)
 		yaw += XM_PI;
 	}
 
-	this->SetRotation(pitch, yaw, 0.0f);
+	this->SetRotation(pitch, yaw, 0.0f);*/
 }
 
 const XMVECTOR& GameObject::GetFrontVector(bool noY)
@@ -156,15 +162,15 @@ const XMVECTOR& GameObject::GetFrontVector(bool noY)
 const XMVECTOR& GameObject::GetBackVector(bool noY)
 {
 	if (noY)
-		return this->backNoY;
-	return this->back;
+		return -this->frontNoY;
+	return -this->front;
 }
 
 const XMVECTOR& GameObject::GetLeftVector(bool noY)
 {
 	if (noY)
-		return this->leftNoY;
-	return this->left;
+		return -this->rightNoY;
+	return -this->right;
 }
 
 const XMVECTOR& GameObject::GetRightVector(bool noY)
@@ -174,10 +180,9 @@ const XMVECTOR& GameObject::GetRightVector(bool noY)
 	return this->right;
 }
 
-
-void GameObject::UpdateMatrix()
+const XMVECTOR& GameObject::GetUpVector()
 {
-	assert("UpdateMatrix() must be overridden." && 0);
+	return this->up;
 }
 
 void GameObject::Update(float deltaTime)
@@ -197,25 +202,28 @@ std::string GameObject::GetLabel()
 	return this->label;
 }
 
+XMMATRIX GameObject::GetModelMatrix()
+{
+	return this->modelMatrix;
+}
+
+XMMATRIX GameObject::GetRotationMatrix()
+{
+	return this->rotationMatrix;
+}
+
+
 void GameObject::SetObjectDelta(float delta)
 {
 	assert("SetDelta() must be overridden." && 0);
 }
 
 
-void GameObject::UpdateDirectionVectors()
+void GameObject::CreateAxisVectorsFromRotMat()
 {
-	XMMATRIX vectorRotationMatrix = XMMatrixRotationRollPitchYaw(this->rotation.x, this->rotation.y, 0.0f);
-	this->front = XMVector3TransformCoord(this->DEFAULT_FRONT_VECTOR, vectorRotationMatrix);
-	this->back = XMVector3TransformCoord(this->DEFAULT_BACK_VECTOR, vectorRotationMatrix);
-	this->left = XMVector3TransformCoord(this->DEFAULT_LEFT_VECTOR, vectorRotationMatrix);
-	this->right = XMVector3TransformCoord(this->DEFAULT_RIGHT_VECTOR, vectorRotationMatrix);
-
-	XMMATRIX vectorRotationMatrixNoY = XMMatrixRotationRollPitchYaw(0.0f, this->rotation.y, 0.0f);
-	this->frontNoY = XMVector3TransformCoord(this->DEFAULT_FRONT_VECTOR, vectorRotationMatrixNoY);
-	this->backNoY = XMVector3TransformCoord(this->DEFAULT_BACK_VECTOR, vectorRotationMatrixNoY);
-	this->leftNoY = XMVector3TransformCoord(this->DEFAULT_LEFT_VECTOR, vectorRotationMatrixNoY);
-	this->rightNoY = XMVector3TransformCoord(this->DEFAULT_RIGHT_VECTOR, vectorRotationMatrixNoY);
+	this->front = XMVector3Transform(this->DEFAULT_FRONT_VECTOR, this->rotationMatrix);
+	this->right = XMVector3Transform(this->DEFAULT_RIGHT_VECTOR, this->rotationMatrix);
+	this->up = XMVector3Transform(this->DEFAULT_UP_VECTOR, this->rotationMatrix);
 }
 
 float GameObject::GetObjectTrackDelta()

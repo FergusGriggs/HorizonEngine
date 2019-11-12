@@ -13,9 +13,6 @@ bool RenderableGameObject::Initialize(std::string label, const std::string& file
 	}
 
 	this->SetPosition(0.0f, 0.0f, 0.0f);
-	this->SetRotation(0.0f, 0.0f, 0.0f);
-
-	this->UpdateMatrix();
 
 	this->scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 
@@ -31,13 +28,6 @@ void RenderableGameObject::Draw(const XMMATRIX& viewProjectionMatrix)
 		model.Draw(this->modelMatrix, viewProjectionMatrix);
 	}
 }
-
-void RenderableGameObject::UpdateMatrix()
-{
-	this->modelMatrix = XMMatrixRotationRollPitchYaw(this->rotation.x, this->rotation.y, this->rotation.z) * XMMatrixTranslation(this->position.x, this->position.y, this->position.z);
-	this->UpdateDirectionVectors();
-}
-
 
 float RenderableGameObject::GetRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection)
 {

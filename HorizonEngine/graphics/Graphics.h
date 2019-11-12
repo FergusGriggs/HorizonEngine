@@ -52,7 +52,7 @@ public:
 	void ComputeMouseNDC();
 
 	void CheckSelectingObject();
-	void SlideSelectedObject();
+	void UpdateSelectedObject();
 
 	void UpdateImGui();
 
@@ -123,6 +123,7 @@ private:
 	AxisEditState axisEditState = AxisEditState::EDIT_TRANSLATE;
 	AxisEditSubState axisEditSubState = AxisEditSubState::EDIT_NONE;
 	float lastAxisGrabOffset = FLT_MAX;
+	XMVECTOR lastGrabPos;
 
 	int windowWidth = 0;
 	int windowHeight = 0;

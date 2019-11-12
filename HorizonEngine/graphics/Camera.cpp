@@ -5,10 +5,8 @@ Camera::Camera()
 	this->position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	this->positionVector = XMLoadFloat3(&this->position);
 
-	this->rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	this->rotationVector = XMLoadFloat3(&this->rotation);
-
-	UpdateMatrix();
+	this->CreateAxisVectorsFromRotMat();
+	UpdateModelMatrix();//view
 
 	this->type = GameObjectType::CAMERA;
 }
@@ -59,15 +57,10 @@ const XMMATRIX& Camera::GetProjectionMatrix() const
 	return this->projection;
 }
 
-void Camera::UpdateMatrix()
+void Camera::UpdateModelMatrix()
 {
-	XMMATRIX cameraRotationMatrix = XMMatrixRotationRollPitchYaw(this->rotation.x, this->rotation.y, this->rotation.z);
-	XMVECTOR cameraTarget = XMVector3TransformCoord(this->DEFAULT_FRONT_VECTOR, cameraRotationMatrix);
-	cameraTarget += this->positionVector;
-	XMVECTOR cameraUp = XMVector3TransformCoord(this->DEFAULT_UP_VECTOR, cameraRotationMatrix);
-	this->view = XMMatrixLookAtLH(this->positionVector, cameraTarget, cameraUp);
-
-	this->UpdateDirectionVectors();
+	this->view = XMMatrixLookToLH(this->positionVector, this->front, this->up);
+	//this->modelMatrix = this->rotationMatrix * XMMatrixTranslation(this->position.x, this->position.y, this->position.z);
 }
 
 void Camera::ComputeMouseToWorldVectorDirection(float mouseNDCX, float mouseNDCY)
