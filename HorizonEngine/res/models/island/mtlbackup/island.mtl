@@ -1,0 +1,48 @@
+# Blender MTL File: 'island.blend'
+# Material Count: 4
+
+newmtl Material.002
+Ns 3.921569
+Ka 0.145833 0.145833 0.145833
+Kd 0.111984 0.342384 0.001760
+Ks 0.027484 0.027484 0.027484
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd metal_diffuse.jpg
+map_Ks metal_specular.jpg
+map_Bump metal_normal.jpg
+
+newmtl Material.003
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd gems_diffuse.jpg
+map_Ks gems_specular.jpg
+map_Bump gems_normal.jpg
+
+newmtl Material.004
+Ns 96.078431
+Ka 1.000000 1.000000 1.000000
+Kd 0.106292 0.041912 0.013461
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Material.005
+Ns 13.725490
+Ka 1.000000 1.000000 1.000000
+Kd 0.007780 0.134360 0.001749
+Ks 0.004509 0.004509 0.004509
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
