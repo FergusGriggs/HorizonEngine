@@ -32,7 +32,10 @@ void RenderableGameObject::Draw(const XMMATRIX& viewProjectionMatrix)
 float RenderableGameObject::GetRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection)
 {
 	boundingSphere.Center = position;
-	boundingSphere.Radius = 0.35f;
+	if (label == "Boat") {
+		boundingSphere.Radius = 0.0f;
+	}
+	boundingSphere.Radius = this->model.GetHitRadius();
 	float distance;
 	boundingSphere.Intersects(rayOrigin, rayDirection, distance);
 	if (distance > 0.0f) {
@@ -49,4 +52,8 @@ XMFLOAT3 RenderableGameObject::GetScale()
 void RenderableGameObject::SetScale(XMFLOAT3 scale)
 {
 	this->scale = scale;
+}
+
+Model* RenderableGameObject::GetModel() {
+	return &this->model;
 }

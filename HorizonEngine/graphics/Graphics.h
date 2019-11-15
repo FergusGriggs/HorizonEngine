@@ -1,14 +1,14 @@
 #pragma once
 
-#include "AdapterReader.h"
+#include "utility/AdapterReader.h"
 #include "Shader.h"
-#include "ConstantBufferTypes.h"
+#include "buffers/ConstantBufferTypes.h"
 #include "Camera.h"
-#include "../Timer.h"
+#include "../utility/Timer.h"
 #include "RenderableGameObject.h"
-#include "Light.h"
-#include "SpotLight.h"
-#include "PointLight.h"
+#include "lights/Light.h"
+#include "lights/SpotLight.h"
+#include "lights/PointLight.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_win32.h"
@@ -68,6 +68,7 @@ public:
 	RenderableGameObject woman;
 	RenderableGameObject ocean;
 	RenderableGameObject island;
+	RenderableGameObject boat;
 
 	Light directionalLight;
 	SpotLight spotLight;
@@ -75,6 +76,10 @@ public:
 
 	Model axisTranslateModel;
 	Model axisRotateModel;
+
+	XMFLOAT3 xAxisTranslateDefaultBounds;
+	XMFLOAT3 yAxisTranslateDefaultBounds;
+	XMFLOAT3 zAxisTranslateDefaultBounds;
 
 	BoundingBox xAxisTranslateBoudingBox;
 	BoundingBox yAxisTranslateBoudingBox;

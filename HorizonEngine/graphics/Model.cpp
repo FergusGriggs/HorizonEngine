@@ -38,6 +38,11 @@ void Model::Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatr
 	}
 }
 
+float Model::GetHitRadius()
+{
+	return modelHitRadius;
+}
+
 bool Model::LoadModel(const std::string& filePath)
 {
 	this->directory = StringHelper::GetDirectoryFromPath(filePath);
@@ -51,7 +56,18 @@ bool Model::LoadModel(const std::string& filePath)
 	}
 
 	this->ProcessNode(pScene->mRootNode, pScene, XMMatrixIdentity());// * XMMatrixScaling(0.025f, 0.025f, 0.025f)
+
+	this->LoadModelMetaData(filePath.substr(0, filePath.length() - 4) + "_meta.txt");//remove model file extension, add '_meta.txt'
+
 	return true;
+}
+
+void Model::LoadModelMetaData(const std::string& filePath) {
+	std::fstream metaDataFile(filePath);
+	if (metaDataFile) {
+		metaDataFile >> this->modelHitRadius;
+		metaDataFile.close();
+	}
 }
 
 void Model::ProcessNode(aiNode* node, const aiScene* scene, const XMMATRIX& parentTransformMatrix)

@@ -1,8 +1,10 @@
+//WindowContainer.h
+
 #pragma once
 
 #include "RenderWindow.h"
-#include "keyboard/Keyboard.h"
-#include "mouse/Mouse.h"
+#include "input/keyboard/Keyboard.h"
+#include "input/mouse/Mouse.h"
 
 #include "graphics/Graphics.h"
 

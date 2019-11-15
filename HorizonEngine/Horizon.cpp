@@ -1,3 +1,6 @@
+//HorizonEngine.cpp
+//Function implementations for the HorizonEngine class
+
 #include "Horizon.h"
 
 Horizon::Horizon() {

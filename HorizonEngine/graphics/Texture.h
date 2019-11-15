@@ -8,7 +8,7 @@
 #include <DDSTextureLoader.h>
 
 #include "Colour.h"
-#include "../ErrorLogger.h"
+#include "../utility/ErrorLogger.h"
 
 enum class TextureStorageType
 {

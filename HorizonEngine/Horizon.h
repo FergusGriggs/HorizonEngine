@@ -1,9 +1,12 @@
+//HorizonEngine.h
+//A singleton class that encapsulates all of the engine code
+
 #pragma once
 
 #include <Audio.h>
 
 #include "WindowContainer.h"
-#include "Timer.h"
+#include "utility/Timer.h"
 
 class Horizon : WindowContainer
 {

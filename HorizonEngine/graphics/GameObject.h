@@ -3,7 +3,7 @@
 #include <DirectXCollision.h>
 
 #include "Model.h"
-#include "ObjectTrack.h"
+#include "utility/ObjectTrack.h"
 
 enum class GameObjectType {
 	BASE,

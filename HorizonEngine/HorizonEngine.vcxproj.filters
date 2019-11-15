@@ -13,18 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\Keyboard">
-      <UniqueIdentifier>{b1e57e25-ed7e-4cc9-92af-4288acb9daa0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Mouse">
-      <UniqueIdentifier>{8175e380-56c1-4db2-9868-ba056ba7f079}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Mouse">
-      <UniqueIdentifier>{743f6807-f817-46d9-9cc3-0fd69b067fa2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Keyboard">
-      <UniqueIdentifier>{2161a308-8c0b-4c2d-a89f-dcdc0160e7bb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Graphics">
       <UniqueIdentifier>{5cc7d147-0c59-45bb-8a90-15eff7e6b8ff}</UniqueIdentifier>
     </Filter>
@@ -37,12 +25,48 @@
     <Filter Include="Source Files\Graphics\ImGui">
       <UniqueIdentifier>{eb2aff32-39f2-428f-99f1-513ee9e69497}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics\Lights">
+      <UniqueIdentifier>{06979298-0966-4514-9738-68e777a68249}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Input">
+      <UniqueIdentifier>{59b56594-e80d-4fa2-9081-25cc39278f88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Input\Mouse">
+      <UniqueIdentifier>{8175e380-56c1-4db2-9868-ba056ba7f079}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Input\Keyboard">
+      <UniqueIdentifier>{b1e57e25-ed7e-4cc9-92af-4288acb9daa0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Utility">
+      <UniqueIdentifier>{0c4f9407-9ff4-4e0d-a400-7ce617f548d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\Lights">
+      <UniqueIdentifier>{7554f88d-af9c-4037-bcf0-79a0a2075dd3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Input">
+      <UniqueIdentifier>{6ac19b60-d014-4399-a03e-ca7fb22e58c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Input\Keyboard">
+      <UniqueIdentifier>{2161a308-8c0b-4c2d-a89f-dcdc0160e7bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Input\Mouse">
+      <UniqueIdentifier>{743f6807-f817-46d9-9cc3-0fd69b067fa2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utility">
+      <UniqueIdentifier>{beb0fe9f-51a1-4d61-a1c0-46435ede519e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utility">
+      <UniqueIdentifier>{697a95dd-aac3-476a-a9f7-941069ce123d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Utility">
+      <UniqueIdentifier>{4c2c7ca0-54ba-4f70-b21b-cbd7d8c8616c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics\Buffers">
+      <UniqueIdentifier>{9306694b-6ee1-4f41-a880-e6957d311c35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ErrorLogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RenderWindow.cpp">
@@ -54,22 +78,7 @@
     <ClCompile Include="WindowContainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Keyboard\Keyboard.cpp">
-      <Filter>Source Files\Keyboard</Filter>
-    </ClCompile>
-    <ClCompile Include="Keyboard\KeyboardEvent.cpp">
-      <Filter>Source Files\Keyboard</Filter>
-    </ClCompile>
-    <ClCompile Include="Mouse\Mouse.cpp">
-      <Filter>Source Files\Mouse</Filter>
-    </ClCompile>
-    <ClCompile Include="Mouse\MouseEvent.cpp">
-      <Filter>Source Files\Mouse</Filter>
-    </ClCompile>
     <ClCompile Include="graphics\Graphics.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="graphics\AdapterReader.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="graphics\Shader.cpp">
@@ -77,9 +86,6 @@
     </ClCompile>
     <ClCompile Include="graphics\Camera.cpp">
       <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="graphics\imgui\imgui.cpp">
       <Filter>Source Files\Graphics\ImGui</Filter>
@@ -111,29 +117,47 @@
     <ClCompile Include="graphics\Texture.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="StringHelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="graphics\RenderableGameObject.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\Light.cpp">
-      <Filter>Source Files\Graphics</Filter>
+    <ClCompile Include="input\mouse\Mouse.cpp">
+      <Filter>Source Files\Input\Mouse</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\PointLight.cpp">
-      <Filter>Source Files\Graphics</Filter>
+    <ClCompile Include="input\mouse\MouseEvent.cpp">
+      <Filter>Source Files\Input\Mouse</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\SpotLight.cpp">
-      <Filter>Source Files\Graphics</Filter>
+    <ClCompile Include="input\keyboard\Keyboard.cpp">
+      <Filter>Source Files\Input\Keyboard</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\ObjectTrack.cpp">
-      <Filter>Source Files\Graphics</Filter>
+    <ClCompile Include="input\keyboard\KeyboardEvent.cpp">
+      <Filter>Source Files\Input\Keyboard</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\utility\AdapterReader.cpp">
+      <Filter>Source Files\Graphics\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\utility\ObjectTrack.cpp">
+      <Filter>Source Files\Graphics\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\lights\PointLight.cpp">
+      <Filter>Source Files\Graphics\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\lights\SpotLight.cpp">
+      <Filter>Source Files\Graphics\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\lights\Light.cpp">
+      <Filter>Source Files\Graphics\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\Timer.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\StringHelper.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\ErrorLogger.cpp">
+      <Filter>Source Files\Utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ErrorLogger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="RenderWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -143,22 +167,7 @@
     <ClInclude Include="WindowContainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Keyboard\Keyboard.h">
-      <Filter>Header Files\Keyboard</Filter>
-    </ClInclude>
-    <ClInclude Include="Keyboard\KeyboardEvent.h">
-      <Filter>Header Files\Keyboard</Filter>
-    </ClInclude>
-    <ClInclude Include="Mouse\Mouse.h">
-      <Filter>Header Files\Mouse</Filter>
-    </ClInclude>
-    <ClInclude Include="Mouse\MouseEvent.h">
-      <Filter>Header Files\Mouse</Filter>
-    </ClInclude>
     <ClInclude Include="graphics\Graphics.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics\AdapterReader.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="graphics\Vertex.h">
@@ -167,23 +176,8 @@
     <ClInclude Include="graphics\Shader.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\VertexBuffer.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics\IndexBuffer.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics\ConstantBufferTypes.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="graphics\ConstantBuffer.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="graphics\Camera.h">
       <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Timer.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="graphics\imgui\imconfig.h">
       <Filter>Header Files\Graphics\ImGui</Filter>
@@ -209,9 +203,6 @@
     <ClInclude Include="graphics\imgui\imgui_impl_win32.h">
       <Filter>Header Files\Graphics\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="COMException.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="graphics\Model.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
@@ -227,23 +218,59 @@
     <ClInclude Include="graphics\Texture.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="StringHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="graphics\RenderableGameObject.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\Light.h">
-      <Filter>Header Files\Graphics</Filter>
+    <ClInclude Include="input\mouse\Mouse.h">
+      <Filter>Header Files\Input\Mouse</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\PointLight.h">
-      <Filter>Header Files\Graphics</Filter>
+    <ClInclude Include="input\mouse\MouseEvent.h">
+      <Filter>Header Files\Input\Mouse</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\SpotLight.h">
-      <Filter>Header Files\Graphics</Filter>
+    <ClInclude Include="input\keyboard\Keyboard.h">
+      <Filter>Header Files\Input\Keyboard</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\ObjectTrack.h">
-      <Filter>Header Files\Graphics</Filter>
+    <ClInclude Include="input\keyboard\KeyboardEvent.h">
+      <Filter>Header Files\Input\Keyboard</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\utility\AdapterReader.h">
+      <Filter>Header Files\Graphics\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\buffers\IndexBuffer.h">
+      <Filter>Header Files\Graphics\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\buffers\VertexBuffer.h">
+      <Filter>Header Files\Graphics\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\buffers\ConstantBufferTypes.h">
+      <Filter>Header Files\Graphics\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\buffers\ConstantBuffer.h">
+      <Filter>Header Files\Graphics\Buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\utility\ObjectTrack.h">
+      <Filter>Header Files\Graphics\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\lights\PointLight.h">
+      <Filter>Header Files\Graphics\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\lights\SpotLight.h">
+      <Filter>Header Files\Graphics\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\lights\Light.h">
+      <Filter>Header Files\Graphics\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\Timer.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\StringHelper.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\COMException.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\ErrorLogger.h">
+      <Filter>Header Files\Utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -253,11 +280,14 @@
     <FxCompile Include="res\shaders\vertexShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="noLightPixelShader.hlsl">
+    <FxCompile Include="res\shaders\noLightPixelShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="waterVertexShader.hlsl">
+    <FxCompile Include="res\shaders\waterVertexShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="HorizonEngine.cd" />
   </ItemGroup>
 </Project>

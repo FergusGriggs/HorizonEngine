@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../ErrorLogger.h"
+#include "../utility/ErrorLogger.h"
 
 #include <d3d11.h>
 #include <wrl/client.h>
@@ -26,10 +26,8 @@ public:
 	bool Initialize(Microsoft::WRL::ComPtr<ID3D11Device>& device, std::wstring shaderFilePath);
 	ID3D11PixelShader* GetShader();
 	ID3D10Blob* GetBuffer();
-	//ID3D11InputLayout* GetInputLayout();
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> shader;
 	Microsoft::WRL::ComPtr<ID3D10Blob> shaderBuffer;
-	//Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 };

@@ -12,6 +12,8 @@ public:
 	float GetRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection);
 
 	XMFLOAT3 GetScale();
+	Model* GetModel();
+
 	void SetScale(XMFLOAT3 scale);
 
 protected:

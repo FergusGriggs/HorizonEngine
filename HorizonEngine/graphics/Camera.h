@@ -2,7 +2,7 @@
 
 #include <DirectXMath.h>
 #include "GameObject.h"
-#include "ObjectTrack.h"
+#include "utility/ObjectTrack.h"
 
 class CameraTrack;
 
