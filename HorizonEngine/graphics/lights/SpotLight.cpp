@@ -1,3 +1,6 @@
+//SpotLight.cpp
+//Function implementation for the SpotLight class
+
 #include "SpotLight.h"
 
 SpotLight::SpotLight() {

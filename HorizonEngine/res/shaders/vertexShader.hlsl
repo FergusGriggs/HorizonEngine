@@ -1,3 +1,6 @@
+//vertexShader.hlsl
+//Default vertex shader
+
 #pragma pack_matrix( row_major )
 
 cbuffer constantBuffer : register(b0)

@@ -1,3 +1,6 @@
+//Graphics.h
+//Handles most DirectX initialization and all object initialization, updating and rendering
+
 #pragma once
 
 #include "utility/AdapterReader.h"

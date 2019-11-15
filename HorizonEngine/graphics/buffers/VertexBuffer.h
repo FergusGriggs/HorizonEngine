@@ -1,3 +1,6 @@
+//VertexBuffer.h
+//Stores an ID3D11Buffer for some vertices and their meta-data, automatically sets up buffer description and buffer subresource data
+
 #pragma once
 
 #include <memory>

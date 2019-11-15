@@ -1,3 +1,6 @@
+//Shader.h
+//Stores definitions for the VertexShader and PixelShader classes
+
 #pragma once
 
 #include "../utility/ErrorLogger.h"

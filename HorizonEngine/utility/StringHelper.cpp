@@ -1,3 +1,6 @@
+//StringHelper.cpp
+//Function implementations for the StringHelper class
+
 #include "StringHelper.h"
 
 std::wstring StringHelper::StringToWide(std::string str) {

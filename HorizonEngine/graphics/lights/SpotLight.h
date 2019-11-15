@@ -1,3 +1,6 @@
+//SpotLight.h
+//Child class of Light which also stores attenuation information and cutoff values so a feathered cone of light can be modelled
+
 #pragma once
 
 #include "Light.h"

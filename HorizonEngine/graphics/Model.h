@@ -1,3 +1,6 @@
+//Model.h
+//Handles the loading of 3D models with the help of Assimp, all vertex and index data is stored in meshes in an std::vector
+
 #pragma once
 
 #include "Mesh.h"

@@ -1,3 +1,6 @@
+//Timer.h
+//Simple timer class that can accurately measure differences in time between it's start and stop functions
+
 #pragma once
 
 #include <chrono>

@@ -1,3 +1,6 @@
+//Light.h
+//Base class for all light objects (Child of RenderableGameObject), stores variables and provides methods that all light objects will use.
+
 #pragma once
 
 #include "../Camera.h"

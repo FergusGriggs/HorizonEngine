@@ -1,3 +1,6 @@
+//Light.cpp
+//Function implementations for the Light class
+
 #include "Light.h"
 
 Light::Light()

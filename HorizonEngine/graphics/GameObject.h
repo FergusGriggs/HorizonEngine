@@ -1,3 +1,6 @@
+//GameObject.h
+//The base class for any object in the scene. Stores information on the position, rotation and type of object
+
 #pragma once
 
 #include <DirectXCollision.h>

@@ -1,3 +1,6 @@
+//ObjectTrack.h
+//Stores information about a spline which a GameObject can follow smoothly
+
 #pragma once
 
 #include <vector>

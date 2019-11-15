@@ -1,3 +1,6 @@
+//Texture.cpp
+//Function implementations for the Texture class
+
 #include "Texture.h"
 
 Texture::Texture(ID3D11Device* device, const Colour& colour, aiTextureType type)

@@ -1,3 +1,6 @@
+//Colour.h
+//Stores a byte array and an unsigned int which both store the same rgba colour
+
 #pragma once
 
 typedef unsigned char BYTE;

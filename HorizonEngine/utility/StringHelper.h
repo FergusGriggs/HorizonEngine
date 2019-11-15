@@ -1,3 +1,6 @@
+//StringHelper.h
+//Provides a simple way to convert strings and perform some directory modifications. All methods are static.
+
 #pragma once
 
 #include <string>

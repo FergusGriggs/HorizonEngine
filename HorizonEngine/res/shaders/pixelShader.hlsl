@@ -1,3 +1,6 @@
+//pixelShader.hlsl
+//Default pixel shader
+
 cbuffer constantBuffer : register(b0)
 {
     //PACK_SEAM // DIRECTIONAL LIGHT

@@ -1,3 +1,6 @@
+//PointLight.h
+//Child class of Light which also stores attenuation information
+
 #pragma once
 
 #include "Light.h"

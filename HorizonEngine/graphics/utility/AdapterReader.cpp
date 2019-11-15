@@ -1,3 +1,6 @@
+//AdapterReader.cpp
+//Function implementations for the AdapterReader and AdapterData classes
+
 #include "AdapterReader.h"
 
 std::vector<AdapterData> AdapterReader::adapters;

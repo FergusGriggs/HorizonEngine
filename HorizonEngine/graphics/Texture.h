@@ -1,3 +1,7 @@
+//Texture.h
+//The Texture class is used to create ID3D11Resource and ID3D11ShaderResourceView objects from
+//either a Colour object, or load in texture data using the available DirectX libraries
+
 #pragma once
 
 #include <d3d11.h>

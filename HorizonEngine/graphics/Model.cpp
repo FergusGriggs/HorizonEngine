@@ -1,3 +1,6 @@
+//Model.cpp
+//Function implementations for the Model class
+
 #include "Model.h"
 
 bool Model::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexShader>& cb_vs_vertexShader)

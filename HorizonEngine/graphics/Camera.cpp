@@ -1,3 +1,6 @@
+//Camera.cpp
+//Function implementations for the Camera class
+
 #include "Camera.h"
 
 Camera::Camera()

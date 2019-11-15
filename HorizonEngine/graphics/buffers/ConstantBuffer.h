@@ -1,3 +1,6 @@
+//ConstantBuffer.h
+//Stores an ID3D11Buffer for a constant buffer of any type and its meta-data, automatically rounds the byte width to the 16 byte alignment
+
 #pragma once
 
 #ifndef ConstantBuffer_h__

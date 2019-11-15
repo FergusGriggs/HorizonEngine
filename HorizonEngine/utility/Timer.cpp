@@ -1,3 +1,6 @@
+//Timer.cpp
+//Function implementations for the Timer class
+
 #include "Timer.h"
 
 Timer::Timer()

@@ -1,3 +1,6 @@
+//Mesh.h
+//Stores all information required to draw a single mesh of a model
+
 #pragma once
 
 #include "Vertex.h"

@@ -1,3 +1,6 @@
+//Colour.cpp
+//Function implementations for the Colour class
+
 #include "Colour.h"
 
 #pragma once

@@ -1,3 +1,6 @@
+//RenderWindow.h
+//Manages window variables, including directx window handle
+
 #pragma once
 
 #include "utility/ErrorLogger.h"

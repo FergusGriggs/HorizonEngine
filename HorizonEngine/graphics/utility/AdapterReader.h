@@ -1,3 +1,6 @@
+//AdapterReader.h
+//Retrieves and stores information about the available graphics adapters
+
 #pragma once
 
 #include "../utility/ErrorLogger.h"

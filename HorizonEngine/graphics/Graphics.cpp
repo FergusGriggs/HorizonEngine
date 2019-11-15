@@ -1,3 +1,6 @@
+//Graphics.cpp
+//Function implementations for the Graphics class
+
 #include "Graphics.h"
 
 bool Graphics::Initialize(HWND hwnd, int width, int height) {

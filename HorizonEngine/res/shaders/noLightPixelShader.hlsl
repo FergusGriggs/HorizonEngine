@@ -1,3 +1,6 @@
+//noLightPixelShader.hlsl
+//allows for models to be drawn without the influence of lights, allowing them to be seen in low light
+
 cbuffer constantBuffer : register(b0)
 {
     float3 colour;

@@ -1,3 +1,6 @@
+//ObjectTrack.cpp
+//Function implementations for the ObjectTrack class
+
 #include "ObjectTrack.h"
 
 ObjectTrackNode::ObjectTrackNode(XMFLOAT3 position, XMFLOAT3 lookPoint)

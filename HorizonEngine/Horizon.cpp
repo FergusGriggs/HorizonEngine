@@ -1,5 +1,5 @@
 //HorizonEngine.cpp
-//Function implementations for the HorizonEngine class
+//Function implementations for the Horizon class
 
 #include "Horizon.h"
 

@@ -1,3 +1,6 @@
+//RenderableGameObject.h
+//Child class of GameObject which stores an additional data to allow the object to be rendered and transformed
+
 #pragma once
 
 #include "GameObject.h"

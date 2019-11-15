@@ -1,3 +1,6 @@
+//IndexBuffer.h
+//Stores an ID3D11Buffer for some indices and their meta-data, automatically creates buffer description and buffer subresource data
+
 #pragma once
 
 #ifndef IndexBuffer_h__

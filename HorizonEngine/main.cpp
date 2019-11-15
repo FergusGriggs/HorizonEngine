@@ -1,3 +1,6 @@
+//main.cpp
+//Application entry point, creates and runs instance of Horizon class
+
 #include "Horizon.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,

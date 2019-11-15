@@ -1,3 +1,6 @@
+//waterVertexShader.hlsl
+//performs a similar function to the default vertex shader but also displaces the vertices over time
+
 #pragma pack_matrix( row_major )
 
 cbuffer constantBuffer : register(b0)

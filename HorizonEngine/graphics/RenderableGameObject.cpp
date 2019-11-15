@@ -1,3 +1,6 @@
+//RenderableGameObject.cpp
+//Function implementations for the RenderableGameObject class
+
 #include "RenderableGameObject.h"
 
 RenderableGameObject::RenderableGameObject() {

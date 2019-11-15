@@ -1,3 +1,6 @@
+//COMException.h
+//Primarily defines the COM_ERROR_IF_FAILED macro which will evaluate a HRESULT input and throw an error with extra information if neccessary
+
 #pragma once
 
 #include <comdef.h>

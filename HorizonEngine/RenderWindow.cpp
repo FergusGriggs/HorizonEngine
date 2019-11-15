@@ -1,3 +1,6 @@
+//RenderWindow.cpp
+//Function implementations for the RenderWindow class
+
 #include "WindowContainer.h"
 
 bool RenderWindow::Initialize(WindowContainer* windowContainer, HINSTANCE hInstance, std::string windowTitle, std::string windowClass, int width, int height) {

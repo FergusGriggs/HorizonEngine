@@ -1,3 +1,6 @@
+//ErrorLogger.cpp
+//Function implementations for the ErrorLogger class
+
 #include "ErrorLogger.h"
 
 void ErrorLogger::Log(std::string message) {

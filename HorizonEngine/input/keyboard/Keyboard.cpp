@@ -1,5 +1,5 @@
 //Keyboard.cpp
-//Function implementations for the keyboard class
+//Function implementations for the Keyboard class
 
 #include "Keyboard.h"
 

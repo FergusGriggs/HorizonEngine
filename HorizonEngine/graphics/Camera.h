@@ -1,3 +1,6 @@
+//Camera.h
+//Primarily modifies view and projection matrices so that a scene can be rendered from its perspective
+
 #pragma once
 
 #include <DirectXMath.h>
