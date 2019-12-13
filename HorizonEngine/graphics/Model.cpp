@@ -3,11 +3,10 @@
 
 #include "Model.h"
 
-bool Model::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexShader>& cb_vs_vertexShader)
+bool Model::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
 	this->device = device;
 	this->deviceContext = deviceContext;
-	this->cb_vs_vertexShader = &cb_vs_vertexShader;
 
 	try
 		{
@@ -24,18 +23,18 @@ bool Model::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11
 	return true;
 }
 
-void Model::Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix)
+void Model::Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader)
 {
-	this->deviceContext->VSSetConstantBuffers(0, 1, this->cb_vs_vertexShader->GetAddressOf());
+	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexShader->GetAddressOf());
 
 	for (int i = 0; i < meshes.size(); i++) {
-		this->cb_vs_vertexShader->data.modelViewProjectionMatrix = this->meshes[i].GetTransformMatrix() * modelMatrix * viewProjectionMatrix;
+		cb_vs_vertexShader->data.modelViewProjectionMatrix = this->meshes[i].GetTransformMatrix() * modelMatrix * viewProjectionMatrix;
 		//this->cb_vs_vertexShader->data.modelViewProjectionMatrix = XMMatrixTranspose(this->cb_vs_vertexShader->data.modelViewProjectionMatrix);
 
-		this->cb_vs_vertexShader->data.modelMatrix = this->meshes[i].GetTransformMatrix() * modelMatrix;
+		cb_vs_vertexShader->data.modelMatrix = this->meshes[i].GetTransformMatrix() * modelMatrix;
 		//this->cb_vs_vertexShader->data.modelMatrix = XMMatrixTranspose(this->cb_vs_vertexShader->data.modelMatrix);
 
-		this->cb_vs_vertexShader->MapToGPU();
+		cb_vs_vertexShader->MapToGPU();
 
 		meshes[i].Draw();
 	}
@@ -75,7 +74,7 @@ void Model::LoadModelMetaData(const std::string& filePath) {
 
 void Model::ProcessNode(aiNode* node, const aiScene* scene, const XMMATRIX& parentTransformMatrix)
 {
-	XMMATRIX nodeTransformationMatrix = XMMatrixTranspose(XMMATRIX(&node->mTransformation.a1)) * parentTransformMatrix;
+	XMMATRIX nodeTransformationMatrix = XMMatrixTranspose(XMMATRIX(&node->mTransformation.a1))* parentTransformMatrix;
 
 	for (UINT i = 0; i < node->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];

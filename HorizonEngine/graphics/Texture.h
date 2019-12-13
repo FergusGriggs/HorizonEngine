@@ -28,10 +28,13 @@ enum class TextureStorageType
 class Texture
 {
 public:
+	Texture() {};
 	Texture(ID3D11Device* device, const Colour& colour, aiTextureType type);
 	Texture(ID3D11Device* device, const Colour* colourData, UINT width, UINT height, aiTextureType type);
 	Texture(ID3D11Device* device, std::string & filePath, aiTextureType type);
 	Texture(ID3D11Device* device, const uint8_t* pData, size_t size, aiTextureType type);
+
+	bool Initialize(ID3D11Device* device, std::string& filePath, aiTextureType type);
 
 	aiTextureType GetType();
 	ID3D11ShaderResourceView* GetTextureResourceView();

@@ -55,6 +55,7 @@ cbuffer constantBuffer : register(b0)
     int useNormalMapping;
     int useParallaxOcclusionMapping;
     float parallaxOcclusionMappingHeight;
+    int fresnel;
 };
 
 struct PS_INPUT
@@ -218,7 +219,11 @@ float4 main(PS_INPUT input) : SV_TARGET
         cumulativeColour += (ambient + diffuse + specular) * spotLightAttenuation * intensity;
     }
 
-    float alpha = 1.0f - smoothstep(40.0f, 70.0f, distance(float3(0.0f, 0.0f, 0.0f), input.worldPos));
+    float alpha = 1.0f; //1.0f - smoothstep(75.0f, 85.0f, distance(float3(0.0f, 0.0f, 0.0f), input.worldPos));
+    if (fresnel)
+    {
+        alpha = alpha * (1.0f - 0.25 * dot(normal, viewDirection));
+    }
     float4 finalColour;
     finalColour.rgb = cumulativeColour;
     finalColour.a = alpha;

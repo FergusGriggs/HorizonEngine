@@ -7,6 +7,7 @@
 
 #include "WindowContainer.h"
 #include "utility/Timer.h"
+#include "graphics/utility/Controller.h"
 
 class Horizon : WindowContainer
 {
@@ -17,11 +18,14 @@ public:
 	bool ProcessMessages();
 	void Update();
 	void RenderFrame();
+	bool InitializeControllers();
 
 private:
 	Timer timer;
 	float deltaTime;
 	AudioEngine* audioEngine;
 	SoundEffect* soundEffect;
+
+	std::vector<Controller> controllers;
 };
 

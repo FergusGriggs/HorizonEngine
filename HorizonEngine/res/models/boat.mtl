@@ -1,8 +1,8 @@
 # Blender MTL File: 'None'
-# Material Count: 4
+# Material Count: 5
 
 newmtl 07___Default1
-Ns 96.078431
+Ns 96.078443
 Ka 1.000000 1.000000 1.000000
 Kd 0.630000 0.320000 0.180000
 Ks 0.500000 0.500000 0.500000
@@ -10,29 +10,25 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-
-newmtl Material
-Ns 96.078431
-Ka 1.000000 1.000000 1.000000
-Kd 0.640000 0.640000 0.640000
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.000000
-d 1.000000
-illum 2
+map_Kd ../textures/wood/diffuse.jpg
+map_Ks ../textures/wood/specular.jpg
+bump ../textures/wood/normal.jpg
 
 newmtl Material.002
-Ns 96.078431
+Ns 96.078443
 Ka 1.000000 1.000000 1.000000
-Kd 0.640000 0.177902 0.000000
+Kd 0.168000 0.095000 0.044000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd ../textures/wood_clean/diffuse.jpg
+map_Ks ../textures/wood_clean/specular.jpg
+bump ../textures/wood_clean/normal.jpg
 
 newmtl Material.003
-Ns 96.078431
+Ns 96.078443
 Ka 1.000000 1.000000 1.000000
 Kd 0.640000 0.001082 0.000000
 Ks 0.500000 0.500000 0.500000
@@ -40,3 +36,16 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+
+newmtl sails
+Ns 96.078443
+Ka 1.000000 1.000000 1.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd ../textures/sail/diffuse.jpg
+map_Ks ../textures/sail/specular.jpg
+bump ../textures/sail/normal.jpg

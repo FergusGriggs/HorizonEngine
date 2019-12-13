@@ -4,6 +4,7 @@
 cbuffer constantBuffer : register(b0)
 {
     float3 colour;
+    int justColour;
 };
 
 struct PS_INPUT
@@ -21,6 +22,12 @@ SamplerState samplerState : SAMPLER : register(s0);
 float4 main(PS_INPUT input) : SV_TARGET
 {
     float3 textureColour = diffuseTexture.Sample(samplerState, input.texCoord);
+    
+    if (justColour)
+    {
+        return float4(textureColour.x, textureColour.y, textureColour.z, 1.0f);
+    }
+    
     float dotResult = abs(dot(float3(0.0f, 1.0f, 0.0f), input.normal));
     dotResult = dotResult * 0.5 + 0.5f;
     return float4(textureColour * colour * dotResult, 1.0f);

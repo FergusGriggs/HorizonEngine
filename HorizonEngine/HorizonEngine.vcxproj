@@ -167,11 +167,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="graphics\utility\Controller.cpp" />
     <ClCompile Include="graphics\utility\ObjectTrack.cpp" />
     <ClCompile Include="graphics\Colour.cpp" />
     <ClCompile Include="graphics\GameObject.cpp" />
     <ClCompile Include="graphics\Camera.cpp" />
     <ClCompile Include="graphics\utility\AdapterReader.cpp" />
+    <ClCompile Include="graphics\utility\ResourceManager.cpp" />
     <ClCompile Include="utility\ErrorLogger.cpp" />
     <ClCompile Include="graphics\Graphics.cpp" />
     <ClCompile Include="graphics\imgui\imgui.cpp" />
@@ -199,8 +201,10 @@
     <ClCompile Include="WindowContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="graphics\utility\Controller.h" />
     <ClInclude Include="graphics\utility\ObjectTrack.h" />
     <ClInclude Include="graphics\Colour.h" />
+    <ClInclude Include="graphics\utility\ResourceManager.h" />
     <ClInclude Include="utility\COMException.h" />
     <ClInclude Include="graphics\GameObject.h" />
     <ClInclude Include="graphics\Camera.h" />
@@ -239,6 +243,14 @@
     <ClInclude Include="WindowContainer.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="cloudsPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DisableOptimizations>
+    </FxCompile>
     <FxCompile Include="res\shaders\noLightPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>

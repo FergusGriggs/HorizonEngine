@@ -12,10 +12,16 @@ Camera::Camera()
 	UpdateModelMatrix();//view
 
 	this->type = GameObjectType::CAMERA;
+
+	this->relativeObject = nullptr;
 }
 
 void Camera::Update(float deltaTime)
 {
+	if (usingRelativePosition && relativeObject != nullptr)
+	{
+		this->SetPosition(relativeObject->GetPositionVector() + relativeObject->GetRightVector() * XMVectorGetX(relativePosition) + relativeObject->GetUpVector() * XMVectorGetY(relativePosition) + relativeObject->GetFrontVector() * XMVectorGetZ(relativePosition));
+	}
 	if (followingTrack) {
 		this->objectTrack->Follow(this, deltaTime);
 	}
@@ -41,6 +47,13 @@ void Camera::Zoom(float fovDiff)
 	else if (this->fov > 150.0f) {
 		this->fov = 150.0f;
 	}
+	float fovRadians = (this->fov / 180.0f) * XM_PI;
+	this->projection = XMMatrixPerspectiveFovLH(fovRadians, this->aspectRatio, this->nearZ, this->farZ);
+}
+
+void Camera::SetZoom(float fov)
+{
+	this->fov = fov;
 	float fovRadians = (this->fov / 180.0f) * XM_PI;
 	this->projection = XMMatrixPerspectiveFovLH(fovRadians, this->aspectRatio, this->nearZ, this->farZ);
 }
@@ -93,4 +106,16 @@ XMFLOAT2 Camera::GetNDCFrom3DPos(XMVECTOR objectPosition)
 
 	float w = XMVectorGetW(clipSpaceVector);
 	return XMFLOAT2(XMVectorGetX(clipSpaceVector) / w, XMVectorGetY(clipSpaceVector) / w);
+}
+
+void Camera::SetRelativeObject(GameObject* relativeObject, XMVECTOR relativePosition)
+{
+	this->relativeObject = relativeObject;
+	this->relativePosition = relativePosition;
+	this->usingRelativePosition = true;
+}
+
+bool* Camera::GetUsingRelativeCameraPtr()
+{
+	return &usingRelativePosition;
 }

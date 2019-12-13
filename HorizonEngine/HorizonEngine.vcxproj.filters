@@ -156,6 +156,12 @@
     <ClCompile Include="utility\ErrorLogger.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\utility\ResourceManager.cpp">
+      <Filter>Source Files\Graphics\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\utility\Controller.cpp">
+      <Filter>Source Files\Graphics\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RenderWindow.h">
@@ -272,6 +278,12 @@
     <ClInclude Include="utility\ErrorLogger.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="graphics\utility\ResourceManager.h">
+      <Filter>Header Files\Graphics\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\utility\Controller.h">
+      <Filter>Header Files\Graphics\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="res\shaders\pixelShader.hlsl">
@@ -284,6 +296,9 @@
       <Filter>Resource Files</Filter>
     </FxCompile>
     <FxCompile Include="res\shaders\waterVertexShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="cloudsPixelShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>

@@ -1,0 +1,30 @@
+# Blender MTL File: 'None'
+# Material Count: 2
+
+newmtl Material.002
+Ns 3.921567
+Ka 1.000000 1.000000 1.000000
+Kd 0.111984 0.342384 0.001760
+Ks 0.027484 0.027484 0.027484
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump ../../textures/rock/normal.jpg
+map_Kd ../../textures/rock/diffuse.jpg
+map_Ks ../../textures/rock/specular.jpg
+disp ../../textures/rock/height.png
+
+newmtl Material.003
+Ns 96.078443
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump ../../textures/metal/normal.jpg
+map_Kd ../../textures/metal/diffuse.jpg
+map_Ks ../../textures/metal/specular.jpg
+disp ../../textures/metal/height.png

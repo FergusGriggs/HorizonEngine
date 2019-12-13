@@ -11,8 +11,8 @@ using namespace DirectX;
 class Model
 {
 public:
-	bool Initialize(const std::string & filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexShader>& cb_vs_vertexShader);
-	void Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix);
+	bool Initialize(const std::string & filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+	void Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader);
 	float GetHitRadius();
 
 private:
@@ -29,7 +29,6 @@ private:
 
 	ID3D11Device* device = nullptr;
 	ID3D11DeviceContext* deviceContext = nullptr;
-	ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader = nullptr;
 
 	std::string directory = "";
 	float modelHitRadius = 0.5f;

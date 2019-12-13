@@ -4,13 +4,14 @@
 #pragma once
 
 #include "GameObject.h"
+#include "utility/ResourceManager.h"
 
 class RenderableGameObject : public GameObject
 {
 public:
 	RenderableGameObject();
-	bool Initialize(std::string label, const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexShader>& cb_vs_vertexShader);
-	void Draw(const XMMATRIX& viewProjectionMatrix);
+	bool Initialize(std::string label, const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ResourceManager* resourceManager);
+	void Draw(const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader);
 
 	float GetRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection);
 
@@ -20,7 +21,7 @@ public:
 	void SetScale(XMFLOAT3 scale);
 
 protected:
-	Model model;
+	Model* model;
 	Model* axisModel;
 
 	XMFLOAT3 scale;

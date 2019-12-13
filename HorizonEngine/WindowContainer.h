@@ -20,7 +20,5 @@ protected:
 	Keyboard keyboard;
 	Mouse mouse;
 	Graphics graphics;
-private:
-
 };
 

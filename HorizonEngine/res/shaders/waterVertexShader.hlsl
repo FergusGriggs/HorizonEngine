@@ -8,6 +8,7 @@ cbuffer constantBuffer : register(b0)
     float4x4 modelViewProjectionMatrix;
     float4x4 modelMatrix;
     float gameTime;
+    float waveAmplitude;
 };
 
 struct VS_INPUT
@@ -28,19 +29,39 @@ struct VS_OUTPUT
     float3x3 TBNMatrix : TBN_MATRIX;
 };
 
+Texture2D noiseTexture : TEXTURE : register(t4);
+SamplerState samplerState : SAMPLER : register(s0);
+
+float GetWaterHeightAt(float posX, float posZ)
+{
+    float value = sin(posX * 1.5f + gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + gameTime * 0.0019f) * 0.05f;
+    value += sin(-posX * 0.4f + gameTime * 0.0012f) * 0.15f + sin(posZ * 0.5f + gameTime * 0.0013f) * 0.15f;
+    value += sin(posX * 0.2f + gameTime * 0.0006f) * 0.5f + sin(-posZ * 0.22f + gameTime * 0.0004f) * 0.45f;
+    return value * waveAmplitude;
+    //return noiseTexture.Sample(samplerState, float2(posX, posZ), 1);
+}
+
 VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT output;
-    float3 offset = float3(0.0f, sin(input.pos.x * 0.25f + gameTime * 0.001f) * 0.25f + sin(input.pos.z * 0.35f + gameTime * 0.001f) * 0.25f + sin(input.pos.x * 0.6f + gameTime * 0.002f) * 0.15f, 0.0f);
-    output.pos = mul(float4(input.pos + offset, 1.0f), modelViewProjectionMatrix);
-    output.texCoord = input.texCoord;
-    output.normal = normalize(mul(float4(input.normal, 0.0f), modelMatrix));
+    float offsetMain = GetWaterHeightAt(input.pos.x, input.pos.z);
+    float offsetTangent = GetWaterHeightAt(input.pos.x + 0.025f, input.pos.z);
+    float offsetBitangent = GetWaterHeightAt(input.pos.x, input.pos.z + 0.025f);
+    
+    float3 pos = float3(0.0f, offsetMain, 0.0f);
+    float3 tangent = normalize(float3(0.025f, offsetTangent, 0.0f) - pos);
+    float3 bitangent = normalize(float3(0.0f, offsetBitangent, 0.025f) - pos);
+    float3 normal = normalize(cross(bitangent, tangent));
+    
+    output.pos = mul(float4(input.pos + float3(0.0f, offsetMain, 0.0f), 1.0f), modelViewProjectionMatrix);
+    output.texCoord = input.texCoord; //float2(input.texCoord.x, input.texCoord.y * 0.5f); //float2(input.texCoord.x - gameTime * 0.0001f, input.texCoord.y * 0.5f + gameTime * 0.0001f);
+    output.normal = normal;//normalize(mul(float4(input.normal, 0.0f), modelMatrix));
     output.worldPos = mul(float4(input.pos, 1.0f), modelMatrix);
 
-    float3 tangent = normalize(mul(float4(input.tangent, 0.0f), modelMatrix));
-    float3 normal = normalize(mul(float4(input.normal, 0.0f), modelMatrix));
-    tangent = normalize(tangent - dot(tangent, normal) * normal);
-    float3 bitangent = cross(normal, tangent);
+    //float3 tangent = normalize(mul(float4(input.tangent, 0.0f), modelMatrix));
+    //float3 normal = normalize(mul(float4(input.normal, 0.0f), modelMatrix));
+    //tangent = normalize(tangent - dot(tangent, normal) * normal);
+    //float3 bitangent = cross(normal, tangent);
 
     output.TBNMatrix = transpose(float3x3(tangent, bitangent, normal));
 

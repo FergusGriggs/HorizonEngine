@@ -2,6 +2,7 @@
 //Application entry point, creates and runs instance of Horizon class
 
 #include "Horizon.h"
+#include <iostream>
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -15,7 +16,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	}
 
 	Horizon engine = Horizon();
-	if (engine.Initialize(hInstance, "HorizonEngine", "windowClass", 1280, 720)) {
+	if (engine.Initialize(hInstance, "HorizonEngine", "windowClass", 1600, 850)) {
 		while (engine.ProcessMessages()) {
 			engine.Update();
 			engine.RenderFrame();

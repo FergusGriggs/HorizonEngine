@@ -38,3 +38,14 @@ std::string StringHelper::GetFileExtension(const std::string& fileName)
 
 	return std::string(fileName.substr(off + 1));
 }
+
+void StringHelper::ReplaceChars(std::string& string, char existingChar, char newChar)
+{
+	for (size_t i = 0; i < string.length; ++i)
+	{
+		if (string[i] == existingChar)
+		{
+			string[i] = newChar;
+		}
+	}
+}

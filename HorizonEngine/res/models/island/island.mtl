@@ -10,10 +10,10 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd snow/diffuse.jpg
-map_Ks snow/specular.jpg
-map_Bump snow/normal.jpg
-disp  snow/depth.png
+map_Kd ../../textures/rock/diffuse.jpg
+map_Ks ../../textures/rock/specular.jpg
+map_Bump ../../textures/rock/normal.jpg
+disp  ../../textures/rock/depth.png
 
 newmtl Material.003
 Ns 96.078431
@@ -24,10 +24,10 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd metal/diffuse.jpg
-map_Ks metal/specular.jpg
-map_Bump metal/normal.jpg
-disp  metal/depth.png
+map_Kd ../../textures/metal/diffuse.jpg
+map_Ks ../../textures/metal/specular.jpg
+map_Bump ../../textures/metal/normal.jpg
+disp  ../../textures/metal/depth.png
 
 
 newmtl Material.004

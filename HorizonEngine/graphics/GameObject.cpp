@@ -91,6 +91,11 @@ void GameObject::UpdateModelMatrix()
 	this->modelMatrix = this->rotationMatrix * XMMatrixTranslation(this->position.x, this->position.y, this->position.z);
 }
 
+std::vector<XMVECTOR>* GameObject::GetRelativePositions()
+{
+	return &relativePositions;
+}
+
 void GameObject::RotateAxisVectors(XMVECTOR axis, float angle)
 {
 	XMMATRIX rotation = XMMatrixRotationAxis(axis, angle);
@@ -129,6 +134,7 @@ void GameObject::SetLookAtPos(XMFLOAT3 lookAtPos)
 
 	this->rotationMatrix = XMMATRIX(-right, up, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
 
+	this->UpdateModelMatrix();
 	/*if (lookAtPos.x == this->position.x && lookAtPos.y == this->position.y && lookAtPos.z == this->position.z) {
 		return;
 	}
@@ -188,6 +194,21 @@ const XMVECTOR& GameObject::GetUpVector()
 	return this->up;
 }
 
+void GameObject::SetFrontVector(const XMVECTOR& front)
+{
+	this->front = front;
+}
+
+void GameObject::SetUpVector(const XMVECTOR& up)
+{
+	this->up = up;
+}
+
+void GameObject::SetRightVector(const XMVECTOR& right)
+{
+	this->right = right;
+}
+
 void GameObject::Update(float deltaTime)
 {
 	if (followingTrack) {
@@ -205,6 +226,11 @@ std::string GameObject::GetLabel()
 	return this->label;
 }
 
+void GameObject::SetLabel(std::string newLabel)
+{
+	this->label = newLabel;
+}
+
 XMMATRIX GameObject::GetModelMatrix()
 {
 	return this->modelMatrix;
@@ -213,6 +239,11 @@ XMMATRIX GameObject::GetModelMatrix()
 XMMATRIX GameObject::GetRotationMatrix()
 {
 	return this->rotationMatrix;
+}
+
+void GameObject::SetRotationMatrix(XMMATRIX rotationMatrix)
+{
+	this->rotationMatrix = rotationMatrix;
 }
 
 
@@ -247,6 +278,16 @@ bool GameObject::GetFollowingObjectTrack()
 void GameObject::SetFollowingObjectTrack(bool followingTrack)
 {
 	this->followingTrack = followingTrack;
+}
+
+bool GameObject::GetFloating()
+{
+	return floating;
+}
+
+void GameObject::SetFloating(bool floating)
+{
+	this->floating = floating;
 }
 
 void GameObject::SetObjectTrack(ObjectTrack* objectTrack) {

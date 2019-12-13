@@ -10,7 +10,7 @@ class Light : public RenderableGameObject
 {
 public:
 	Light();
-	bool Initialize(std::string label, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ConstantBuffer<CB_VS_vertexShader>& cb_vs_vertexShader);
+	bool Initialize(std::string label, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ResourceManager* resourceManager);
 	void virtual UpdateShaderVariables(ConstantBuffer<CB_PS_pixelShader>& cb_ps_pixelShader);
 
 	void SetColour(DirectX::XMFLOAT3 colour);

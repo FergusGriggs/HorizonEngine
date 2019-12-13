@@ -47,11 +47,18 @@ public:
 	const XMVECTOR& GetRightVector(bool noY = false);
 	const XMVECTOR& GetUpVector();
 
+	void SetFrontVector(const XMVECTOR& front);
+	void SetUpVector(const XMVECTOR& up);
+	void SetRightVector(const XMVECTOR& right);
+
 	void SetObjectTrack(ObjectTrack* objectTrack);
 	ObjectTrack* GetObjectTrack();
 
 	bool GetFollowingObjectTrack();
 	void SetFollowingObjectTrack(bool followingTrack);
+
+	bool GetFloating();
+	void SetFloating(bool floating);
 
 	float GetObjectTrackDelta();
 	void SetObjectTrackDelta(float trackDelta);
@@ -60,11 +67,14 @@ public:
 
 	GameObjectType GetType();
 	std::string GetLabel();
+	void SetLabel(std::string newLabel);
 
 	XMMATRIX GetModelMatrix();
 	XMMATRIX GetRotationMatrix();
-	
+	void SetRotationMatrix(XMMATRIX rotationMatrix);
+
 	virtual void UpdateModelMatrix();
+	std::vector<XMVECTOR>* GetRelativePositions();
 
 protected:
 	virtual void SetObjectDelta(float objectTrackDelta);
@@ -88,6 +98,7 @@ protected:
 	ObjectTrack* objectTrack;
 
 	bool followingTrack;
+	bool floating = false;
 
 	GameObjectType type;
 
@@ -95,5 +106,7 @@ protected:
 
 	XMMATRIX modelMatrix = XMMatrixIdentity();
 	XMMATRIX rotationMatrix = XMMatrixIdentity();
+
+	std::vector<XMVECTOR> relativePositions;
 };
 

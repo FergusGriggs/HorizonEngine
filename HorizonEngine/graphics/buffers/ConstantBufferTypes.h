@@ -7,6 +7,7 @@ struct CB_VS_vertexShader
 	DirectX::XMMATRIX modelViewProjectionMatrix;
 	DirectX::XMMATRIX modelMatrix;
 	float gameTime;
+	float waveAmplitude;
 };
 
 struct CB_PS_pixelShader
@@ -63,9 +64,21 @@ struct CB_PS_pixelShader
 	int useNormalMapping;
 	int useParallaxOcclusionMapping;
 	float parallaxOcclusionMappingHeight;
+	int fresnel;
 };
 
 struct CB_PS_noLightPixelShader
 {
 	DirectX::XMFLOAT3 colour;
+	int justColour;
 };
+
+struct CB_PS_cloudsPixelShader
+{
+	DirectX::XMFLOAT3 cameraPosition;
+	float padding1;
+
+	DirectX::XMFLOAT3 lightDirection;
+	float padding2;
+};
+

@@ -12,6 +12,8 @@
 #include "lights/Light.h"
 #include "lights/SpotLight.h"
 #include "lights/PointLight.h"
+#include "utility/ResourceManager.h"
+#include "utility/Controller.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_win32.h"
@@ -23,6 +25,7 @@
 #include <WICTextureLoader.h>
 
 #include <unordered_map>
+#include <fstream>
 
 //comicSansMS16.spritefont
 
@@ -44,7 +47,7 @@ enum class AxisEditSubState {
 class Graphics
 {
 public:
-	bool Initialize(HWND hwnd, int width, int height);
+	bool Initialize(HWND hwnd, int width, int height, std::vector<Controller>* controllers);
 	void RenderFrame(float deltaTime);
 	void Update(float deltaTime);
 
@@ -57,7 +60,11 @@ public:
 	void CheckSelectingObject();
 	void UpdateSelectedObject();
 
+	bool LoadScene(const char* filepath);
+
 	void UpdateImGui();
+
+	GameObject* GetGameObject(std::string label);
 
 	void DrawAxisForObject(GameObject* gameObject, const XMMATRIX& viewProjection);
 
@@ -67,15 +74,9 @@ public:
 	static XMVECTOR RayPlaneIntersect(XMVECTOR rayPoint, XMVECTOR rayDirection, XMVECTOR planeNormal, XMVECTOR planePoint);
 
 	Camera camera;
-	RenderableGameObject nano;
-	RenderableGameObject woman;
-	RenderableGameObject ocean;
-	RenderableGameObject island;
-	RenderableGameObject boat;
+	RenderableGameObject skybox;
 
-	Light directionalLight;
-	SpotLight spotLight;
-	PointLight pointLight;
+	std::unordered_map<std::string, GameObject*> gameObjectMap;
 
 	Model axisTranslateModel;
 	Model axisRotateModel;
@@ -88,12 +89,16 @@ public:
 	BoundingBox yAxisTranslateBoudingBox;
 	BoundingBox zAxisTranslateBoudingBox;
 
+	ResourceManager resourceManager;
+	std::vector<Controller>* controllers;
 
 private:
 	bool InitializeDirectX(HWND hwnd);
 	bool InitializeShaders();
 	bool InitializeScene();
 	void InitializeTracks();
+	void FloatObject(GameObject* object);
+	float GetWaterHeightAt(float posX, float posZ);
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
@@ -104,10 +109,12 @@ private:
 	VertexShader waterVertexShader;
 	PixelShader pixelShader;
 	PixelShader noLightPixelShader;
+	PixelShader cloudsPixelShader;
 
 	ConstantBuffer<CB_VS_vertexShader> cb_vs_vertexShader;
 	ConstantBuffer<CB_PS_pixelShader> cb_ps_pixelShader;
 	ConstantBuffer<CB_PS_noLightPixelShader> cb_ps_noLightPixelShader;
+	ConstantBuffer<CB_PS_cloudsPixelShader> cb_ps_cloudsPixelShader;
 
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> depthStencilView;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilBuffer;
@@ -125,6 +132,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture2;
 
 	std::unordered_map<std::string, ObjectTrack*> objectTracks;
+	Texture* noiseTexture;
 
 	bool selectingGameObject = false;
 	RenderableGameObject* selectedObject;

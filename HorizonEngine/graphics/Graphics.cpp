@@ -3,17 +3,25 @@
 
 #include "Graphics.h"
 
-bool Graphics::Initialize(HWND hwnd, int width, int height) {
-
+bool Graphics::Initialize(HWND hwnd, int width, int height, std::vector<Controller>* controllers)
+{
 	fpsTimer.Start();
 
 	this->windowWidth = width;
 	this->windowHeight = height;
 
-	if (!InitializeDirectX(hwnd)) {
+	if (!InitializeDirectX(hwnd))
+	{
 		return false;
 	}
-	if (!InitializeShaders()) {
+
+	if (!this->resourceManager.Initialize(this->device.Get(), this->deviceContext.Get()))
+	{
+		return false;
+	}
+
+	if (!InitializeShaders())
+	{
 		return false;
 	}
 
@@ -21,9 +29,12 @@ bool Graphics::Initialize(HWND hwnd, int width, int height) {
 	InitializeTracks();
 
 	//INIT SCENE OBJECTS
-	if (!InitializeScene()) {
+	if (!InitializeScene())
+	{
 		return false;
 	}
+
+	this->controllers = controllers;
 
 	//INIT IMGUI
 	IMGUI_CHECKVERSION();
@@ -86,12 +97,17 @@ bool Graphics::InitializeShaders() {
 	if (!noLightPixelShader.Initialize(this->device, shaderFolder + L"noLightPixelShader.cso")) {
 		return false;
 	}
+
+	if (!cloudsPixelShader.Initialize(this->device, shaderFolder + L"cloudsPixelShader.cso")) {
+		return false;
+	}
 }
 
 bool Graphics::InitializeScene()
 {
 	try
 	{
+		camera.SetLabel("Camera");
 		//LOAD TEXTURES
 		HRESULT hr = DirectX::CreateWICTextureFromFile(this->device.Get(), L"res\\textures\\me.png", nullptr, diffuseTexture.GetAddressOf());
 
@@ -106,6 +122,8 @@ bool Graphics::InitializeScene()
 
 		COM_ERROR_IF_FAILED(hr, "Failed to create 'cb_vs_vertexShader' constant buffer.");
 
+		cb_vs_vertexShader.data.waveAmplitude = 1.0f;
+
 		hr = this->cb_ps_pixelShader.Initialize(this->device.Get(), this->deviceContext.Get());
 
 		COM_ERROR_IF_FAILED(hr, "Failed to create 'cb_ps_pixelShader' constant buffer.");
@@ -114,14 +132,18 @@ bool Graphics::InitializeScene()
 
 		COM_ERROR_IF_FAILED(hr, "Failed to create 'cb_ps_noLightPixelShader' constant buffer.");
 
+		hr = this->cb_ps_cloudsPixelShader.Initialize(this->device.Get(), this->deviceContext.Get());
+
+		COM_ERROR_IF_FAILED(hr, "Failed to create 'cb_ps_cloudsPixelShader' constant buffer.");
+
 		this->cb_ps_pixelShader.data.useNormalMapping = true;
 
 		//LOAD AXIS MODELS
-		if (!this->axisTranslateModel.Initialize("res/models/axis/translate2.obj", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexShader)) {
+		if (!this->axisTranslateModel.Initialize("res/models/axis/translate2.obj", this->device.Get(), this->deviceContext.Get())) {
 			return false;
 		}
 
-		if (!this->axisRotateModel.Initialize("res/models/axis/rotate2.obj", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexShader)) {
+		if (!this->axisRotateModel.Initialize("res/models/axis/rotate2.obj", this->device.Get(), this->deviceContext.Get())) {
 			return false;
 		}
 
@@ -130,66 +152,175 @@ bool Graphics::InitializeScene()
 		yAxisTranslateDefaultBounds = XMFLOAT3(0.05f, 0.45f, 0.05f);
 		zAxisTranslateDefaultBounds = XMFLOAT3(0.05f, 0.05f, 0.45f);
 
+
+		noiseTexture = resourceManager.GetTexturePtr("res/textures/noiseTexture.png");
+
 		//INITIALIZE RENDERABLES
-		if (!woman.Initialize("Lady", "res/models/photoscan/photoscan.obj", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexShader)) {//"nanosuit/nanosuit.obj"//tests/dodge_challenger.fbx//lambo/lambo.obj
-			return false;
+		{
+			RenderableGameObject* lady = new RenderableGameObject();;
+			if (!lady->Initialize("Lady", "res/models/photoscan/photoscan.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {//"nanosuit/nanosuit.obj"//tests/dodge_challenger.fbx//lambo/lambo.obj
+				return false;
+			}
+
+			lady->SetPosition(2.0f, 7.0f, 0.0f);
+			lady->SetObjectTrack(objectTracks.at("lady_track"));
+			lady->SetObjectTrackDelta(2.0f);
+			lady->SetFollowingObjectTrack(true);
+
+			lady->GetRelativePositions()->push_back(XMVectorSet(0.0f, 1.75f, 0.0f, 0.0f));
+
+			gameObjectMap.insert({ lady->GetLabel(), lady });
 		}
 
-		if (!nano.Initialize("Man", "res/models/man/man.obj", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexShader)) {//"nanosuit/nanosuit.obj"//tests/dodge_challenger.fbx//lambo/lambo.obj//house/Alpine_chalet.blend
-			return false;
+		{
+			RenderableGameObject* man = new RenderableGameObject();
+			if (!man->Initialize("Man", "res/models/man/man.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+
+			man->SetPosition(-2.0f, 7.0f, 0.0f);
+			man->SetObjectTrack(objectTracks.at("man_track"));
+			man->SetFollowingObjectTrack(true);
+
+			man->GetRelativePositions()->push_back(XMVectorSet(0.0f, 1.75f, 0.0f, 0.0f));
+
+			gameObjectMap.insert({ man->GetLabel(), man });
 		}
 
-		if (!ocean.Initialize("Ocean", "res/models/sea.obj", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexShader)) {//"nanosuit/nanosuit.obj"//tests/dodge_challenger.fbx//lambo/lambo.obj//house/Alpine_chalet.blend
-			return false;
+		{
+			RenderableGameObject* walls = new RenderableGameObject();
+			if (!walls->Initialize("Walls", "res/models/walls.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+
+			gameObjectMap.insert({ walls->GetLabel(), walls });
+		}
+		
+		{
+			RenderableGameObject* ocean = new RenderableGameObject();
+			if (!ocean->Initialize("Ocean", "res/models/ocean_smooth_large_2.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+
+			ocean->SetPosition(0.0f, -4.0f, 0.0f);
+
+			gameObjectMap.insert({ ocean->GetLabel(), ocean });
+		}
+		
+		{
+			RenderableGameObject* seaMine = new RenderableGameObject();
+			if (!seaMine->Initialize("Sea Mine 1", "res/models/sea_mine.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+			seaMine->SetPosition(30.0f, -4.0f, 25.0f);
+			seaMine->SetFloating(true);
+			gameObjectMap.insert({ seaMine->GetLabel(), seaMine });
+
+			seaMine = new RenderableGameObject();
+			if (!seaMine->Initialize("Sea Mine 2", "res/models/sea_mine.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+			seaMine->SetPosition(-30.0f, -4.0f, 25.0f);
+			seaMine->SetFloating(true);
+			gameObjectMap.insert({ seaMine->GetLabel(), seaMine });
+
+			seaMine = new RenderableGameObject();
+			if (!seaMine->Initialize("Sea Mine 3", "res/models/sea_mine.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+			seaMine->SetPosition(30.0f, -4.0f, -25.0f);
+			seaMine->SetFloating(true);
+			gameObjectMap.insert({ seaMine->GetLabel(), seaMine });
 		}
 
-		if (!island.Initialize("Island", "res/models/island/island.obj", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexShader)) {
-			return false;
+		{
+			RenderableGameObject* island = new RenderableGameObject();
+			if (!island->Initialize("Island", "res/models/island/island2.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+
+			island->SetPosition(0.0f, -5.0f, 0.0f);
+
+			gameObjectMap.insert({ island->GetLabel(), island });
 		}
 
-		if (!boat.Initialize("Boat", "res/models/boat.obj", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexShader)) {
-			return false;
+		{
+			RenderableGameObject* clouds = new RenderableGameObject();
+			if (!clouds->Initialize("Clouds", "res/models/simple_plane.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+
+			clouds->SetPosition(0.0f, 35.0f, 0.0f);
+
+			gameObjectMap.insert({ clouds->GetLabel(), clouds });
+		}
+		
+		{
+			if (!skybox.Initialize("Skybox", "res/models/skyboxes/ocean.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+		}
+
+		{
+			RenderableGameObject* boat = new RenderableGameObject();
+			if (!boat->Initialize("Boat", "res/models/boat.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+
+			boat->SetObjectTrack(objectTracks.at("boat_track"));
+			boat->SetFollowingObjectTrack(true);
+
+			boat->GetRelativePositions()->push_back(XMVectorSet(0.0f, 2.5f, -4.0f, 0.0f));
+			boat->GetRelativePositions()->push_back(XMVectorSet(0.0f, 8.5f, -12.0f, 0.0f));
+
+			boat->SetFloating(true);
+
+			gameObjectMap.insert({ boat->GetLabel(), boat });
 		}
 
 		//INITIALIZE LIGHTS
-		if (!directionalLight.Initialize("Directional Light", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexShader)) {
-			return false;
+		{
+			Light* directionalLight = new Light();
+
+			if (!directionalLight->Initialize("Directional Light", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+
+			directionalLight->SetPosition(2.0f, 6.0f, 2.0f);
+			directionalLight->SetLookAtPos(XMFLOAT3(0.0f, 0.0f, 0.0f));
+			directionalLight->SetColour(XMFLOAT3(0.8f, 0.75f, 0.6f));
+
+			gameObjectMap.insert({ directionalLight->GetLabel(), directionalLight });
 		}
+		
+		{
+			PointLight* pointLight = new PointLight();
 
-		if (!pointLight.Initialize("Point Light", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexShader)) {
-			return false;
+			if (!pointLight->Initialize("Point Light", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+
+			pointLight->SetPosition(0.0f, 8.0f, 0.0f);
+			pointLight->SetObjectTrack(objectTracks.at("point_light_track"));
+			pointLight->SetFollowingObjectTrack(true);
+
+			gameObjectMap.insert({ pointLight->GetLabel(), pointLight });
 		}
+		
 
-		if (!spotLight.Initialize("Spot Light", this->device.Get(), this->deviceContext.Get(), cb_vs_vertexShader)) {
-			return false;
+		{
+			SpotLight* spotLight = new SpotLight();
+
+			if (!spotLight->Initialize("Spot Light", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+				return false;
+			}
+
+			spotLight->SetPosition(-10.0f, 10.0f, -10.0f);
+			spotLight->SetObjectTrack(objectTracks.at("spot_light_track"));
+			spotLight->SetFollowingObjectTrack(true);
+
+			gameObjectMap.insert({ spotLight->GetLabel(), spotLight });
 		}
-
-		//ASSIGN OBJECT PROPERTIES
-		boat.SetObjectTrack(objectTracks.at("boat_track"));
-		boat.SetFollowingObjectTrack(true);
-
-		island.SetPosition(0.0f, -5.0f, 0.0f);
-
-		woman.SetPosition(2.0f, 7.0f, 0.0f);
-		woman.SetObjectTrack(objectTracks.at("lady_track"));
-		woman.SetObjectTrackDelta(2.0f);
-		woman.SetFollowingObjectTrack(true);
-
-		nano.SetPosition(-2.0f, 7.0f, 0.0f);
-		nano.SetObjectTrack(objectTracks.at("man_track"));
-		nano.SetFollowingObjectTrack(true);
-
-		directionalLight.SetPosition(2.0f, 5.0f, 2.0f);
-		directionalLight.SetLookAtPos(XMFLOAT3(0.0f, 0.0f, 0.0f));
-		directionalLight.SetColour(XMFLOAT3(0.8f, 0.8f, 0.8f));
-
-		spotLight.SetPosition(-10.0f, 10.0f, -10.0f);
-		spotLight.SetObjectTrack(objectTracks.at("spot_light_track"));
-		spotLight.SetFollowingObjectTrack(true);
-
-		pointLight.SetPosition(0.0f, 8.0f, 0.0f);
-		pointLight.SetObjectTrack(objectTracks.at("point_light_track"));
-		pointLight.SetFollowingObjectTrack(true);
 
 		camera.SetPosition(0.0f, 10.0f, -7.0f);
 		camera.SetLookAtPos(XMFLOAT3(0.0f, 7.0f, 0.0f));
@@ -207,9 +338,10 @@ bool Graphics::InitializeScene()
 
 void Graphics::RenderFrame(float deltaTime) {
 	//UPDATE THE PIXEL SHADER CONSTANT BUFFER
-	pointLight.UpdateShaderVariables(this->cb_ps_pixelShader);
-	directionalLight.UpdateShaderVariables(this->cb_ps_pixelShader);
-	spotLight.UpdateShaderVariables(this->cb_ps_pixelShader);
+	dynamic_cast<PointLight*>(gameObjectMap.at("Point Light"))->UpdateShaderVariables(this->cb_ps_pixelShader);
+	Light* directionalLight = dynamic_cast<Light*>(gameObjectMap.at("Directional Light"));
+	directionalLight->UpdateShaderVariables(this->cb_ps_pixelShader);
+	dynamic_cast<SpotLight*>(gameObjectMap.at("Spot Light"))->UpdateShaderVariables(this->cb_ps_pixelShader);
 	
 	this->cb_ps_pixelShader.data.cameraPosition = camera.GetPositionFloat3();
 
@@ -217,7 +349,7 @@ void Graphics::RenderFrame(float deltaTime) {
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_pixelShader.GetAddressOf());
 
 	//CLEAR RENDER TARGET VIEW AND DEPTH STENCIL VIEW
-	float backgroundColour[] = { 0.62f * this->directionalLight.colour.x, 0.90 * this->directionalLight.colour.y, 1.0f * this->directionalLight.colour.z, 1.0f };
+	float backgroundColour[] = { 0.62f * directionalLight->colour.x, 0.90 * directionalLight->colour.y, 1.0f * directionalLight->colour.z, 1.0f };
 	this->deviceContext->ClearRenderTargetView(this->renderTargetView.Get(), backgroundColour);
 	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -245,8 +377,7 @@ void Graphics::RenderFrame(float deltaTime) {
 
 	//SET VERTEX AND PIXEL SHADERS
 	this->deviceContext->VSSetShader(vertexShader.GetShader(), NULL, 0);
-	this->deviceContext->PSSetShader(pixelShader.GetShader(), NULL, 0);
-
+	
 	UINT offset = 0;
 
 	this->cb_vs_vertexShader.data.gameTime += deltaTime;
@@ -254,18 +385,66 @@ void Graphics::RenderFrame(float deltaTime) {
 	XMMATRIX viewProjMat = camera.GetViewMatrix() * camera.GetProjectionMatrix();
 
 	{
+		//DRAW SKYBOX
+
+		this->deviceContext->PSSetShader(noLightPixelShader.GetShader(), NULL, 0);
+
+		this->cb_ps_noLightPixelShader.data.justColour = 1;
+		this->cb_ps_noLightPixelShader.MapToGPU();
+
+		skybox.SetPosition(camera.GetPositionFloat3());
+		skybox.Draw(viewProjMat, &this->cb_vs_vertexShader);
+
+		this->cb_ps_noLightPixelShader.data.justColour = 0;
+
+		this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	}
+
+	this->deviceContext->PSSetShader(pixelShader.GetShader(), NULL, 0);
+
+	{
 		//DRAW REGULAR GAME OBJECTS
-		this->nano.Draw(viewProjMat);
-		this->woman.Draw(viewProjMat);
-		this->island.Draw(viewProjMat);
-		this->boat.Draw(viewProjMat);
+		if (this->gameObjectMap["Boat"]->GetFloating()) FloatObject(this->gameObjectMap["Boat"]);
+		if (this->gameObjectMap["Sea Mine 1"]->GetFloating()) FloatObject(this->gameObjectMap["Sea Mine 1"]);
+		if (this->gameObjectMap["Sea Mine 2"]->GetFloating()) FloatObject(this->gameObjectMap["Sea Mine 2"]);
+		if (this->gameObjectMap["Sea Mine 3"]->GetFloating()) FloatObject(this->gameObjectMap["Sea Mine 3"]);
+		
+		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Walls"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Lady"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Sea Mine 1"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Sea Mine 2"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Sea Mine 3"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Man"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Island"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Boat"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
+
+		cb_ps_pixelShader.data.directionalLightShininess = 8.0f;
+		cb_ps_pixelShader.data.directionalLightSpecularStrength = 0.5f;
+		cb_ps_pixelShader.data.fresnel = 1;
+		cb_ps_pixelShader.MapToGPU();
 
 		//DRAW WATER
 		this->deviceContext->VSSetShader(waterVertexShader.GetShader(), NULL, 0);
+		this->deviceContext->PSSetShaderResources(4, 1, noiseTexture->GetTextureResourceViewAddress());
 
-		this->ocean.Draw(viewProjMat);
+		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Ocean"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
 
 		this->deviceContext->VSSetShader(vertexShader.GetShader(), NULL, 0);
+
+		cb_ps_pixelShader.data.fresnel = 0;
+
+		//DRAWCLOUDS
+
+		this->deviceContext->PSSetShader(cloudsPixelShader.GetShader(), NULL, 0);
+
+		this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_cloudsPixelShader.GetAddressOf());
+
+		this->cb_ps_cloudsPixelShader.data.cameraPosition = camera.GetPositionFloat3();
+		XMStoreFloat3(&this->cb_ps_cloudsPixelShader.data.lightDirection, dynamic_cast<Light*>(gameObjectMap["Directional Light"])->GetFrontVector());
+
+		this->cb_ps_cloudsPixelShader.MapToGPU();
+
+		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Clouds"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
 	}
 	
 	{
@@ -274,13 +453,15 @@ void Graphics::RenderFrame(float deltaTime) {
 
 		this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_noLightPixelShader.GetAddressOf());
 
-		this->cb_ps_noLightPixelShader.data.colour = this->pointLight.colour;
+		PointLight* pointLight = dynamic_cast<PointLight*>(this->gameObjectMap["Point Light"]);
+		this->cb_ps_noLightPixelShader.data.colour = pointLight->colour;
 		this->cb_ps_noLightPixelShader.MapToGPU();
-		this->pointLight.Draw(viewProjMat);
+		pointLight->Draw(viewProjMat, &this->cb_vs_vertexShader);
 
-		this->cb_ps_noLightPixelShader.data.colour = this->spotLight.colour;
+		SpotLight* spotLight = dynamic_cast<SpotLight*>(this->gameObjectMap["Spot Light"]);
+		this->cb_ps_noLightPixelShader.data.colour = spotLight->colour;
 		this->cb_ps_noLightPixelShader.MapToGPU();
-		this->spotLight.Draw(viewProjMat);
+		spotLight->Draw(viewProjMat, &this->cb_vs_vertexShader);
 
 		this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -439,6 +620,54 @@ void Graphics::UpdateSelectedObject() {
 	}
 }
 
+bool Graphics::LoadScene(const char* filepath)
+{
+	/*std::ifstream sceneFile(filepath);
+
+	if (sceneFile)
+	{
+		int numObjects;
+		sceneFile >> numObjects;
+
+		for (int i = 0; i < numObjects; ++i)
+		{
+			int intObjectType;
+			sceneFile >> intObjectType;
+			GameObjectType objectType = static_cast<GameObjectType>(intObjectType);
+
+			std::string label;
+			sceneFile >> label;
+			StringHelper::ReplaceChars(label, '|', ' ');
+
+			switch (objectType)
+			{
+			case GameObjectType::RENDERABLE:
+
+			}
+		}
+
+		int numObjectTracks;
+		sceneFile >> numObjectTracks;
+
+		for (int i = 0; i < numObjectTracks; ++i)
+		{
+			std::string label;
+			sceneFile >> label;
+
+			int numNodes;
+			sceneFile >> numNodes;
+
+			for (int j = 0; j < numNodes; ++j)
+			{
+			}
+		}
+
+		return true;
+	}*/
+
+	return false;
+}
+
 void Graphics::UpdateImGui()
 {
 	//START NEW FRAME
@@ -457,6 +686,9 @@ void Graphics::UpdateImGui()
 			ImGui::Checkbox("Follow Track", &followingTrack);
 			selectedObject->SetFollowingObjectTrack(followingTrack);
 		}
+		bool floatingObject = selectedObject->GetFloating();
+		ImGui::Checkbox("Float Object", &floatingObject);
+		selectedObject->SetFloating(floatingObject);
 		if (ImGui::Button("Edit Translation")) {
 			this->axisEditState = AxisEditState::EDIT_TRANSLATE;
 		}
@@ -484,25 +716,35 @@ void Graphics::UpdateImGui()
 				lightObj->SetFollowingObjectTrack(false);
 			}
 		}
+
+		ImGui::Text("Relative Cameras");
+		size_t numRelativeCameras = selectedObject->GetRelativePositions()->size();
+		for (size_t i = 0; i < numRelativeCameras; ++i)
+		{
+			if (ImGui::Button(("Camera " + std::to_string(i + 1)).c_str()))
+			{
+				camera.SetRelativeObject(selectedObject, selectedObject->GetRelativePositions()->at(i));
+				camera.SetFollowingObjectTrack(false);
+			}
+			if (i < numRelativeCameras - 1)
+			{
+				ImGui::SameLine();
+			}
+		}
+
 		if (ImGui::Button("Close")) {
 			selectedObject = nullptr;
 			selectingGameObject = false;
 		}
+		
 		ImGui::End();
 	}
 
 	ImGui::Begin("Scene Settings");
 	
 	//DIRECTIONAL LIGHT COLOUR
-	ImGui::ColorEdit3("Dir Light Colour", &directionalLight.colour.x);
+	ImGui::ColorEdit3("Dir Light Colour", &(dynamic_cast<Light*>(gameObjectMap["Directional Light"])->colour.x));
 	float cameraTrackDelta = camera.GetObjectTrackDelta();
-	ImGui::DragFloat("Camera Track Delta", &cameraTrackDelta, 0.005f, -0.5f, 10.0f);
-	camera.SetObjectTrackDelta(cameraTrackDelta);
-
-	//CAMERA TRACK CHECKBOX
-	bool followTrack = camera.GetFollowingObjectTrack();
-	ImGui::Checkbox("Camera Follow Track", &followTrack);
-	camera.SetFollowingObjectTrack(followTrack);
 
 	//NORMAL MAPPING CHECKBOX
 	bool useNormalMapping = static_cast<bool>(this->cb_ps_pixelShader.data.useNormalMapping);
@@ -529,7 +771,65 @@ void Graphics::UpdateImGui()
 	//VSYNC CHECKBOX
 	ImGui::Checkbox("Use VSync", &useVSync);
 
+	ImGui::SliderFloat("Wave Amplitude", &this->cb_vs_vertexShader.data.waveAmplitude, 0.0f, 5.0f);
+
 	ImGui::End();
+
+	ImGui::Begin("Input Settings");
+	ImGui::Text("Keyboard Input will");
+	ImGui::Text("affect following objects:");
+	size_t controllerSize = controllers->size();
+	for (size_t i = 0; i < controllerSize; ++i)
+	{
+		ImGui::Checkbox(controllers->at(i).GetGameObject()->GetLabel().c_str(), controllers->at(i).IsActivePtr());
+		ImGui::SameLine();
+	}
+	ImGui::End();
+
+	ImGui::Begin("Camera Settings");
+	//CAMERA TRACK CHECKBOX
+	bool followTrack = camera.GetFollowingObjectTrack();
+	ImGui::Checkbox("Camera Follow Track", &followTrack);
+	camera.SetFollowingObjectTrack(followTrack);
+
+	//RELATIVE CAMERA CHECKBOX
+	ImGui::SameLine();
+	if (ImGui::Button("Exit Relative Camera"))
+	{
+		*camera.GetUsingRelativeCameraPtr() = false;
+	}
+
+	//CAMERA TRACK DELTA
+	ImGui::DragFloat("Camera Track Delta", &cameraTrackDelta, 0.005f, -0.5f, 10.0f);
+	camera.SetObjectTrackDelta(cameraTrackDelta);
+
+	if (ImGui::Button("Static View One"))
+	{
+		*camera.GetUsingRelativeCameraPtr() = false;
+		camera.SetFollowingObjectTrack(false);
+		camera.SetPosition(XMFLOAT3(0.0f, 37.5f, 0.0f));
+		camera.SetLookAtPos(XMFLOAT3(0.0f, 0.0f, 0.5f));
+		camera.SetZoom(80.0f);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Static View Two"))
+	{
+		*camera.GetUsingRelativeCameraPtr() = false;
+		camera.SetFollowingObjectTrack(false);
+		camera.SetPosition(XMFLOAT3(10.0f, 10.0f, 10.0f));
+		camera.SetLookAtPos(XMFLOAT3(3.0f, 2.5f, 3.0f));
+		camera.SetZoom(70.0f);
+	}
+
+	ImGui::End();
+}
+
+GameObject* Graphics::GetGameObject(std::string label)
+{
+	if (gameObjectMap.find(label) != gameObjectMap.end())
+	{
+		return gameObjectMap.at(label);
+	}
 }
 
 void Graphics::Update(float deltaTime)
@@ -547,12 +847,12 @@ void Graphics::Update(float deltaTime)
 
 	//UPDATE GAME OBJECTS
 	camera.Update(deltaTime);
-	nano.Update(deltaTime);
-	woman.Update(deltaTime);
-	boat.Update(deltaTime * 0.25f);
+	dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Man"])->Update(deltaTime);
+	dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Lady"])->Update(deltaTime);
+	dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Boat"])->Update(deltaTime * 0.25f);
 
-	pointLight.Update(deltaTime);
-	spotLight.Update(deltaTime);
+	dynamic_cast<PointLight*>(this->gameObjectMap["Point Light"])->Update(deltaTime);
+	dynamic_cast<SpotLight*>(this->gameObjectMap["Spot Light"])->Update(deltaTime);
 	
 	//UPDATE IMGUI
 	UpdateImGui();
@@ -829,11 +1129,11 @@ void Graphics::InitializeTracks() {
 		ObjectTrack* boatTrack = new ObjectTrack();
 
 		//CREATE DATA
-		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-30.0f, -3.5f, 0.0f), XMFLOAT3(0.0f, -3.5f, 30.0f)));
-		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, -3.5f, 30.0f), XMFLOAT3(30.0f, -3.5f, 0.0f)));
-		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(30.0f, -3.5f, 0.0f), XMFLOAT3(0.0f, -3.5f, -30.0f)));
-		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, -3.5f, -30.0f), XMFLOAT3(-30.0f, -3.5f, 0.0f)));
-		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-30.0f, -3.5f, 0.0f), XMFLOAT3(0.0f, -3.5f, 30.0f)));
+		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-40.0f, -3.5f, 0.0f), XMFLOAT3(0.0f, -3.5f, 40.0f)));
+		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, -3.5f, 40.0f), XMFLOAT3(40.0f, -3.5f, 0.0f)));
+		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(40.0f, -3.5f, 0.0f), XMFLOAT3(0.0f, -3.5f, -40.0f)));
+		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, -3.5f, -40.0f), XMFLOAT3(-40.0f, -3.5f, 0.0f)));
+		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-40.0f, -3.5f, 0.0f), XMFLOAT3(0.0f, -3.5f, 40.0f)));
 
 		boatTrack->GenerateMidPoints(); //INITIALIZE
 
@@ -949,39 +1249,18 @@ void Graphics::CheckSelectingObject()
 		}
 	}
 
-	//MAN
-	distance = this->nano.GetRayIntersectDist(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection());
-	if (distance < closestDist) {
-		closestDist = distance;
-		this->selectedObject = &nano;
-	}
+	std::unordered_map<std::string, GameObject*>::iterator mapIterator = gameObjectMap.begin();
 
-	//LADY
-	distance = this->woman.GetRayIntersectDist(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection());
-	if (distance < closestDist) {
-		closestDist = distance;
-		this->selectedObject = &woman;
-	}
-
-	//POINT LIGHT
-	distance = this->pointLight.GetRayIntersectDist(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection());
-	if (distance < closestDist) {
-		closestDist = distance;
-		this->selectedObject = &pointLight;
-	}
-
-	//SPOT LIGIHT
-	distance = this->spotLight.GetRayIntersectDist(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection());
-	if (distance < closestDist) {
-		closestDist = distance;
-		this->selectedObject = &spotLight;
-	}
-
-	//BOAT
-	distance = this->boat.GetRayIntersectDist(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection());
-	if (distance < closestDist) {
-		closestDist = distance;
-		this->selectedObject = &boat;
+	// Iterate over the map using iterator
+	while (mapIterator != gameObjectMap.end())
+	{
+		RenderableGameObject* gameObject = dynamic_cast<RenderableGameObject*>(mapIterator->second);
+		distance = gameObject->GetRayIntersectDist(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection());
+		if (distance < closestDist) {
+			closestDist = distance;
+			this->selectedObject = gameObject;
+		}
+		mapIterator++;
 	}
 
 	//IF AN OBJECT WAS SELECTED, SET SELECTING TO TRUE
@@ -1008,10 +1287,10 @@ void Graphics::DrawAxisForObject(GameObject* gameObject, const XMMATRIX& viewPro
 	if (scale < 0.75f) scale = 0.75f;
 
 	if (this->axisEditState == AxisEditState::EDIT_TRANSLATE) {
-		this->axisTranslateModel.Draw(XMMatrixScaling(scale, scale, scale) * modelMatrix, viewProjection);
+		this->axisTranslateModel.Draw(XMMatrixScaling(scale, scale, scale) * modelMatrix, viewProjection, &cb_vs_vertexShader);
 	}
 	else if (this->axisEditState == AxisEditState::EDIT_ROTATE) { //MULTIPLY BY ACTUAL MODEL MATRIX WHEN ROTATING
-		this->axisRotateModel.Draw(XMMatrixScaling(scale, scale, scale) * this->selectedObject->GetModelMatrix(), viewProjection);
+		this->axisRotateModel.Draw(XMMatrixScaling(scale, scale, scale) * this->selectedObject->GetModelMatrix(), viewProjection, &cb_vs_vertexShader);
 	}
 }
 
@@ -1029,4 +1308,31 @@ void Graphics::StopAxisEdit()
 XMVECTOR Graphics::RayPlaneIntersect(XMVECTOR rayPoint, XMVECTOR rayDirection, XMVECTOR planeNormal, XMVECTOR planePoint) {
 	XMVECTOR diff = rayPoint - planePoint;
 	return (diff + planePoint) + rayDirection * (-XMVector3Dot(diff, planeNormal) / XMVector3Dot(rayDirection, planeNormal));
+}
+
+float Graphics::GetWaterHeightAt(float posX, float posZ)
+{
+	float gameTime = cb_vs_vertexShader.data.gameTime;
+	float value = 0.0f;// sin(posX * 1.5f + gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + gameTime * 0.0019f) * 0.05f;
+	value += sin(-posX * 0.4f + gameTime * 0.0012f) * 0.15f + sin(posZ * 0.5f + gameTime * 0.0013f) * 0.15f;
+	value += sin(posX * 0.2f + gameTime * 0.0006f) * 0.5f + sin(-posZ * 0.22f + gameTime * 0.0004f) * 0.45f;
+	return value * this->cb_vs_vertexShader.data.waveAmplitude;
+}
+
+void Graphics::FloatObject(GameObject* object)
+{
+	XMFLOAT3 positionFloat = object->GetPositionFloat3();
+	XMVECTOR position = XMVectorSet(0.0f, GetWaterHeightAt(positionFloat.x, positionFloat.z), 0.0f, 0.0f);
+
+	XMVECTOR tangent = XMVector3Normalize(XMVectorSet(0.025f, GetWaterHeightAt(positionFloat.x + 0.025f, positionFloat.z), 0.0f, 0.0f) - position);
+	XMVECTOR bitangent = XMVector3Normalize(XMVectorSet(0.0f, GetWaterHeightAt(positionFloat.x, positionFloat.z + 0.025f), 0.025f, 0.0f) - position);
+	XMVECTOR normal = XMVector3Normalize(XMVector3Cross(bitangent, tangent));
+
+	object->SetFrontVector(bitangent);
+	object->SetUpVector(normal);
+	object->SetRightVector(tangent);
+
+	object->SetPosition(XMFLOAT3(positionFloat.x, XMVectorGetY(position) - 3.5f, positionFloat.z));
+	object->SetRotationMatrix(XMMatrixLookToLH(XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), -bitangent, normal));
+	object->UpdateModelMatrix();
 }
