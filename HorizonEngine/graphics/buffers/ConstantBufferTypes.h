@@ -10,61 +10,77 @@ struct CB_VS_vertexShader
 	float waveAmplitude;
 };
 
+struct CB_DirectionalLight
+{
+	DirectX::XMFLOAT3 colour;
+	float ambientStrength;
+
+	DirectX::XMFLOAT3 direction;
+	float padding1;
+};
+
+struct CB_PointLight
+{
+	DirectX::XMFLOAT3 position;
+	float padding1;
+
+	DirectX::XMFLOAT3 colour;
+	float padding2;
+
+	float attenuationConstant;
+	float attenuationLinear;
+	float attenuationQuadratic;
+	float padding3;
+};
+
+struct CB_SpotLight
+{
+	DirectX::XMFLOAT3 position;
+	float padding1;
+
+	DirectX::XMFLOAT3 colour;
+	float padding2;
+
+	float attenuationConstant;
+	float attenuationLinear;
+	float attenuationQuadratic;
+	float innerCutoff;
+
+	float outerCutoff;
+	DirectX::XMFLOAT3 direction;
+};
+
+struct CB_Material
+{
+	float shininess;
+	float specularity;
+	DirectX::XMFLOAT2 padding1;
+};
+
 struct CB_PS_pixelShader
 {
-	//PACK_SEAM // DIRECTIONAL LIGHT
-	DirectX::XMFLOAT3 directionalLightColour;
-	float directionalLightAmbientStrength;
-
 	//PACK_SEAM
-	float directionalLightSpecularStrength;
-	DirectX::XMFLOAT3 directionalLightDirection;
-
-	//PACK_SEAM
-	float directionalLightShininess;
-	DirectX::XMFLOAT3 padding;
-
-	//PACK_SEAM // POINT LIGHT
-	DirectX::XMFLOAT3 pointLightColour;
-	float pointLightAmbientStrength;
-
-	//PACK_SEAM
-	float pointLightAttenuationConstant;
-	float pointLightAttenuationLinear;
-	float pointLightAttenuationQuadratic;
-	float pointLightSpecularStrength;
-
-	//PACK_SEAM
-	DirectX::XMFLOAT3 pointLightPosition;
-	float pointLightShininess;
-
-	//PACK_SEAM // SPOT LIGHT
-	DirectX::XMFLOAT3 spotLightColour;
-	float spotLightAmbientStrength;
-
-	//PACK_SEAM
-	float spotLightAttenuationConstant;
-	float spotLightAttenuationLinear;
-	float spotLightAttenuationQuadratic;
-	float spotLightSpecularStrength;
-
-	//PACK_SEAM
-	DirectX::XMFLOAT3 spotLightPosition;
-	float spotLightShininess;
-
-	//PACK_SEAM
-	DirectX::XMFLOAT3 spotLightDirection;
-	float spotLightInnerCutoff;
-
-	//PACK_SEAM
-	float spotLightOuterCutoff;
-	DirectX::XMFLOAT3 cameraPosition;
+	int numPointLights;
+	int numSpotLights;
+	DirectX::XMFLOAT2 padding1;
 
 	//PACK_SEAM
 	int useNormalMapping;
 	int useParallaxOcclusionMapping;
 	float parallaxOcclusionMappingHeight;
 	int fresnel;
+
+	//PACK_SEAM
+	CB_Material objectMaterial;
+
+	//PACK_SEAM
+	CB_DirectionalLight directionalLight;
+	CB_PointLight pointLights[5];
+	CB_SpotLight spotLights[5];
+
+	//PACK_SEAM
+	DirectX::XMFLOAT3 cameraPosition;
+	float padding2;
 };
 
 struct CB_PS_noLightPixelShader
@@ -81,4 +97,3 @@ struct CB_PS_cloudsPixelShader
 	DirectX::XMFLOAT3 lightDirection;
 	float padding2;
 };
-

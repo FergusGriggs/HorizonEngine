@@ -36,15 +36,16 @@ public:
 	void SetRotation(const XMFLOAT3& rotation);
 	void SetRotation(float x, float y, float z);
 
+	void SetLookAtPos(XMVECTOR lookAtPos);
 	void SetLookAtPos(XMFLOAT3 lookAtPos);
 
 	void RotateAxisVectors(XMVECTOR axis, float angle);
 	void CopyAxisVectorsFrom(GameObject* gameObject);
 
-	const XMVECTOR& GetFrontVector(bool noY = false);
+	XMVECTOR GetFrontVector(bool noY = false);
 	const XMVECTOR& GetBackVector(bool noY = false);
 	const XMVECTOR& GetLeftVector(bool noY = false);
-	const XMVECTOR& GetRightVector(bool noY = false);
+	XMVECTOR GetRightVector(bool noY = false);
 	const XMVECTOR& GetUpVector();
 
 	void SetFrontVector(const XMVECTOR& front);
@@ -62,6 +63,15 @@ public:
 
 	float GetObjectTrackDelta();
 	void SetObjectTrackDelta(float trackDelta);
+
+	bool GetHasParentObject();
+	void SetHasParentObject(bool hasParentObject);
+	GameObject* GetParentObject();
+	void SetParentObject(GameObject* parentObject);
+
+	void SetObjectToFollow(GameObject* objectToFollow);
+	void SetIsFollowingObject(bool isFollowingObject);
+	bool GetIsFollowingObject();
 
 	virtual void Update(float deltaTime);
 
@@ -88,17 +98,23 @@ protected:
 	const XMVECTOR DEFAULT_UP_VECTOR = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	const XMVECTOR DEFAULT_RIGHT_VECTOR = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 
-	XMVECTOR front;
-	XMVECTOR right;
-	XMVECTOR up;
+	XMVECTOR front = DEFAULT_FRONT_VECTOR;
+	XMVECTOR right = DEFAULT_RIGHT_VECTOR;
+	XMVECTOR up = DEFAULT_UP_VECTOR;
 
 	XMVECTOR frontNoY;
 	XMVECTOR rightNoY;
 
-	ObjectTrack* objectTrack;
+	bool followingTrack = false;
+	ObjectTrack* objectTrack = nullptr;
 
-	bool followingTrack;
 	bool floating = false;
+
+	bool hasParentObject = false;
+	GameObject* parentObject = nullptr;
+
+	bool isFollowingObject = false;
+	GameObject* objectToFollow = nullptr;
 
 	GameObjectType type;
 

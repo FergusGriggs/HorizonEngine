@@ -25,7 +25,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     
     if (justColour)
     {
-        return float4(textureColour.x, textureColour.y, textureColour.z, 1.0f);
+        return float4(textureColour.r, textureColour.g, textureColour.b, 1.0f);
     }
     
     float dotResult = abs(dot(float3(0.0f, 1.0f, 0.0f), input.normal));

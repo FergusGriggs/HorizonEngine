@@ -1,61 +1,77 @@
 //pixelShader.hlsl
 //Default pixel shader
 
+struct DirectionalLight
+{
+    float3 colour;
+    float ambientStrength;
+
+    float3 direction;
+    float padding1;
+};
+
+struct PointLight
+{
+    float3 position;
+    float padding1;
+    
+    float3 colour;
+    float padding2;
+    
+    float attenuationConstant;
+    float attenuationLinear;
+    float attenuationQuadratic;
+    float padding3;
+};
+
+struct SpotLight
+{
+    float3 position;
+    float padding1;
+    
+    float3 colour;
+    float padding2;
+    
+    float attenuationConstant;
+    float attenuationLinear;
+    float attenuationQuadratic;
+    float innerCutoff;
+    
+    float outerCutoff;
+    float3 direction;
+};
+
+struct Material
+{
+    float shininess;
+    float specularity;
+    float2 padding1;
+};
+
 cbuffer constantBuffer : register(b0)
 {
-    //PACK_SEAM // DIRECTIONAL LIGHT
-    float3 directionalLightColour;
-    float directionalLightAmbientStrength;
-
-	//PACK_SEAM
-    float directionalLightSpecularStrength;
-    float3 directionalLightDirection;
-
-	//PACK_SEAM
-    float directionalLightShininess;
-    float3 padding;
-
-	//PACK_SEAM // POINT LIGHT
-    float3 pointLightColour;
-    float pointLightAmbientStrength;
-
-	//PACK_SEAM
-    float pointLightAttenuationConstant;
-    float pointLightAttenuationLinear;
-    float pointLightAttenuationQuadratic;
-    float pointLightSpecularStrength;
-
-	//PACK_SEAM
-    float3 pointLightPosition;
-    float pointLightShininess;
-
-	//PACK_SEAM // SPOT LIGHT
-    float3 spotLightColour;
-    float spotLightAmbientStrength;
-
-	//PACK_SEAM
-    float spotLightAttenuationConstant;
-    float spotLightAttenuationLinear;
-    float spotLightAttenuationQuadratic;
-    float spotLightSpecularStrength;
-
-	//PACK_SEAM
-    float3 spotLightPosition;
-    float spotLightShininess;
-
-	//PACK_SEAM
-    float3 spotLightDirection;
-    float spotLightInnerCutoff;
-
-	//PACK_SEAM
-    float spotLightOuterCutoff;
-    float3 cameraPosition;
-
     //PACK_SEAM
+    int numPointLights;
+    int numSpotLights;
+    float2 padding1;
+
+	//PACK_SEAM
     int useNormalMapping;
     int useParallaxOcclusionMapping;
     float parallaxOcclusionMappingHeight;
     int fresnel;
+
+	//PACK_SEAM
+    Material objectMaterial;
+
+	//PACK_SEAM
+    DirectionalLight directionalLight;
+    PointLight pointLights[5];
+    SpotLight spotLights[5];
+
+	//PACK_SEAM
+    float3 cameraPosition;
+    float padding2;
 };
 
 struct PS_INPUT
@@ -161,62 +177,65 @@ float4 main(PS_INPUT input) : SV_TARGET
 
     // DIRECTIONAL LIGHT
     {
-        float3 ambient = directionalLightColour * directionalLightAmbientStrength * textureColour;
+        float3 ambient = directionalLight.colour * directionalLight.colour * textureColour;
 
-        float3 toLight = -directionalLightDirection;
+        float3 toLight = -directionalLight.direction;
 
         float diffuseFloat = max(dot(toLight, normal), 0.0f);
-        float3 diffuse = diffuseFloat * directionalLightColour * textureColour;
+        float3 diffuse = diffuseFloat * directionalLight.colour * textureColour;
 
         float3 reflectDirection = reflect(-toLight, normal);
 
-        float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), directionalLightShininess);
-        float3 specular = specularFloat * directionalLightColour * directionalLightSpecularStrength * specularColour;
+        float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), objectMaterial.shininess);
+        float3 specular = specularFloat * directionalLight.colour * objectMaterial.specularity * specularColour;
 
         cumulativeColour += ambient + diffuse + specular;
     }
+
     // POINT LIGHT
     {
-        float3 ambient = pointLightColour * pointLightAmbientStrength * textureColour;
+        for (int i = 0; i < numPointLights; ++i)
+        {
+            float3 toLight = normalize(pointLights[i].position- input.worldPos);
 
-        float3 toLight = normalize(pointLightPosition - input.worldPos);
+            float diffuseFloat = max(dot(toLight, normal), 0.0f);
+            float3 diffuse = diffuseFloat * pointLights[i].colour * textureColour;
 
-        float diffuseFloat = max(dot(toLight, normal), 0.0f);
-        float3 diffuse = diffuseFloat * pointLightColour * textureColour;
+            float3 reflectDirection = reflect(-toLight, normal);
 
-        float3 reflectDirection = reflect(-toLight, normal);
+            float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), objectMaterial.shininess);
+            float3 specular = specularFloat * pointLights[i].colour * specularColour;
 
-        float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), pointLightShininess);
-        float3 specular = specularFloat * pointLightColour * pointLightSpecularStrength * specularColour;
+            float pointLightDistance = distance(pointLights[i].position, input.worldPos);
+            float pointLightAttenuation = 1.0f / (pointLights[i].attenuationConstant + pointLights[i].attenuationLinear * pointLightDistance + pointLights[i].attenuationQuadratic * pow(pointLightDistance, 2.0f));
 
-        float pointLightDistance = distance(pointLightPosition, input.worldPos);
-        float pointLightAttenuation = 1.0f / (pointLightAttenuationConstant + pointLightAttenuationLinear * pointLightDistance + pointLightAttenuationQuadratic * pow(pointLightDistance, 2.0f));
-
-        cumulativeColour += (ambient + diffuse + specular) * pointLightAttenuation;
+            cumulativeColour += (diffuse + specular) * pointLightAttenuation;
+        }
     }
     // SPOT LIGHT
     {
-        float3 ambient = spotLightColour * spotLightAmbientStrength * textureColour;
+        for (int i = 0; i < numSpotLights; ++i)
+        {
+            float3 toLight = normalize(spotLights[i].position- input.worldPos);
 
-        float3 toLight = normalize(spotLightPosition - input.worldPos);
+            float diffuseFloat = max(dot(toLight, normal), 0.0f);
+            float3 diffuse = diffuseFloat * spotLights[i].colour* textureColour;
 
-        float diffuseFloat = max(dot(toLight, normal), 0.0f);
-        float3 diffuse = diffuseFloat * spotLightColour * textureColour;
+            float3 reflectDirection = reflect(-toLight, normal);
 
-        float3 reflectDirection = reflect(-toLight, normal);
+            float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), objectMaterial.shininess);
+            float3 specular = specularFloat * spotLights[i].colour * specularColour;
 
-        float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), spotLightShininess);
-        float3 specular = specularFloat * spotLightColour * spotLightSpecularStrength * specularColour;
+            float spotLightDistance = distance(spotLights[i].position, input.worldPos);
+            float spotLightAttenuation = 1.0f / (spotLights[i].attenuationConstant + spotLights[i].attenuationLinear * spotLightDistance + spotLights[i].attenuationQuadratic * pow(spotLightDistance, 2.0f));
 
-        float spotLightDistance = distance(spotLightPosition, input.worldPos);
-        float spotLightAttenuation = 1.0f / (spotLightAttenuationConstant + spotLightAttenuationLinear * spotLightDistance + spotLightAttenuationQuadratic * pow(spotLightDistance, 2.0f));
+            float theta = dot(toLight, normalize(-spotLights[i].direction));
+            float epsilon = spotLights[i].innerCutoff - spotLights[i].outerCutoff;
+            float intensity = clamp((theta - spotLights[i].outerCutoff) / epsilon, 0.0f, 1.0f);
 
-        float theta = dot(toLight, normalize(-spotLightDirection));
-        float epsilon = spotLightInnerCutoff - spotLightOuterCutoff;
-        float intensity = clamp((theta - spotLightOuterCutoff) / epsilon, 0.0f, 1.0f);
-
-        //cumulativeColour += (ambient + diffuse + specular) * spotLightAttenuation;
-        cumulativeColour += (ambient + diffuse + specular) * spotLightAttenuation * intensity;
+            //cumulativeColour += (ambient + diffuse + specular) * spotLightAttenuation;
+            cumulativeColour += (diffuse + specular) * spotLightAttenuation * intensity;
+        }
     }
 
     float alpha = 1.0f; //1.0f - smoothstep(75.0f, 85.0f, distance(float3(0.0f, 0.0f, 0.0f), input.worldPos));

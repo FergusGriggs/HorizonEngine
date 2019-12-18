@@ -60,6 +60,7 @@ public:
 	void CheckSelectingObject();
 	void UpdateSelectedObject();
 
+	XMFLOAT3 ReadFloat3(std::ifstream& stream);
 	bool LoadScene(const char* filepath);
 
 	void UpdateImGui();
@@ -75,8 +76,13 @@ public:
 
 	Camera camera;
 	RenderableGameObject skybox;
+	RenderableGameObject clouds;
+	RenderableGameObject ocean;
 
 	std::unordered_map<std::string, GameObject*> gameObjectMap;
+	std::vector<RenderableGameObject*> renderableGameObjects;
+	std::vector<PointLight*> pointLights;
+	std::vector<SpotLight*> spotLights;
 
 	Model axisTranslateModel;
 	Model axisRotateModel;
@@ -96,7 +102,6 @@ private:
 	bool InitializeDirectX(HWND hwnd);
 	bool InitializeShaders();
 	bool InitializeScene();
-	void InitializeTracks();
 	void FloatObject(GameObject* object);
 	float GetWaterHeightAt(float posX, float posZ);
 
@@ -128,8 +133,6 @@ private:
 	std::unique_ptr<DirectX::SpriteFont> spriteFont;
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> diffuseTexture2;
 
 	std::unordered_map<std::string, ObjectTrack*> objectTracks;
 	Texture* noiseTexture;

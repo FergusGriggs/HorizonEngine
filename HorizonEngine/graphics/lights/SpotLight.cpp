@@ -7,19 +7,41 @@ SpotLight::SpotLight() {
 	this->type = GameObjectType::SPOT_LIGHT;
 }
 
-void SpotLight::UpdateShaderVariables(ConstantBuffer<CB_PS_pixelShader>& cb_ps_pixelShader) {
-	cb_ps_pixelShader.data.spotLightColour = this->colour;
-	cb_ps_pixelShader.data.spotLightAmbientStrength = this->ambientStrength;
+void SpotLight::UpdateShaderVariables(ConstantBuffer<CB_PS_pixelShader>& cb_ps_pixelShader, int lightIndex) {
+	cb_ps_pixelShader.data.spotLights[lightIndex].colour = this->colour;
 
-	cb_ps_pixelShader.data.spotLightAttenuationConstant = this->attenuationConstant;
-	cb_ps_pixelShader.data.spotLightAttenuationLinear = this->attenuationLinear;
-	cb_ps_pixelShader.data.spotLightAttenuationQuadratic = this->attenuationQuadratic;
-	cb_ps_pixelShader.data.spotLightSpecularStrength = this->specularStrength;
+	cb_ps_pixelShader.data.spotLights[lightIndex].attenuationConstant = this->attenuationConstant;
+	cb_ps_pixelShader.data.spotLights[lightIndex].attenuationLinear = this->attenuationLinear;
+	cb_ps_pixelShader.data.spotLights[lightIndex].attenuationQuadratic = this->attenuationQuadratic;
 
-	cb_ps_pixelShader.data.spotLightPosition = this->GetPositionFloat3();
-	XMStoreFloat3(&cb_ps_pixelShader.data.spotLightDirection, this->GetFrontVector());
-	cb_ps_pixelShader.data.spotLightShininess = this->shininess;
+	cb_ps_pixelShader.data.spotLights[lightIndex].position = this->GetPositionFloat3();
+	XMStoreFloat3(&cb_ps_pixelShader.data.spotLights[lightIndex].direction, this->GetFrontVector());
 
-	cb_ps_pixelShader.data.spotLightInnerCutoff = this->innerCutoff;
-	cb_ps_pixelShader.data.spotLightOuterCutoff = this->outerCutoff;
+	cb_ps_pixelShader.data.spotLights[lightIndex].innerCutoff = this->innerCutoff;
+	cb_ps_pixelShader.data.spotLights[lightIndex].outerCutoff = this->outerCutoff;
+}
+
+float* SpotLight::GetAttenuationConstantPtr()
+{
+	return &attenuationConstant;
+}
+
+float* SpotLight::GetAttenuationLinearPtr()
+{
+	return &attenuationLinear;
+}
+
+float* SpotLight::GetAttenuationQuadraticPtr()
+{
+	return &attenuationQuadratic;
+}
+
+float* SpotLight::GetInnerCutoffPtr()
+{
+	return &innerCutoff;
+}
+
+float* SpotLight::GetOuterCutoffPtr()
+{
+	return &outerCutoff;
 }

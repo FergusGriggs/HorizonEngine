@@ -5,6 +5,7 @@
 
 Camera::Camera()
 {
+	this->label = "Camera";
 	this->position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	this->positionVector = XMLoadFloat3(&this->position);
 

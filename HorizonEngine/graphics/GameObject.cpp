@@ -100,11 +100,16 @@ void GameObject::RotateAxisVectors(XMVECTOR axis, float angle)
 {
 	XMMATRIX rotation = XMMatrixRotationAxis(axis, angle);
 
-	this->front = XMVector3Transform(this->front, rotation);
-	this->right = XMVector3Transform(this->right, rotation);
-	this->up = XMVector3Transform(this->up, rotation);
+	this->front = XMVector4Transform(this->front, rotation);
+	this->right = XMVector4Transform(this->right, rotation);
+	this->up = XMVector4Transform(this->up, rotation);
 
-	this->rotationMatrix = XMMatrixLookToLH(XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), this->front, this->up);
+	this->rotationMatrix = XMMATRIX(right, up, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+
+	this->rotationMatrix.r[0].m128_f32[3] = 0.0f;
+	this->rotationMatrix.r[1].m128_f32[3] = 0.0f;
+	this->rotationMatrix.r[2].m128_f32[3] = 0.0f;
+	//this->rotationMatrix = XMMatrixLookToLH(XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), this->front, this->up);
 	//this->rotationMatrix = 
 	//this->rotationMatrix = XMMATRIX(front, right, up, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
 	//this->rotationMatrix = XMMATRIX(-right, up, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
@@ -118,50 +123,59 @@ void GameObject::CopyAxisVectorsFrom(GameObject* gameObject)
 	this->front = gameObject->front;
 	this->right = gameObject->right;
 	this->up = gameObject->up;
+
+	this->rotationMatrix = XMMATRIX(this->right, this->up, this->front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+
+	this->rotationMatrix.r[0].m128_f32[3] = 0.0f;
+	this->rotationMatrix.r[1].m128_f32[3] = 0.0f;
+	this->rotationMatrix.r[2].m128_f32[3] = 0.0f;
+
+	UpdateModelMatrix();
 }
 
 void GameObject::SetLookAtPos(XMFLOAT3 lookAtPos)
 {
 	this->front = XMVector3Normalize(XMVectorSet(lookAtPos.x, lookAtPos.y, lookAtPos.z, 0.0f) - this->positionVector);
-	this->right = XMVector3Normalize(XMVector3Cross(this->front, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)));
+	this->right = XMVector3Normalize(XMVector3Cross(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), this->front));
 	if (XMVector3Equal(right, XMVectorZero())) {
-		this->right = XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f);
+		this->right = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 		this->up = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 	}
 	else {
-		this->up = XMVector3Normalize(XMVector3Cross(this->right, this->front));
+		this->up = XMVector3Normalize(XMVector3Cross(this->front, this->right));
 	}
 
-	this->rotationMatrix = XMMATRIX(-right, up, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+	this->rotationMatrix = XMMATRIX(right, up, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+
+	this->rotationMatrix.r[0].m128_f32[3] = 0.0f;
+	this->rotationMatrix.r[1].m128_f32[3] = 0.0f;
+	this->rotationMatrix.r[2].m128_f32[3] = 0.0f;
 
 	this->UpdateModelMatrix();
-	/*if (lookAtPos.x == this->position.x && lookAtPos.y == this->position.y && lookAtPos.z == this->position.z) {
-		return;
-	}
-
-	lookAtPos.x = this->position.x - lookAtPos.x;
-	lookAtPos.y = this->position.y - lookAtPos.y;
-	lookAtPos.z = this->position.z - lookAtPos.z;
-
-	float pitch = 0.0f;
-	if (lookAtPos.y != 0.0f) {
-		const float distance = sqrt(pow(lookAtPos.x, 2) + pow(lookAtPos.z, 2));
-		pitch = atan(lookAtPos.y / distance);
-	}
-
-	float yaw = 0.0f;
-	if (lookAtPos.x != 0.0f) {
-		yaw = atan(lookAtPos.x / lookAtPos.z);
-	}
-
-	if (lookAtPos.z > 0) {
-		yaw += XM_PI;
-	}
-
-	this->SetRotation(pitch, yaw, 0.0f);*/
 }
 
-const XMVECTOR& GameObject::GetFrontVector(bool noY)
+void GameObject::SetLookAtPos(XMVECTOR lookAtPos)
+{
+	this->front = XMVector3Normalize(lookAtPos - this->positionVector);
+	this->right = XMVector3Normalize(XMVector3Cross(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), this->front));
+	if (XMVector3Equal(right, XMVectorZero())) {
+		this->right = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+		this->up = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	}
+	else {
+		this->up = XMVector3Normalize(XMVector3Cross(this->front, this->right));
+	}
+
+	this->rotationMatrix = XMMATRIX(right, up, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+
+	this->rotationMatrix.r[0].m128_f32[3] = 0.0f;
+	this->rotationMatrix.r[1].m128_f32[3] = 0.0f;
+	this->rotationMatrix.r[2].m128_f32[3] = 0.0f;
+
+	this->UpdateModelMatrix();
+}
+
+XMVECTOR GameObject::GetFrontVector(bool noY)
 {
 	if (noY)
 		return this->frontNoY;
@@ -182,7 +196,7 @@ const XMVECTOR& GameObject::GetLeftVector(bool noY)
 	return -this->right;
 }
 
-const XMVECTOR& GameObject::GetRightVector(bool noY)
+XMVECTOR GameObject::GetRightVector(bool noY)
 {
 	if (noY)
 		return this->rightNoY;
@@ -213,6 +227,11 @@ void GameObject::Update(float deltaTime)
 {
 	if (followingTrack) {
 		this->objectTrack->Follow(this, deltaTime);
+	}
+	if (isFollowingObject && objectToFollow != nullptr)
+	{
+		SetPosition(XMVectorLerp(this->positionVector, objectToFollow->GetPositionVector() + XMVectorSet(0.0f, 2.0f, 0.0f, 0.0f), 0.0005f * deltaTime));
+		SetLookAtPos(objectToFollow->GetPositionVector());
 	}
 }
 
@@ -292,6 +311,41 @@ void GameObject::SetFloating(bool floating)
 
 void GameObject::SetObjectTrack(ObjectTrack* objectTrack) {
 	this->objectTrack = objectTrack;
+}
+
+bool GameObject::GetHasParentObject()
+{
+	return this->hasParentObject;
+}
+
+void GameObject::SetHasParentObject(bool hasParentObject)
+{
+	this->hasParentObject = hasParentObject;
+}
+
+GameObject* GameObject::GetParentObject()
+{
+	return this->parentObject;
+}
+
+void GameObject::SetParentObject(GameObject* parentObject)
+{
+	this->parentObject = parentObject;
+}
+
+void GameObject::SetObjectToFollow(GameObject* objectToFollow)
+{
+	this->objectToFollow = objectToFollow;
+}
+
+void GameObject::SetIsFollowingObject(bool isFollowingObject)
+{
+	this->isFollowingObject = isFollowingObject;
+}
+
+bool GameObject::GetIsFollowingObject()
+{
+	return this->isFollowingObject;
 }
 
 ObjectTrack* GameObject::GetObjectTrack() {

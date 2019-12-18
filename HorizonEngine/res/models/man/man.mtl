@@ -2,13 +2,13 @@
 # Material Count: 1
 
 newmtl GTP_BMan_Jack_07_Stg_Lsn_Adl_Ccs_Gry_Mgr_BlendMaterial
-Ns 9.803922
-Ka 0.588000 0.588000 0.588000
+Ns 9.803921
+Ka 1.000000 1.000000 1.000000
 Kd 0.500000 0.500000 0.500000
 Ks 0.000000 0.000000 0.000000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
-illum 2
+illum 1
 map_Kd man_diffuse.jpg
 map_Ks man_specular.jpg

@@ -23,14 +23,12 @@ bool Light::Initialize(std::string label, ID3D11Device* device, ID3D11DeviceCont
 	return true;
 }
 
-void Light::UpdateShaderVariables(ConstantBuffer<CB_PS_pixelShader>& cb_ps_pixelShader)
+void Light::UpdateShaderVariables(ConstantBuffer<CB_PS_pixelShader>& cb_ps_pixelShader, int lightIndex)
 {
-	cb_ps_pixelShader.data.directionalLightColour = this->colour;
-	cb_ps_pixelShader.data.directionalLightAmbientStrength = this->ambientStrength;
-	cb_ps_pixelShader.data.directionalLightSpecularStrength = this->specularStrength;
-	cb_ps_pixelShader.data.directionalLightShininess = this->shininess;
+	cb_ps_pixelShader.data.directionalLight.colour = this->colour;
+	cb_ps_pixelShader.data.directionalLight.ambientStrength = this->ambientStrength;
 
-	XMStoreFloat3(&cb_ps_pixelShader.data.directionalLightDirection, this->GetFrontVector());
+	XMStoreFloat3(&cb_ps_pixelShader.data.directionalLight.direction, this->GetFrontVector());
 }
 
 void Light::SetColour(DirectX::XMFLOAT3 colour) {
@@ -41,22 +39,6 @@ void Light::SetAmbientStrength(float ambientStrength) {
 	this->ambientStrength = ambientStrength;
 }
 
-void Light::SetSpecularStrength(float specularStrength) {
-	this->specularStrength = specularStrength;
-}
-
-void Light::SetShininess(float shininess) {
-	this->shininess = shininess;
-}
-
 float Light::GetAmbientStrength() {
 	return this->ambientStrength;
-}
-
-float Light::GetSpecularStrength() {
-	return this->specularStrength;
-}
-
-float Light::GetShininess() {
-	return this->shininess;
 }

@@ -64,7 +64,7 @@ void Horizon::Update()
 			{
 				float moveFactor = this->graphics.camera.GetZoom() / 90.0f;
 				if (moveFactor > 1.0f) moveFactor = 1.0f;
-				this->graphics.camera.RotateAxisVectors(this->graphics.camera.GetRightVector(), -(float)mouseEvent.GetPosY() * 0.01f * moveFactor);
+				this->graphics.camera.RotateAxisVectors(this->graphics.camera.GetRightVector(), (float)mouseEvent.GetPosY() * 0.01f * moveFactor);
 				this->graphics.camera.RotateAxisVectors(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), (float)mouseEvent.GetPosX() * 0.01f * moveFactor);
 				//this->graphics.camera.AdjustRotation((float)mouseEvent.GetPosY() * 0.01f * moveFactor, (float)mouseEvent.GetPosX() * 0.01f * moveFactor, 0.0f);
 			}
@@ -72,12 +72,18 @@ void Horizon::Update()
 		
 		if (mouseEvent.GetType() == MouseEvent::EventType::SCROLL_UP)
 		{
-			this->graphics.camera.Zoom(-2.0f);
+			if (!(ImGui::IsAnyWindowHovered() || ImGui::IsAnyItemHovered()))
+			{
+				this->graphics.camera.Zoom(-2.0f);
+			}
 		}
 
 		if (mouseEvent.GetType() == MouseEvent::EventType::SCROLL_DOWN)
 		{
-			this->graphics.camera.Zoom(2.0f);
+			if (!(ImGui::IsAnyWindowHovered() || ImGui::IsAnyItemHovered()))
+			{
+				this->graphics.camera.Zoom(2.0f);
+			}
 		}
 
 		if (mouseEvent.GetType() == MouseEvent::EventType::LEFT_PRESS)

@@ -25,9 +25,6 @@ bool Graphics::Initialize(HWND hwnd, int width, int height, std::vector<Controll
 		return false;
 	}
 
-	//INIT OBJECT TRACK DATA
-	InitializeTracks();
-
 	//INIT SCENE OBJECTS
 	if (!InitializeScene())
 	{
@@ -107,18 +104,8 @@ bool Graphics::InitializeScene()
 {
 	try
 	{
-		camera.SetLabel("Camera");
-		//LOAD TEXTURES
-		HRESULT hr = DirectX::CreateWICTextureFromFile(this->device.Get(), L"res\\textures\\me.png", nullptr, diffuseTexture.GetAddressOf());
-
-		COM_ERROR_IF_FAILED(hr, "Failed to create WIC texture from file.");
-
-		hr = DirectX::CreateWICTextureFromFile(this->device.Get(), L"res\\textures\\pink.jpg", nullptr, diffuseTexture2.GetAddressOf());
-
-		COM_ERROR_IF_FAILED(hr, "Failed to create WIC texture from file.");
-
 		//CREATE CONSTANT BUFFERS
-		hr = this->cb_vs_vertexShader.Initialize(this->device.Get(), this->deviceContext.Get());
+		HRESULT hr = this->cb_vs_vertexShader.Initialize(this->device.Get(), this->deviceContext.Get());
 
 		COM_ERROR_IF_FAILED(hr, "Failed to create 'cb_vs_vertexShader' constant buffer.");
 
@@ -152,174 +139,25 @@ bool Graphics::InitializeScene()
 		yAxisTranslateDefaultBounds = XMFLOAT3(0.05f, 0.45f, 0.05f);
 		zAxisTranslateDefaultBounds = XMFLOAT3(0.05f, 0.05f, 0.45f);
 
-
 		noiseTexture = resourceManager.GetTexturePtr("res/textures/noiseTexture.png");
-
-		//INITIALIZE RENDERABLES
-		{
-			RenderableGameObject* lady = new RenderableGameObject();;
-			if (!lady->Initialize("Lady", "res/models/photoscan/photoscan.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {//"nanosuit/nanosuit.obj"//tests/dodge_challenger.fbx//lambo/lambo.obj
-				return false;
-			}
-
-			lady->SetPosition(2.0f, 7.0f, 0.0f);
-			lady->SetObjectTrack(objectTracks.at("lady_track"));
-			lady->SetObjectTrackDelta(2.0f);
-			lady->SetFollowingObjectTrack(true);
-
-			lady->GetRelativePositions()->push_back(XMVectorSet(0.0f, 1.75f, 0.0f, 0.0f));
-
-			gameObjectMap.insert({ lady->GetLabel(), lady });
-		}
-
-		{
-			RenderableGameObject* man = new RenderableGameObject();
-			if (!man->Initialize("Man", "res/models/man/man.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-
-			man->SetPosition(-2.0f, 7.0f, 0.0f);
-			man->SetObjectTrack(objectTracks.at("man_track"));
-			man->SetFollowingObjectTrack(true);
-
-			man->GetRelativePositions()->push_back(XMVectorSet(0.0f, 1.75f, 0.0f, 0.0f));
-
-			gameObjectMap.insert({ man->GetLabel(), man });
-		}
-
-		{
-			RenderableGameObject* walls = new RenderableGameObject();
-			if (!walls->Initialize("Walls", "res/models/walls.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-
-			gameObjectMap.insert({ walls->GetLabel(), walls });
-		}
 		
-		{
-			RenderableGameObject* ocean = new RenderableGameObject();
-			if (!ocean->Initialize("Ocean", "res/models/ocean_smooth_large_2.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-
-			ocean->SetPosition(0.0f, -4.0f, 0.0f);
-
-			gameObjectMap.insert({ ocean->GetLabel(), ocean });
-		}
-		
-		{
-			RenderableGameObject* seaMine = new RenderableGameObject();
-			if (!seaMine->Initialize("Sea Mine 1", "res/models/sea_mine.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-			seaMine->SetPosition(30.0f, -4.0f, 25.0f);
-			seaMine->SetFloating(true);
-			gameObjectMap.insert({ seaMine->GetLabel(), seaMine });
-
-			seaMine = new RenderableGameObject();
-			if (!seaMine->Initialize("Sea Mine 2", "res/models/sea_mine.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-			seaMine->SetPosition(-30.0f, -4.0f, 25.0f);
-			seaMine->SetFloating(true);
-			gameObjectMap.insert({ seaMine->GetLabel(), seaMine });
-
-			seaMine = new RenderableGameObject();
-			if (!seaMine->Initialize("Sea Mine 3", "res/models/sea_mine.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-			seaMine->SetPosition(30.0f, -4.0f, -25.0f);
-			seaMine->SetFloating(true);
-			gameObjectMap.insert({ seaMine->GetLabel(), seaMine });
+		if (!skybox.Initialize("Skybox", "res/models/skyboxes/ocean.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+			return false;
 		}
 
-		{
-			RenderableGameObject* island = new RenderableGameObject();
-			if (!island->Initialize("Island", "res/models/island/island2.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-
-			island->SetPosition(0.0f, -5.0f, 0.0f);
-
-			gameObjectMap.insert({ island->GetLabel(), island });
+		if (!clouds.Initialize("Clouds", "res/models/simple_plane.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+			return false;
 		}
+		clouds.SetPosition(0.0f, 35.0f, 0.0f);
 
-		{
-			RenderableGameObject* clouds = new RenderableGameObject();
-			if (!clouds->Initialize("Clouds", "res/models/simple_plane.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-
-			clouds->SetPosition(0.0f, 35.0f, 0.0f);
-
-			gameObjectMap.insert({ clouds->GetLabel(), clouds });
+		if (!ocean.Initialize("Ocean", "res/models/ocean_smooth_large_2.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+			return false;
 		}
-		
+		ocean.SetPosition(0.0f, -4.0f, 0.0f);
+
+		if (!LoadScene("demo_scene.txt"))
 		{
-			if (!skybox.Initialize("Skybox", "res/models/skyboxes/ocean.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-		}
-
-		{
-			RenderableGameObject* boat = new RenderableGameObject();
-			if (!boat->Initialize("Boat", "res/models/boat.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-
-			boat->SetObjectTrack(objectTracks.at("boat_track"));
-			boat->SetFollowingObjectTrack(true);
-
-			boat->GetRelativePositions()->push_back(XMVectorSet(0.0f, 2.5f, -4.0f, 0.0f));
-			boat->GetRelativePositions()->push_back(XMVectorSet(0.0f, 8.5f, -12.0f, 0.0f));
-
-			boat->SetFloating(true);
-
-			gameObjectMap.insert({ boat->GetLabel(), boat });
-		}
-
-		//INITIALIZE LIGHTS
-		{
-			Light* directionalLight = new Light();
-
-			if (!directionalLight->Initialize("Directional Light", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-
-			directionalLight->SetPosition(2.0f, 6.0f, 2.0f);
-			directionalLight->SetLookAtPos(XMFLOAT3(0.0f, 0.0f, 0.0f));
-			directionalLight->SetColour(XMFLOAT3(0.8f, 0.75f, 0.6f));
-
-			gameObjectMap.insert({ directionalLight->GetLabel(), directionalLight });
-		}
-		
-		{
-			PointLight* pointLight = new PointLight();
-
-			if (!pointLight->Initialize("Point Light", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-
-			pointLight->SetPosition(0.0f, 8.0f, 0.0f);
-			pointLight->SetObjectTrack(objectTracks.at("point_light_track"));
-			pointLight->SetFollowingObjectTrack(true);
-
-			gameObjectMap.insert({ pointLight->GetLabel(), pointLight });
-		}
-		
-
-		{
-			SpotLight* spotLight = new SpotLight();
-
-			if (!spotLight->Initialize("Spot Light", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-				return false;
-			}
-
-			spotLight->SetPosition(-10.0f, 10.0f, -10.0f);
-			spotLight->SetObjectTrack(objectTracks.at("spot_light_track"));
-			spotLight->SetFollowingObjectTrack(true);
-
-			gameObjectMap.insert({ spotLight->GetLabel(), spotLight });
+			return false;
 		}
 
 		camera.SetPosition(0.0f, 10.0f, -7.0f);
@@ -338,12 +176,29 @@ bool Graphics::InitializeScene()
 
 void Graphics::RenderFrame(float deltaTime) {
 	//UPDATE THE PIXEL SHADER CONSTANT BUFFER
-	dynamic_cast<PointLight*>(gameObjectMap.at("Point Light"))->UpdateShaderVariables(this->cb_ps_pixelShader);
+
 	Light* directionalLight = dynamic_cast<Light*>(gameObjectMap.at("Directional Light"));
 	directionalLight->UpdateShaderVariables(this->cb_ps_pixelShader);
-	dynamic_cast<SpotLight*>(gameObjectMap.at("Spot Light"))->UpdateShaderVariables(this->cb_ps_pixelShader);
+
+	size_t numPointLights = pointLights.size();
+	for (size_t i = 0; i < numPointLights; ++i)
+	{
+		pointLights.at(i)->UpdateShaderVariables(this->cb_ps_pixelShader, i);
+	}
 	
+	size_t numSpotLights = spotLights.size();
+	for (size_t i = 0; i < numSpotLights; ++i)
+	{
+		spotLights.at(i)->UpdateShaderVariables(this->cb_ps_pixelShader, i);
+	}
+
+	this->cb_ps_pixelShader.data.numPointLights = numPointLights;
+	this->cb_ps_pixelShader.data.numSpotLights = numSpotLights;
+
 	this->cb_ps_pixelShader.data.cameraPosition = camera.GetPositionFloat3();
+
+	this->cb_ps_pixelShader.data.objectMaterial.shininess = 4.0f;
+	this->cb_ps_pixelShader.data.objectMaterial.specularity = 0.75f;
 
 	this->cb_ps_pixelShader.MapToGPU();
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_pixelShader.GetAddressOf());
@@ -388,6 +243,7 @@ void Graphics::RenderFrame(float deltaTime) {
 		//DRAW SKYBOX
 
 		this->deviceContext->PSSetShader(noLightPixelShader.GetShader(), NULL, 0);
+		this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_noLightPixelShader.GetAddressOf());
 
 		this->cb_ps_noLightPixelShader.data.justColour = 1;
 		this->cb_ps_noLightPixelShader.MapToGPU();
@@ -400,26 +256,25 @@ void Graphics::RenderFrame(float deltaTime) {
 		this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
 
+	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_pixelShader.GetAddressOf());
 	this->deviceContext->PSSetShader(pixelShader.GetShader(), NULL, 0);
 
 	{
 		//DRAW REGULAR GAME OBJECTS
-		if (this->gameObjectMap["Boat"]->GetFloating()) FloatObject(this->gameObjectMap["Boat"]);
-		if (this->gameObjectMap["Sea Mine 1"]->GetFloating()) FloatObject(this->gameObjectMap["Sea Mine 1"]);
-		if (this->gameObjectMap["Sea Mine 2"]->GetFloating()) FloatObject(this->gameObjectMap["Sea Mine 2"]);
-		if (this->gameObjectMap["Sea Mine 3"]->GetFloating()) FloatObject(this->gameObjectMap["Sea Mine 3"]);
-		
-		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Walls"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
-		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Lady"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
-		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Sea Mine 1"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
-		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Sea Mine 2"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
-		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Sea Mine 3"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
-		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Man"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
-		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Island"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
-		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Boat"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		size_t numRenderableGameObjects = renderableGameObjects.size();
+		for (size_t i = 0; i < numRenderableGameObjects; ++i)
+		{
+			RenderableGameObject* renderableGameObject = renderableGameObjects.at(i);
+			if (renderableGameObject->GetFloating())
+			{
+				FloatObject(renderableGameObject);
+			}
 
-		cb_ps_pixelShader.data.directionalLightShininess = 8.0f;
-		cb_ps_pixelShader.data.directionalLightSpecularStrength = 0.5f;
+			renderableGameObject->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		}
+
+		cb_ps_pixelShader.data.objectMaterial.shininess = 8.0f;
+		cb_ps_pixelShader.data.objectMaterial.specularity = 0.5f;
 		cb_ps_pixelShader.data.fresnel = 1;
 		cb_ps_pixelShader.MapToGPU();
 
@@ -427,11 +282,12 @@ void Graphics::RenderFrame(float deltaTime) {
 		this->deviceContext->VSSetShader(waterVertexShader.GetShader(), NULL, 0);
 		this->deviceContext->PSSetShaderResources(4, 1, noiseTexture->GetTextureResourceViewAddress());
 
-		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Ocean"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		ocean.Draw(viewProjMat, &this->cb_vs_vertexShader);
 
 		this->deviceContext->VSSetShader(vertexShader.GetShader(), NULL, 0);
 
 		cb_ps_pixelShader.data.fresnel = 0;
+		cb_ps_pixelShader.data.objectMaterial.specularity = 1.0f;
 
 		//DRAWCLOUDS
 
@@ -444,7 +300,7 @@ void Graphics::RenderFrame(float deltaTime) {
 
 		this->cb_ps_cloudsPixelShader.MapToGPU();
 
-		dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Clouds"])->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		clouds.Draw(viewProjMat, &this->cb_vs_vertexShader);
 	}
 	
 	{
@@ -453,15 +309,22 @@ void Graphics::RenderFrame(float deltaTime) {
 
 		this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_noLightPixelShader.GetAddressOf());
 
-		PointLight* pointLight = dynamic_cast<PointLight*>(this->gameObjectMap["Point Light"]);
-		this->cb_ps_noLightPixelShader.data.colour = pointLight->colour;
-		this->cb_ps_noLightPixelShader.MapToGPU();
-		pointLight->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		for (size_t i = 0; i < numPointLights; ++i)
+		{
+			PointLight* pointLight = pointLights.at(i);
+			this->cb_ps_noLightPixelShader.data.colour = pointLight->colour;
+			this->cb_ps_noLightPixelShader.MapToGPU();
+			pointLight->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		}
 
-		SpotLight* spotLight = dynamic_cast<SpotLight*>(this->gameObjectMap["Spot Light"]);
-		this->cb_ps_noLightPixelShader.data.colour = spotLight->colour;
-		this->cb_ps_noLightPixelShader.MapToGPU();
-		spotLight->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		size_t numSpotLights = spotLights.size();
+		for (size_t i = 0; i < numSpotLights; ++i)
+		{
+			SpotLight* spotLight = spotLights.at(i);
+			this->cb_ps_noLightPixelShader.data.colour = spotLight->colour;
+			this->cb_ps_noLightPixelShader.MapToGPU();
+			spotLight->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		}
 
 		this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -570,7 +433,7 @@ void Graphics::UpdateSelectedObject() {
 				float rotation = atan2(XMVectorGetY(modelSpaceCentreDiff), XMVectorGetZ(modelSpaceCentreDiff)); //WORK OUT ANGLE OF ROTATION
 				if (this->lastAxisGrabOffset != FLT_MAX) { //IF NOT FIRST ITERATION
 					float rotationDiff = rotation - this->lastAxisGrabOffset; //FIND ANGLE DIFF
-					selectedObject->RotateAxisVectors(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), rotationDiff); //ROTATE AXIS BY DIFFERENCE
+					selectedObject->RotateAxisVectors(selectedObject->GetRightVector(), -rotationDiff); //ROTATE AXIS BY DIFFERENCE
 					this->lastAxisGrabOffset = rotation - rotationDiff; //SET LAST OFFSET
 				}
 				else {
@@ -590,7 +453,7 @@ void Graphics::UpdateSelectedObject() {
 				float rotation = atan2(XMVectorGetZ(modelSpaceCentreDiff), XMVectorGetX(modelSpaceCentreDiff));
 				if (this->lastAxisGrabOffset != FLT_MAX) {
 					float rotationDiff = rotation - this->lastAxisGrabOffset;
-					selectedObject->RotateAxisVectors(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), rotationDiff);
+					selectedObject->RotateAxisVectors(selectedObject->GetUpVector(), -rotationDiff);
 					this->lastAxisGrabOffset = rotation - rotationDiff;
 				}
 				else {
@@ -607,7 +470,7 @@ void Graphics::UpdateSelectedObject() {
 				float rotation = atan2(XMVectorGetY(modelSpaceCentreDiff), XMVectorGetX(modelSpaceCentreDiff));
 				if (this->lastAxisGrabOffset != FLT_MAX) {
 					float rotationDiff = rotation - this->lastAxisGrabOffset;
-					selectedObject->RotateAxisVectors(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), -rotationDiff);
+					selectedObject->RotateAxisVectors(selectedObject->GetFrontVector(), rotationDiff);
 					this->lastAxisGrabOffset = rotation - rotationDiff;
 				}
 				else {
@@ -620,50 +483,219 @@ void Graphics::UpdateSelectedObject() {
 	}
 }
 
-bool Graphics::LoadScene(const char* filepath)
+XMFLOAT3 Graphics::ReadFloat3(std::ifstream& stream)
 {
-	/*std::ifstream sceneFile(filepath);
+	XMFLOAT3 vector;
+	stream >> vector.x;
+	stream >> vector.y;
+	stream >> vector.z;
+	return vector;
+}
+
+bool Graphics::LoadScene(const char* sceneName)
+{
+	std::string sceneFilePath = "res/scenes/";
+	sceneFilePath += sceneName;
+
+	std::ifstream sceneFile(sceneFilePath.c_str());
 
 	if (sceneFile)
 	{
-		int numObjects;
-		sceneFile >> numObjects;
+		/*try
+		{*/
+			int numObjectTracks;
+			sceneFile >> numObjectTracks;
 
-		for (int i = 0; i < numObjects; ++i)
-		{
-			int intObjectType;
-			sceneFile >> intObjectType;
-			GameObjectType objectType = static_cast<GameObjectType>(intObjectType);
-
-			std::string label;
-			sceneFile >> label;
-			StringHelper::ReplaceChars(label, '|', ' ');
-
-			switch (objectType)
+			for (int i = 0; i < numObjectTracks; ++i)
 			{
-			case GameObjectType::RENDERABLE:
+				std::string trackName;
+				sceneFile >> trackName;
+				StringHelper::ReplaceChars(trackName, '|', ' ');
 
+				int numNodes;
+				sceneFile >> numNodes;
+
+				ObjectTrack* track = new ObjectTrack();
+
+				for (int j = 0; j < numNodes; ++j)
+				{
+					XMFLOAT3 nodePos = ReadFloat3(sceneFile);
+
+					XMFLOAT3 nodeLookAt = ReadFloat3(sceneFile);
+
+					track->AddTrackNode(ObjectTrackNode(nodePos, nodeLookAt));
+				}
+
+				track->GenerateMidPoints();
+
+				this->objectTracks.insert(std::make_pair(trackName, track));
 			}
-		}
 
-		int numObjectTracks;
-		sceneFile >> numObjectTracks;
+			int numObjects;
+			sceneFile >> numObjects;
 
-		for (int i = 0; i < numObjectTracks; ++i)
-		{
-			std::string label;
-			sceneFile >> label;
-
-			int numNodes;
-			sceneFile >> numNodes;
-
-			for (int j = 0; j < numNodes; ++j)
+			for (int i = 0; i < numObjects; ++i)
 			{
+				GameObject* gameObject;
+
+				int intObjectType;
+				sceneFile >> intObjectType;
+				GameObjectType objectType = static_cast<GameObjectType>(intObjectType);
+
+				std::string label;
+				sceneFile >> label;
+				StringHelper::ReplaceChars(label, '|', ' ');
+
+				switch (objectType)
+				{
+				case GameObjectType::RENDERABLE:
+				{
+					std::string fileName;
+					sceneFile >> fileName;
+					StringHelper::ReplaceChars(fileName, '|', ' ');
+					fileName = "res/models/" + fileName;
+
+					RenderableGameObject* renderableGameObject = new RenderableGameObject();
+					if (!renderableGameObject->Initialize(label, fileName, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+						return false;
+					}
+
+					gameObject = dynamic_cast<GameObject*>(renderableGameObject);
+					break;
+				}
+				case GameObjectType::LIGHT:
+				{
+					Light* directionalLight = new Light();
+
+					if (!directionalLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+						return false;
+					}
+
+					directionalLight->SetColour(ReadFloat3(sceneFile));
+					gameObject = dynamic_cast<GameObject*>(directionalLight);
+					break;
+				}
+				case GameObjectType::POINT_LIGHT:
+				{
+					PointLight* pointLight = new PointLight();
+
+					if (!pointLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+						return false;
+					}
+
+					pointLight->SetColour(ReadFloat3(sceneFile));
+					gameObject = dynamic_cast<GameObject*>(pointLight);
+					break;
+				}
+				case GameObjectType::SPOT_LIGHT:
+				{
+					SpotLight* spotLight = new SpotLight();
+
+					if (!spotLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+						return false;
+					}
+
+					spotLight->SetColour(ReadFloat3(sceneFile));
+					gameObject = dynamic_cast<GameObject*>(spotLight);
+					break;
+				}
+				default:
+				{
+					gameObject = new GameObject();
+					break;
+				}
+				}
+
+				gameObject->SetPosition(ReadFloat3(sceneFile));
+
+				int rotationType;
+				sceneFile >> rotationType;
+
+				switch (rotationType)
+				{
+				case 1:
+					XMFLOAT3 front = ReadFloat3(sceneFile);
+					XMFLOAT3 right = ReadFloat3(sceneFile);
+					XMFLOAT3 up = ReadFloat3(sceneFile);
+
+					gameObject->SetFrontVector(XMVectorSet(front.x, front.y, front.z, 0.0f));
+					gameObject->SetRightVector(XMVectorSet(right.x, right.y, right.z, 0.0f));
+					gameObject->SetUpVector(XMVectorSet(up.x, up.y, up.z, 0.0f));
+					break;
+
+				case 2:
+					gameObject->SetLookAtPos(ReadFloat3(sceneFile));
+					break;
+				}
+
+				bool hasTrack;
+				sceneFile >> hasTrack;
+
+				if (hasTrack)
+				{
+					std::string trackName;
+					sceneFile >> trackName;
+
+					gameObject->SetObjectTrack(objectTracks.at(trackName));
+
+					bool followingTrack;
+					sceneFile >> followingTrack;
+
+					gameObject->SetFollowingObjectTrack(followingTrack);
+
+					float objectTrackDelta;
+					sceneFile >> objectTrackDelta;
+
+					gameObject->SetObjectTrackDelta(objectTrackDelta);
+				}
+
+				int numRelativeCams;
+				sceneFile >> numRelativeCams;
+
+				for (int i = 0; i < numRelativeCams; ++i)
+				{
+					XMFLOAT3 cameraRelativePosition = ReadFloat3(sceneFile);
+					gameObject->GetRelativePositions()->push_back(XMVectorSet(cameraRelativePosition.x, cameraRelativePosition.y, cameraRelativePosition.z, 0.0f));
+				}
+
+				bool floating;
+				sceneFile >> floating;
+
+				gameObject->SetFloating(floating);
+
+				gameObjectMap.insert({ gameObject->GetLabel(), gameObject });
+
+				switch (objectType)
+				{
+				case GameObjectType::RENDERABLE:
+				{
+					RenderableGameObject* renderableGameObject = dynamic_cast<RenderableGameObject*>(gameObject);
+					renderableGameObjects.push_back(renderableGameObject);
+					break;
+				}
+				case GameObjectType::POINT_LIGHT:
+				{
+					PointLight* pointLight = dynamic_cast<PointLight*>(gameObject);
+					pointLights.push_back(pointLight);
+					break;
+				}
+				case GameObjectType::SPOT_LIGHT:
+				{
+					SpotLight* spotLight = dynamic_cast<SpotLight*>(gameObject);
+					spotLights.push_back(spotLight);
+					break;
+				}
+				}
 			}
-		}
+		/*}
+		catch (std::exception e)
+		{
+			ErrorLogger::Log("Failed to load scene");
+			return false;
+		}*/
 
 		return true;
-	}*/
+	}
 
 	return false;
 }
@@ -689,6 +721,36 @@ void Graphics::UpdateImGui()
 		bool floatingObject = selectedObject->GetFloating();
 		ImGui::Checkbox("Float Object", &floatingObject);
 		selectedObject->SetFloating(floatingObject);
+
+		if (selectedObject->GetIsFollowingObject())
+		{
+			if (ImGui::Button("Stop Following Object"))
+			{
+				selectedObject->SetIsFollowingObject(false);
+				selectedObject->SetObjectToFollow(nullptr);
+			}
+		}
+		else {
+			if (ImGui::TreeNode("Followable Objects"))
+			{
+				std::unordered_map<std::string, GameObject*>::iterator mapIterator = gameObjectMap.begin();
+				while (mapIterator != gameObjectMap.end())
+				{
+					RenderableGameObject* gameObject = dynamic_cast<RenderableGameObject*>(mapIterator->second);
+
+					std::string label = "Follow " + gameObject->GetLabel();
+
+					if (ImGui::Button(label.c_str()))
+					{
+						selectedObject->SetObjectToFollow(gameObject);
+						selectedObject->SetIsFollowingObject(true);
+					}
+					mapIterator++;
+				}
+				ImGui::TreePop();
+			}
+		}
+		
 		if (ImGui::Button("Edit Translation")) {
 			this->axisEditState = AxisEditState::EDIT_TRANSLATE;
 		}
@@ -715,10 +777,31 @@ void Graphics::UpdateImGui()
 				lightObj->CopyAxisVectorsFrom(&camera);
 				lightObj->SetFollowingObjectTrack(false);
 			}
+
+			if (type == GameObjectType::POINT_LIGHT)
+			{
+				PointLight* pointLightObj = reinterpret_cast<PointLight*>(lightObj);
+				ImGui::SliderFloat("Att. Const.", pointLightObj->GetAttenuationConstantPtr(), 0.05f, 1.0f);
+				ImGui::SliderFloat("Att. Lin.", pointLightObj->GetAttenuationLinearPtr(), 0.0f, 0.2f);
+				ImGui::SliderFloat("Att. Quad.", pointLightObj->GetAttenuationQuadraticPtr(), 0.0f, 0.05f);
+			}
+			else if (type == GameObjectType::SPOT_LIGHT)
+			{
+				SpotLight* pointLightObj = reinterpret_cast<SpotLight*>(lightObj);
+				ImGui::SliderFloat("Att. Const.", pointLightObj->GetAttenuationConstantPtr(), 0.05f, 1.0f);
+				ImGui::SliderFloat("Att. Lin.", pointLightObj->GetAttenuationLinearPtr(), 0.0f, 0.2f);
+				ImGui::SliderFloat("Att. Quad.", pointLightObj->GetAttenuationQuadraticPtr(), 0.0f, 0.05f);
+
+				ImGui::SliderFloat("Inn. Cut.", pointLightObj->GetInnerCutoffPtr(), 0.0f, 1.0f);
+				ImGui::SliderFloat("Out. Cut.", pointLightObj->GetOuterCutoffPtr(), 0.0f, 1.0f);
+			}
 		}
 
-		ImGui::Text("Relative Cameras");
 		size_t numRelativeCameras = selectedObject->GetRelativePositions()->size();
+		if (numRelativeCameras != 0)
+		{
+			ImGui::Text("Relative Cameras");
+		}
 		for (size_t i = 0; i < numRelativeCameras; ++i)
 		{
 			if (ImGui::Button(("Camera " + std::to_string(i + 1)).c_str()))
@@ -739,6 +822,74 @@ void Graphics::UpdateImGui()
 		
 		ImGui::End();
 	}
+
+	ImGui::Begin("Object Selection");
+	
+	/*if (ImGui::BeginMenu("Objects"))
+	{*/
+	std::unordered_map<std::string, GameObject*>::iterator mapIterator = gameObjectMap.begin();
+	while (mapIterator != gameObjectMap.end())
+	{
+		RenderableGameObject* gameObject = dynamic_cast<RenderableGameObject*>(mapIterator->second);
+
+		std::string label = gameObject->GetLabel();
+
+		if (selectedObject == gameObject)
+		{
+			ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), ("> " + label).c_str());
+		}
+		else if (ImGui::MenuItem(label.c_str()))
+		{
+			selectedObject = gameObject;
+			selectingGameObject = true;
+		}
+		mapIterator++;
+	}
+	//ImGui::EndMenu();
+	//}
+	
+
+	if (selectingGameObject)
+	{
+		if (ImGui::Button("Previous Object"))
+		{
+			std::unordered_map<std::string, GameObject*>::iterator mapIterator = gameObjectMap.begin();
+			while (++mapIterator != gameObjectMap.end())
+			{
+				if (mapIterator->second == selectedObject)
+				{
+					if (--mapIterator == gameObjectMap.begin())
+					{
+						selectedObject = dynamic_cast<RenderableGameObject*>((--gameObjectMap.end())->second);
+					}
+					else {
+						selectedObject = dynamic_cast<RenderableGameObject*>(mapIterator->second);
+					}
+					break;
+				}
+			}
+		}
+		if (ImGui::Button("Next Object"))
+		{
+			std::unordered_map<std::string, GameObject*>::iterator mapIterator = gameObjectMap.begin();
+			while (++mapIterator != gameObjectMap.end())
+			{
+				if (mapIterator->second == selectedObject)
+				{
+					if (++mapIterator == gameObjectMap.end())
+					{
+						selectedObject = dynamic_cast<RenderableGameObject*>((++gameObjectMap.begin())->second);
+					}
+					else {
+						selectedObject = dynamic_cast<RenderableGameObject*>(mapIterator->second);
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	ImGui::End();
 
 	ImGui::Begin("Scene Settings");
 	
@@ -784,6 +935,7 @@ void Graphics::UpdateImGui()
 		ImGui::Checkbox(controllers->at(i).GetGameObject()->GetLabel().c_str(), controllers->at(i).IsActivePtr());
 		ImGui::SameLine();
 	}
+
 	ImGui::End();
 
 	ImGui::Begin("Camera Settings");
@@ -847,12 +999,24 @@ void Graphics::Update(float deltaTime)
 
 	//UPDATE GAME OBJECTS
 	camera.Update(deltaTime);
-	dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Man"])->Update(deltaTime);
-	dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Lady"])->Update(deltaTime);
-	dynamic_cast<RenderableGameObject*>(this->gameObjectMap["Boat"])->Update(deltaTime * 0.25f);
 
-	dynamic_cast<PointLight*>(this->gameObjectMap["Point Light"])->Update(deltaTime);
-	dynamic_cast<SpotLight*>(this->gameObjectMap["Spot Light"])->Update(deltaTime);
+	size_t numRenderableGameObjects = renderableGameObjects.size();
+	for (size_t i = 0; i < numRenderableGameObjects; ++i)
+	{
+		renderableGameObjects.at(i)->Update(deltaTime);
+	}
+
+	size_t numPointLights = pointLights.size();
+	for (size_t i = 0; i < numPointLights; ++i)
+	{
+		pointLights.at(i)->Update(deltaTime);
+	}
+
+	size_t numSpotLights = spotLights.size();
+	for (size_t i = 0; i < numSpotLights; ++i)
+	{
+		spotLights.at(i)->Update(deltaTime);
+	}
 	
 	//UPDATE IMGUI
 	UpdateImGui();
@@ -1034,111 +1198,6 @@ bool Graphics::InitializeDirectX(HWND hwnd) {
 		return false;
 	}
 	return true;
-}
-
-void Graphics::InitializeTracks() {
-	{
-		//CREATE CAMERA TRACK
-		ObjectTrack* cameraTrack = new ObjectTrack();
-
-		//CREATE DATA
-		cameraTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-6.0f, 11.0f, -6.0f), XMFLOAT3(0.0f, 3.5f, 0.0f)));
-		cameraTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, 11.0f, -6.0f), XMFLOAT3(0.0f, 3.5f, 0.0f)));
-		cameraTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(6.0f, 11.0f, -6.0f), XMFLOAT3(0.0f, 3.5f, 0.0f)));
-		cameraTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(6.0f, 11.0f, 0.0f), XMFLOAT3(0.0f, 3.5f, 0.0f)));
-		cameraTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, 11.0f, 6.0f), XMFLOAT3(0.0f, 3.5f, 0.0f)));
-		cameraTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-6.0f, 11.0f, 6.0f), XMFLOAT3(0.0f, 3.5f, 0.0f)));
-		cameraTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-6.0f, 11.0f, 0.0f), XMFLOAT3(0.0f, 3.5f, 0.0f)));
-		cameraTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-6.0f, 11.0f, -6.0f), XMFLOAT3(0.0f, 3.5f, 0.0f)));
-
-		cameraTrack->GenerateMidPoints(); //INITIALIZE
-
-		objectTracks.insert({ "camera_track", cameraTrack }); //INSERT INTO MAP
-	}
-	
-	{
-		//CREATE POINT TRACK
-		ObjectTrack* pointLightTrack = new ObjectTrack();
-
-		//CREATE DATA
-		pointLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-1.5f, 5.5f, -1.5f), XMFLOAT3(-1.5f, 5.0f, -1.5f)));
-		pointLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(1.5f, 3.5f, -1.5f), XMFLOAT3(1.5f, 3.0f, -1.5f)));
-		pointLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(1.5f, 5.5f, 1.5f), XMFLOAT3(1.5f, 5.0f, 1.5f)));
-		pointLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-1.5f, 3.5f, 1.5f), XMFLOAT3(-1.5f, 3.0f, 1.5f)));
-		pointLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-1.5f, 5.5f, -1.5f), XMFLOAT3(-1.5f, 5.0f, -1.5f)));
-
-		pointLightTrack->GenerateMidPoints(); //INITIALIZE
-
-		objectTracks.insert({ "point_light_track", pointLightTrack }); //INSERT INTO MAP
-	}
-	
-	{
-		//CREATE SPOT TRACK
-		ObjectTrack* spotLightTrack = new ObjectTrack();
-
-		//CREATE DATA
-		spotLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-6.0f, 5.5f, -6.0f), XMFLOAT3(-5.0f, 4.5f, -5.0f)));
-		spotLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, 3.5f, -6.0f), XMFLOAT3(0.0f, 0.0f, -6.0f)));
-		spotLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(6.0f, 5.5f, -6.0f), XMFLOAT3(5.0f, 4.5f, -5.0f)));
-		spotLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(6.0f, 3.5f, 0.0f), XMFLOAT3(6.0f, 0.0f, 0.0f)));
-		spotLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(6.0f, 5.5f, 6.0f), XMFLOAT3(5.0f, 4.5f, 5.0f)));
-		spotLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, 3.5f, 6.0f), XMFLOAT3(0.0f, 0.0f, 6.0f)));
-		spotLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-6.0f, 5.5f, 6.0f), XMFLOAT3(-5.0f, 4.5f, 5.0f)));
-		spotLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-6.0f, 3.5f, 0.0f), XMFLOAT3(-6.0f, 0.0f, 0.0f)));
-		spotLightTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-6.0f, 5.5f, -6.0f), XMFLOAT3(-5.0f, 4.5f, -5.0f)));
-
-		spotLightTrack->GenerateMidPoints(); //INITIALIZE
-
-		objectTracks.insert({ "spot_light_track", spotLightTrack }); //INSERT INTO MAP
-	}
-
-	{
-		//CREATE LADY TRACK
-		ObjectTrack* ladyTrack = new ObjectTrack();
-
-		//CREATE DATA
-		ladyTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-3.0f, 3.5f, 0.0f), XMFLOAT3(0.0f, 3.5f, 3.0f)));
-		ladyTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, 3.5f, 3.0f), XMFLOAT3(3.0f, 3.5f, 0.0f)));
-		ladyTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(3.0f, 3.5f, 0.0f), XMFLOAT3(0.0f, 3.5f, -3.0f)));
-		ladyTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, 3.5f, -3.0f), XMFLOAT3(-3.0f, 3.5f, 0.0f)));
-		ladyTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-3.0f, 3.5f, 0.0f), XMFLOAT3(0.0f, 3.5f, 3.0f)));
-
-		ladyTrack->GenerateMidPoints(); //INITIALIZE
-
-		objectTracks.insert({ "lady_track", ladyTrack }); //INSERT INTO MAP
-	}
-
-	{
-		//CREATE MAN TRACK
-		ObjectTrack* manTrack = new ObjectTrack();
-
-		//CREATE DATA
-		manTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-3.0f, 3.5f, 0.0f), XMFLOAT3(0.0f, 3.5f, 3.0f)));
-		manTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, 3.5f, 3.0f), XMFLOAT3(3.0f, 3.5f, 0.0f)));
-		manTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(3.0f, 3.5f, 0.0f), XMFLOAT3(0.0f, 3.5f, -3.0f)));
-		manTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, 3.5f, -3.0f), XMFLOAT3(-3.0f, 3.5f, 0.0f)));
-		manTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-3.0f, 3.5f, 0.0f), XMFLOAT3(0.0f, 3.5f, 3.0f)));
-
-		manTrack->GenerateMidPoints(); //INITIALIZE
-
-		objectTracks.insert({ "man_track", manTrack }); //INSERT INTO MAP
-	}
-
-	{
-		//CREATE BOAT TRACK
-		ObjectTrack* boatTrack = new ObjectTrack();
-
-		//CREATE DATA
-		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-40.0f, -3.5f, 0.0f), XMFLOAT3(0.0f, -3.5f, 40.0f)));
-		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, -3.5f, 40.0f), XMFLOAT3(40.0f, -3.5f, 0.0f)));
-		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(40.0f, -3.5f, 0.0f), XMFLOAT3(0.0f, -3.5f, -40.0f)));
-		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(0.0f, -3.5f, -40.0f), XMFLOAT3(-40.0f, -3.5f, 0.0f)));
-		boatTrack->AddTrackNode(ObjectTrackNode(XMFLOAT3(-40.0f, -3.5f, 0.0f), XMFLOAT3(0.0f, -3.5f, 40.0f)));
-
-		boatTrack->GenerateMidPoints(); //INITIALIZE
-
-		objectTracks.insert({ "boat_track", boatTrack }); //INSERT INTO MAP
-	}
 }
 
 void Graphics::CheckSelectingObject()
@@ -1324,8 +1383,14 @@ void Graphics::FloatObject(GameObject* object)
 	XMFLOAT3 positionFloat = object->GetPositionFloat3();
 	XMVECTOR position = XMVectorSet(0.0f, GetWaterHeightAt(positionFloat.x, positionFloat.z), 0.0f, 0.0f);
 
-	XMVECTOR tangent = XMVector3Normalize(XMVectorSet(0.025f, GetWaterHeightAt(positionFloat.x + 0.025f, positionFloat.z), 0.0f, 0.0f) - position);
-	XMVECTOR bitangent = XMVector3Normalize(XMVectorSet(0.0f, GetWaterHeightAt(positionFloat.x, positionFloat.z + 0.025f), 0.025f, 0.0f) - position);
+	XMVECTOR objectFront = object->GetFrontVector();
+	XMVECTOR objectRight = object->GetRightVector();
+
+	XMVECTOR tangent = XMVector3Normalize(XMVectorSet(XMVectorGetX(objectRight), GetWaterHeightAt(positionFloat.x + XMVectorGetX(objectRight), positionFloat.z + XMVectorGetZ(objectRight)), XMVectorGetZ(objectRight), 0.0f) - position);
+	XMVECTOR bitangent = XMVector3Normalize(XMVectorSet(XMVectorGetX(objectFront), GetWaterHeightAt(positionFloat.x + XMVectorGetX(objectFront), positionFloat.z + XMVectorGetZ(objectFront)), XMVectorGetZ(objectFront), 0.0f) - position);
+
+	/*XMVECTOR tangent = XMVector3Normalize(XMVectorSet(0.025f, GetWaterHeightAt(positionFloat.x + 0.025f, positionFloat.z), 0.0f, 0.0f) - position);
+	XMVECTOR bitangent = XMVector3Normalize(XMVectorSet(0.0f, GetWaterHeightAt(positionFloat.x, positionFloat.z + 0.025f), 0.025f, 0.0f) - position);*/
 	XMVECTOR normal = XMVector3Normalize(XMVector3Cross(bitangent, tangent));
 
 	object->SetFrontVector(bitangent);
@@ -1333,6 +1398,16 @@ void Graphics::FloatObject(GameObject* object)
 	object->SetRightVector(tangent);
 
 	object->SetPosition(XMFLOAT3(positionFloat.x, XMVectorGetY(position) - 3.5f, positionFloat.z));
-	object->SetRotationMatrix(XMMatrixLookToLH(XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), -bitangent, normal));
+
+	XMMATRIX rotationMatrix =  XMMATRIX(tangent, normal, bitangent, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+
+	rotationMatrix.r[0].m128_f32[3] = 0.0f;
+	rotationMatrix.r[1].m128_f32[3] = 0.0f;
+	rotationMatrix.r[2].m128_f32[3] = 0.0f;
+
+	object->SetRotationMatrix(rotationMatrix);
+
+	//object->SetRotationMatrix(XMMatrixLookToLH(XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), -bitangent, normal));
+
 	object->UpdateModelMatrix();
 }
