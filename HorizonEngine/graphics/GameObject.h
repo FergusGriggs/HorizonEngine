@@ -7,6 +7,7 @@
 
 #include "Model.h"
 #include "utility/ObjectTrack.h"
+#include "Transform.h"
 
 enum class GameObjectType {
 	BASE,
@@ -14,115 +15,88 @@ enum class GameObjectType {
 	CAMERA,
 	LIGHT,
 	POINT_LIGHT,
-	SPOT_LIGHT
+	SPOT_LIGHT,
+	PHYSICS,
 };
+
+class Controller;
 
 class GameObject
 {
 public:
+	// Constructors
 	GameObject();
+	virtual ~GameObject();
 
-	const XMVECTOR& GetPositionVector() const;
-	const XMFLOAT3& GetPositionFloat3() const;
+	// Transform functions
+	void SetTransform(Transform* transform);
+	Transform* GetTransform();
 
-	void SetPosition(const XMVECTOR& position);
-	void SetPosition(const XMFLOAT3& position);
-	void SetPosition(float x, float y, float z);
-	void AdjustPosition(const XMVECTOR& diff);
-	void AdjustPosition(const XMFLOAT3& diff);
-	void AdjustPosition(float x, float y, float z);
-
-	void SetRotation(const XMVECTOR& rotation);
-	void SetRotation(const XMFLOAT3& rotation);
-	void SetRotation(float x, float y, float z);
-
-	void SetLookAtPos(XMVECTOR lookAtPos);
-	void SetLookAtPos(XMFLOAT3 lookAtPos);
-
-	void RotateAxisVectors(XMVECTOR axis, float angle);
-	void CopyAxisVectorsFrom(GameObject* gameObject);
-
-	XMVECTOR GetFrontVector(bool noY = false);
-	const XMVECTOR& GetBackVector(bool noY = false);
-	const XMVECTOR& GetLeftVector(bool noY = false);
-	XMVECTOR GetRightVector(bool noY = false);
-	const XMVECTOR& GetUpVector();
-
-	void SetFrontVector(const XMVECTOR& front);
-	void SetUpVector(const XMVECTOR& up);
-	void SetRightVector(const XMVECTOR& right);
-
+	// Object track functions
 	void SetObjectTrack(ObjectTrack* objectTrack);
 	ObjectTrack* GetObjectTrack();
 
 	bool GetFollowingObjectTrack();
 	void SetFollowingObjectTrack(bool followingTrack);
-
-	bool GetFloating();
-	void SetFloating(bool floating);
-
+	
 	float GetObjectTrackDelta();
 	void SetObjectTrackDelta(float trackDelta);
 
+	// Float functions
+	bool GetFloating();
+	void SetFloating(bool floating);
+
+	// Parent functions
+	void SetParentObject(GameObject* parentObject);
+	GameObject* GetParentObject();
 	bool GetHasParentObject();
 	void SetHasParentObject(bool hasParentObject);
-	GameObject* GetParentObject();
-	void SetParentObject(GameObject* parentObject);
 
+	// Object follow functions
 	void SetObjectToFollow(GameObject* objectToFollow);
 	void SetIsFollowingObject(bool isFollowingObject);
 	bool GetIsFollowingObject();
 
+	// Controller functions
+	Controller* GetController();
+	void SetController(Controller* controller);
+
 	virtual void Update(float deltaTime);
 
+	//Identification
 	GameObjectType GetType();
 	std::string GetLabel();
 	void SetLabel(std::string newLabel);
 
-	XMMATRIX GetModelMatrix();
-	XMMATRIX GetRotationMatrix();
-	void SetRotationMatrix(XMMATRIX rotationMatrix);
-
-	virtual void UpdateModelMatrix();
 	std::vector<XMVECTOR>* GetRelativePositions();
 
 protected:
 	virtual void SetObjectDelta(float objectTrackDelta);
 
-	void CreateAxisVectorsFromRotMat();
+	GameObjectType type;
 
-	XMVECTOR positionVector;
-	XMFLOAT3 position;
+	Transform transform;
 
-	const XMVECTOR DEFAULT_FRONT_VECTOR = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-	const XMVECTOR DEFAULT_UP_VECTOR = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	const XMVECTOR DEFAULT_RIGHT_VECTOR = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-
-	XMVECTOR front = DEFAULT_FRONT_VECTOR;
-	XMVECTOR right = DEFAULT_RIGHT_VECTOR;
-	XMVECTOR up = DEFAULT_UP_VECTOR;
-
-	XMVECTOR frontNoY;
-	XMVECTOR rightNoY;
-
+	//Track information
 	bool followingTrack = false;
 	ObjectTrack* objectTrack = nullptr;
 
+	//Floating
 	bool floating = false;
 
+	//Relative Camera
 	bool hasParentObject = false;
 	GameObject* parentObject = nullptr;
+	std::vector<XMVECTOR> relativePositions;
 
+	//Following objects
 	bool isFollowingObject = false;
 	GameObject* objectToFollow = nullptr;
 
-	GameObjectType type;
+	//Controller
+	Controller* controller = nullptr;
 
 	std::string label;
-
-	XMMATRIX modelMatrix = XMMatrixIdentity();
-	XMMATRIX rotationMatrix = XMMatrixIdentity();
-
-	std::vector<XMVECTOR> relativePositions;
 };
 
+#include "utility/Controller.h"

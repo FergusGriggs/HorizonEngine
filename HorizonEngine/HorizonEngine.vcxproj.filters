@@ -64,6 +64,12 @@
     <Filter Include="Header Files\Graphics\Buffers">
       <UniqueIdentifier>{9306694b-6ee1-4f41-a880-e6957d311c35}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Physics">
+      <UniqueIdentifier>{6e212aa7-51a6-4f92-a7a9-e42fbf10aa29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Physics">
+      <UniqueIdentifier>{55092caf-182e-4cc4-b81d-2da0a63600b3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -161,6 +167,15 @@
     </ClCompile>
     <ClCompile Include="graphics\utility\Controller.cpp">
       <Filter>Source Files\Graphics\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\PhysicsGameObject.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="physics\ParticleModel.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\Transform.cpp">
+      <Filter>Source Files\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -284,6 +299,15 @@
     <ClInclude Include="graphics\utility\Controller.h">
       <Filter>Header Files\Graphics\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="graphics\PhysicsGameObject.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\ParticleModel.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\Transform.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="res\shaders\pixelShader.hlsl">
@@ -298,11 +322,12 @@
     <FxCompile Include="res\shaders\waterVertexShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="cloudsPixelShader.hlsl">
+    <FxCompile Include="res\shaders\cloudsPixelShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="HorizonEngine.cd" />
+    <None Include="HorizonEngine New.cd" />
   </ItemGroup>
 </Project>

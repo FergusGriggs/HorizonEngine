@@ -10,18 +10,14 @@ enum class ResourceType {
 	TEXTURE
 };
 
-struct ResourceData {
-	ResourceType type;
-	std::string path;
-	unsigned int index;
-};
-
 class ResourceManager
 {
 public:
 	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 	Model* GetModelPtr(std::string path);
 	Texture* GetTexturePtr(std::string path, aiTextureType textureType = aiTextureType::aiTextureType_DIFFUSE);
+	Texture* GetTexturePtr(std::string path, const uint8_t* pData, size_t size, aiTextureType type);
+	Texture* GetColourTexturePtr(std::string name, Colour colour, aiTextureType textureType = aiTextureType::aiTextureType_DIFFUSE);
 
 private:
 	ID3D11Device* device;

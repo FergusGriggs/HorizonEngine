@@ -15,7 +15,7 @@ void PointLight::UpdateShaderVariables(ConstantBuffer<CB_PS_pixelShader>& cb_ps_
 	cb_ps_pixelShader.data.pointLights[lightIndex].attenuationLinear = this->attenuationLinear;
 	cb_ps_pixelShader.data.pointLights[lightIndex].attenuationQuadratic = this->attenuationQuadratic;
 
-	cb_ps_pixelShader.data.pointLights[lightIndex].position = this->GetPositionFloat3();
+	cb_ps_pixelShader.data.pointLights[lightIndex].position = this->transform.GetPositionFloat3();
 }
 
 float* PointLight::GetAttenuationConstantPtr()

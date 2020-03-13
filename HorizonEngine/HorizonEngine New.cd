@@ -1,0 +1,387 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ConstantBuffer&lt;T&gt;">
+    <Position X="20.25" Y="1" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAAQBAAAAAAAIAAAAAAQAAAAFQAAAAAAA=</HashCode>
+      <FileName>graphics\buffers\ConstantBuffer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="IndexBuffer">
+    <Position X="14.25" Y="9" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQBAAAAAEAAAAQAAAAEAAAFAAAAAAAA=</HashCode>
+      <FileName>graphics\buffers\IndexBuffer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="VertexBuffer&lt;T&gt;">
+    <Position X="17" Y="6.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQBAAQAAAAEAEAAAAQAAAAFgAAAAEAA=</HashCode>
+      <FileName>graphics\buffers\VertexBuffer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AdapterData">
+    <Position X="30.5" Y="11.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAIAAAAAQAAAAAgAAAAAAAAAAAAAA=</HashCode>
+      <FileName>graphics\utility\AdapterReader.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AdapterReader" Collapsed="true">
+    <Position X="28.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAABAAAAAAA=</HashCode>
+      <FileName>graphics\utility\AdapterReader.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Controller">
+    <Position X="33" Y="8.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIEQAACAAAMAAAAAAAAAAABAAAAggAIIAAAAA=</HashCode>
+      <FileName>graphics\utility\Controller.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ObjectTrack">
+    <Position X="32.75" Y="11.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAUAAAABAABACAAAABEBQgAABAgABAgCAAEABACE=</HashCode>
+      <FileName>graphics\utility\ObjectTrack.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ResourceManager">
+    <Position X="12" Y="1" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAEAgAQAAAAAAAAAgIAAAAQAAAAAAAAAIAIA=</HashCode>
+      <FileName>graphics\utility\ResourceManager.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Camera">
+    <Position X="8.25" Y="0.75" Width="3" />
+    <TypeIdentifier>
+      <HashCode>ABSCCQEAAAAAAEAAEAAwAAAAADQCQAgAAyAAAAAACAQ=</HashCode>
+      <FileName>graphics\Camera.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Light">
+    <Position X="0.5" Y="4.75" Width="2" />
+    <InheritanceLine Type="RenderableGameObject" FixedFromPoint="true">
+      <Path>
+        <Point X="2" Y="2.562" />
+        <Point X="1.25" Y="2.562" />
+        <Point X="1.25" Y="4.75" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAgAAAAQAAAAAAAgAAARAAgAAgBAAAAAAAAAA=</HashCode>
+      <FileName>graphics\lights\Light.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PointLight">
+    <Position X="2.75" Y="8.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AkAAAAAAAAAAAAAAAAAAEAAAAQAAAAAABAAAIAAAAAY=</HashCode>
+      <FileName>graphics\lights\PointLight.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SpotLight">
+    <Position X="2.75" Y="5" Width="2.25" />
+    <InheritanceLine Type="Light" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="1.875" Y="4.75" />
+        <Point X="1.875" Y="4.45" />
+        <Point X="3.664" Y="4.45" />
+        <Point X="3.664" Y="5" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AkAAAAAAAABAQAAAAAAgEAAAAQAAAAAABAAAAAAAEgY=</HashCode>
+      <FileName>graphics\lights\SpotLight.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Colour">
+    <Position X="14.75" Y="5.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAkgAQAAAAAQAAAAAAAAAAAAAhKBEAAAA=</HashCode>
+      <FileName>graphics\Colour.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GameObject">
+    <Position X="5.25" Y="0.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>ERZAAAhIQDjQABFgAJgQIAkQhIgFwgEABCBABsIgiIA=</HashCode>
+      <FileName>graphics\GameObject.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Graphics">
+    <Position X="35.25" Y="1" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>ECagSUmDB0iwkRCAFnASTUMBRBDUASgAI0hkQgEoLME=</HashCode>
+      <FileName>graphics\Graphics.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Mesh">
+    <Position X="17" Y="1" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAASAAAAAEAAAgAAAAAAAAAAABgAAQAAAQAAAAAAAAA=</HashCode>
+      <FileName>graphics\Mesh.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Model">
+    <Position X="14.5" Y="1" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>IIAAAAACgAAQAwAAAAAIAAAAgBACAWACBAAAAAAAAkA=</HashCode>
+      <FileName>graphics\Model.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RenderableGameObject">
+    <Position X="2" Y="0.75" Width="2" />
+    <InheritanceLine Type="GameObject" FixedToPoint="true">
+      <Path>
+        <Point X="5.25" Y="1.25" />
+        <Point X="4" Y="1.25" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAwACAAAAAAACAAAAAAAAIAAAQgAIABA=</HashCode>
+      <FileName>graphics\RenderableGameObject.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="VertexShader">
+    <Position X="22.75" Y="6" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAQAAAAAAAAAABAAAAAACAABAAEAAACA=</HashCode>
+      <FileName>graphics\Shader.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PixelShader">
+    <Position X="24.75" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAQAAAAAAAAAABAAAAAAAAABAAEAAAAA=</HashCode>
+      <FileName>graphics\Shader.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Texture">
+    <Position X="12" Y="5.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>ACQAAAAAAAAAgQAAAAAAAAAgAAABAgEAAAIAAAAAgAA=</HashCode>
+      <FileName>graphics\Texture.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Keyboard">
+    <Position X="33" Y="1" Width="2" />
+    <TypeIdentifier>
+      <HashCode>BAwoiAAAAAEQAAACAAAAQAAwAAIAgQCAAAAAAFAAAQA=</HashCode>
+      <FileName>input\keyboard\Keyboard.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="KeyboardEvent">
+    <Position X="30.5" Y="1" Width="2.25" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="KeyboardEvent::EventType">
+        <TypeIdentifier>
+          <NewMemberFileName>Keyboard\KeyboardEvent.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>ggAAAAAAAAAAAAAAAAgEAAAAAAABAAAAAAAAQAAAAAg=</HashCode>
+      <FileName>input\keyboard\KeyboardEvent.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Mouse">
+    <Position X="30.5" Y="5.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAEIAAQEABgAUEAAEIwAADIAAAABAAAAAAQIaAA=</HashCode>
+      <FileName>input\mouse\Mouse.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MouseEvent">
+    <Position X="28" Y="1" Width="2.25" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="MouseEvent::EventType">
+        <TypeIdentifier>
+          <NewMemberFileName>Mouse\MouseEvent.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAgAAAAAAAAAAAAAAgAAIgAAAABAAEAAAAAAAAAYAA=</HashCode>
+      <FileName>input\mouse\MouseEvent.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="COMException">
+    <Position X="28" Y="13.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAAAAAAAAAAAAAAAAACAAAAAAAAAAQA=</HashCode>
+      <FileName>utility\COMException.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ErrorLogger">
+    <Position X="32.75" Y="16" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>utility\ErrorLogger.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="StringHelper">
+    <Position X="28" Y="11.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAgAAAAAAAAAAAAAAAAAAAAgEAAAAAEAAAAE=</HashCode>
+      <FileName>utility\StringHelper.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Timer">
+    <Position X="30.5" Y="13.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>EAAAAACAACAAAABgAAAAAAAAAAAgAAAAIAAAAAAEAAA=</HashCode>
+      <FileName>utility\Timer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Horizon">
+    <Position X="8" Y="7" Width="2" />
+    <InheritanceLine Type="WindowContainer" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="8.688" Y="11.25" />
+        <Point X="8.688" Y="10.415" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AASAAAAAAAEAAQBAAEAAAAAAAAAEAAAAQAAAAAAAAAI=</HashCode>
+      <FileName>Horizon.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="RenderWindow">
+    <Position X="28" Y="7.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQQAQEAAQAYAAAAEAAAAAgICAAAAAAI=</HashCode>
+      <FileName>RenderWindow.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WindowContainer">
+    <Position X="8" Y="11.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAgAAAIAAAEAAAAAAAAgAAAAAAAAAAAA=</HashCode>
+      <FileName>WindowContainer.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="CB_VS_vertexShader">
+    <Position X="22.75" Y="1" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAAAAAAAgAAAAEAAAAAAAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>graphics\buffers\ConstantBufferTypes.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="CB_DirectionalLight">
+    <Position X="20.25" Y="8.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAgAAAIAAAAAAAAAAAAAAAAAAABAAAAAAAAAA=</HashCode>
+      <FileName>graphics\buffers\ConstantBufferTypes.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="CB_PointLight">
+    <Position X="20.25" Y="5.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>EsAAAAAAAAAAAAAAAAAAMAAQAAAAAAAABAAAAAAAAAA=</HashCode>
+      <FileName>graphics\buffers\ConstantBufferTypes.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="CB_SpotLight">
+    <Position X="22.75" Y="3" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>EsAAAAAAAAAAIAAAAAAAMAAAAAAAAAAABAAAAAAAEgA=</HashCode>
+      <FileName>graphics\buffers\ConstantBufferTypes.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="CB_Material">
+    <Position X="22.5" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAACAAA=</HashCode>
+      <FileName>graphics\buffers\ConstantBufferTypes.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="CB_PS_pixelShader">
+    <Position X="24.75" Y="3" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAARAAECAAAAACACAAAAAAABAAAAAABQAAAgAIAAE=</HashCode>
+      <FileName>graphics\buffers\ConstantBufferTypes.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="CB_PS_noLightPixelShader">
+    <Position X="20.25" Y="4" Width="2" />
+    <TypeIdentifier>
+      <HashCode>EAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>graphics\buffers\ConstantBufferTypes.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="CB_PS_cloudsPixelShader">
+    <Position X="25.25" Y="1" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAAAAAAAAAAAAAAAAAAQABAAAAAABAAAAAAAAAA=</HashCode>
+      <FileName>graphics\buffers\ConstantBufferTypes.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="ObjectTrackNode">
+    <Position X="2.25" Y="12" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>ABACAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>graphics\utility\ObjectTrack.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="Vertex">
+    <Position X="17" Y="4" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAABAAAAAgAAAIgAAAAAAAAAAAIAAgAAAAA=</HashCode>
+      <FileName>graphics\Vertex.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="MousePos">
+    <Position X="33" Y="6.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQBgAAAAAAA=</HashCode>
+      <FileName>input\mouse\MouseEvent.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Enum Name="ResourceType">
+    <Position X="12" Y="4.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIgAA=</HashCode>
+      <FileName>graphics\utility\ResourceManager.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="GameObjectType">
+    <Position X="0.5" Y="10.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAAAAAAAAAAAAABAAEAACAAAQAAIAAAAAAAAA=</HashCode>
+      <FileName>graphics\GameObject.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="AxisEditState">
+    <Position X="0.5" Y="12.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAIAIAAAAAAAAAAAAQAAAAAAAIAA=</HashCode>
+      <FileName>graphics\Graphics.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="AxisEditSubState">
+    <Position X="0.5" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAIAA=</HashCode>
+      <FileName>graphics\Graphics.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="TextureStorageType">
+    <Position X="12" Y="8.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgABAAAAAAAAAQAAAAAAIAQAABAABAAAAAAAAAA=</HashCode>
+      <FileName>graphics\Texture.h</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

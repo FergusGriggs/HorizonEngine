@@ -12,5 +12,6 @@ public:
 	static std::wstring StringToWide(std::string str);
 	static std::string GetDirectoryFromPath(const std::string& filePath);
 	static std::string GetFileExtension(const std::string& fileName);
+	static void RemoveDirectoriesFromStart(std::string& filePath, int numDirectories);
 	static void ReplaceChars(std::string& string, char existingChar, char newChar);
 };

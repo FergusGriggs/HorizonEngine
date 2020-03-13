@@ -46,6 +46,7 @@ VS_OUTPUT main (VS_INPUT input)
 
     output.TBNMatrix = transpose(float3x3(tangent, bitangent, normal));
 
+
     //output.TBNMatrix = transpose(float3x3(tangent, bitangent, output.normal));
 
     return output;

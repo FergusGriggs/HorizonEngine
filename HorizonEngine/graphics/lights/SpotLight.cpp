@@ -14,8 +14,8 @@ void SpotLight::UpdateShaderVariables(ConstantBuffer<CB_PS_pixelShader>& cb_ps_p
 	cb_ps_pixelShader.data.spotLights[lightIndex].attenuationLinear = this->attenuationLinear;
 	cb_ps_pixelShader.data.spotLights[lightIndex].attenuationQuadratic = this->attenuationQuadratic;
 
-	cb_ps_pixelShader.data.spotLights[lightIndex].position = this->GetPositionFloat3();
-	XMStoreFloat3(&cb_ps_pixelShader.data.spotLights[lightIndex].direction, this->GetFrontVector());
+	cb_ps_pixelShader.data.spotLights[lightIndex].position = this->transform.GetPositionFloat3();
+	XMStoreFloat3(&cb_ps_pixelShader.data.spotLights[lightIndex].direction, this->transform.GetFrontVector());
 
 	cb_ps_pixelShader.data.spotLights[lightIndex].innerCutoff = this->innerCutoff;
 	cb_ps_pixelShader.data.spotLights[lightIndex].outerCutoff = this->outerCutoff;

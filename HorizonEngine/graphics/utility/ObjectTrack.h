@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <vector>
 #include <DirectXMath.h>
 
@@ -26,6 +27,7 @@ private:
 	float maxDelta;
 	bool loopTrack;
 	float delta;
+	std::string label = "null";
 
 public:
 	ObjectTrack();
@@ -38,6 +40,11 @@ public:
 
 	float GetDelta();
 	void SetDelta(float delta);
+
+	std::string GetLabel();
+	void SetLabel(std::string label);
+
+	std::vector<ObjectTrackNode>* GetTrackNodes();
 
 	void Follow(GameObject* gameObject, float deltaTime, bool lookTo = true);
 };

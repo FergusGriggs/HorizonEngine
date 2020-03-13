@@ -3,7 +3,7 @@
 
 #include "Mesh.h"
 
-Mesh::Mesh(ID3D11Device* device, ID3D11DeviceContext * deviceContext, std::vector<Vertex>& vertices, std::vector<DWORD>& indices, std::vector<Texture>& textures, const DirectX::XMMATRIX& transformMatrix)
+Mesh::Mesh(ID3D11Device* device, ID3D11DeviceContext * deviceContext, std::vector<Vertex>& vertices, std::vector<DWORD>& indices, std::vector<Texture*>& textures, const DirectX::XMMATRIX& transformMatrix)
 {
 	this->deviceContext = deviceContext;
 	this->textures = textures;
@@ -30,19 +30,19 @@ void Mesh::Draw()
 	UINT offset = 0;
 
 	for (int i = 0; i < textures.size(); i++) {
-		switch (textures[i].GetType())
+		switch (textures[i]->GetType())
 		{
 		case aiTextureType::aiTextureType_DIFFUSE:
-			this->deviceContext->PSSetShaderResources(0, 1, textures[i].GetTextureResourceViewAddress());
+			this->deviceContext->PSSetShaderResources(0, 1, textures[i]->GetTextureResourceViewAddress());
 			break;
 		case aiTextureType::aiTextureType_SPECULAR:
-			this->deviceContext->PSSetShaderResources(1, 1, textures[i].GetTextureResourceViewAddress());
+			this->deviceContext->PSSetShaderResources(1, 1, textures[i]->GetTextureResourceViewAddress());
 			break;
 		case aiTextureType::aiTextureType_HEIGHT:
-			this->deviceContext->PSSetShaderResources(2, 1, textures[i].GetTextureResourceViewAddress());
+			this->deviceContext->PSSetShaderResources(2, 1, textures[i]->GetTextureResourceViewAddress());
 			break;
 		case aiTextureType::aiTextureType_DISPLACEMENT:
-			this->deviceContext->PSSetShaderResources(3, 1, textures[i].GetTextureResourceViewAddress());
+			this->deviceContext->PSSetShaderResources(3, 1, textures[i]->GetTextureResourceViewAddress());
 			break;
 		}
 	}

@@ -6,11 +6,6 @@
 Camera::Camera()
 {
 	this->label = "Camera";
-	this->position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	this->positionVector = XMLoadFloat3(&this->position);
-
-	this->CreateAxisVectorsFromRotMat();
-	UpdateModelMatrix();//view
 
 	this->type = GameObjectType::CAMERA;
 
@@ -21,7 +16,7 @@ void Camera::Update(float deltaTime)
 {
 	if (usingRelativePosition && relativeObject != nullptr)
 	{
-		this->SetPosition(relativeObject->GetPositionVector() + relativeObject->GetRightVector() * XMVectorGetX(relativePosition) + relativeObject->GetUpVector() * XMVectorGetY(relativePosition) + relativeObject->GetFrontVector() * XMVectorGetZ(relativePosition));
+		this->transform.SetPosition(relativeObject->GetTransform()->GetPositionVector() + relativeObject->GetTransform()->GetRightVector() * XMVectorGetX(relativePosition) + relativeObject->GetTransform()->GetUpVector() * XMVectorGetY(relativePosition) + relativeObject->GetTransform()->GetFrontVector() * XMVectorGetZ(relativePosition));
 	}
 	if (followingTrack) {
 		this->objectTrack->Follow(this, deltaTime);
@@ -74,10 +69,9 @@ const XMMATRIX& Camera::GetProjectionMatrix() const
 	return this->projection;
 }
 
-void Camera::UpdateModelMatrix()
+void Camera::UpdateView()
 {
-	this->view = XMMatrixLookToLH(this->positionVector, this->front, this->up);
-	//this->modelMatrix = this->rotationMatrix * XMMatrixTranslation(this->position.x, this->position.y, this->position.z);
+	this->view = XMMatrixLookToLH(this->transform.GetPositionVector(), this->transform.GetFrontVector(), this->transform.GetUpVector());
 }
 
 void Camera::ComputeMouseToWorldVectorDirection(float mouseNDCX, float mouseNDCY)
@@ -91,7 +85,7 @@ void Camera::ComputeMouseToWorldVectorDirection(float mouseNDCX, float mouseNDCY
 
 	XMVECTOR worldSpaceVector = XMVector3Transform(viewSpaceVector, inverseView);
 
-	this->mouseToWorldVectorDirection = XMVector3Normalize(worldSpaceVector - positionVector);
+	this->mouseToWorldVectorDirection = XMVector3Normalize(worldSpaceVector - this->transform.GetPositionVector());
 }
 
 XMVECTOR Camera::GetMouseToWorldVectorDirection()

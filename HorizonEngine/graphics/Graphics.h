@@ -9,6 +9,7 @@
 #include "Camera.h"
 #include "../utility/Timer.h"
 #include "RenderableGameObject.h"
+#include "PhysicsGameObject.h"
 #include "lights/Light.h"
 #include "lights/SpotLight.h"
 #include "lights/PointLight.h"
@@ -47,7 +48,7 @@ enum class AxisEditSubState {
 class Graphics
 {
 public:
-	bool Initialize(HWND hwnd, int width, int height, std::vector<Controller>* controllers);
+	bool Initialize(HWND hwnd, int width, int height, ControllerManager* controllerManager);
 	void RenderFrame(float deltaTime);
 	void Update(float deltaTime);
 
@@ -61,7 +62,19 @@ public:
 	void UpdateSelectedObject();
 
 	XMFLOAT3 ReadFloat3(std::ifstream& stream);
-	bool LoadScene(const char* filepath);
+	XMFLOAT4 ReadFloat4(std::ifstream& stream);
+
+	void WriteFloat3(const XMFLOAT3& float3, std::ofstream& stream);
+	void WriteFloat3(const XMVECTOR& float3, std::ofstream& stream);
+	void WriteFloat4(const XMFLOAT4& float4, std::ofstream& stream);
+	void WriteFloat4(const XMVECTOR& float4, std::ofstream& stream);
+
+	bool LoadScene(const char* sceneName);
+	bool SaveScene(const char* sceneName);
+	bool SaveSceneTGP(const char* sceneName);
+	void UnloadScene();
+
+	void RemoveGameObject(std::string gameObjectLabel);
 
 	void UpdateImGui();
 
@@ -78,6 +91,7 @@ public:
 	RenderableGameObject skybox;
 	RenderableGameObject clouds;
 	RenderableGameObject ocean;
+	Light directionalLight;
 
 	std::unordered_map<std::string, GameObject*> gameObjectMap;
 	std::vector<RenderableGameObject*> renderableGameObjects;
@@ -96,7 +110,7 @@ public:
 	BoundingBox zAxisTranslateBoudingBox;
 
 	ResourceManager resourceManager;
-	std::vector<Controller>* controllers;
+	ControllerManager* controllerManager;
 
 private:
 	bool InitializeDirectX(HWND hwnd);
@@ -159,4 +173,12 @@ private:
 
 	bool useWireframe = false;
 	bool useVSync = true;
+
+	bool sceneLoaded = false;
+
+	int newObjectType;
+	bool newObjectMenuOpen = false;
+	std::string newObjectLabel = "";
+	std::string newObjectModelPath = "";
+	const std::string defaultObjectModelFilepath = "res/models/";
 };

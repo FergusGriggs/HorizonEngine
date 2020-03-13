@@ -30,7 +30,7 @@ Model* ResourceManager::GetModelPtr(std::string path)
 	else
 	{
 		Model* loadedModel = new Model();
-		if (loadedModel->Initialize(path, this->device, this->deviceContext))
+		if (loadedModel->Initialize(path, this->device, this->deviceContext, this))
 		{
 			models.push_back(loadedModel);
 			loadedResources.at(static_cast<int>(ResourceType::MODEL))->insert(std::make_pair(path, models.size() - 1));
@@ -69,6 +69,38 @@ Texture* ResourceManager::GetTexturePtr(std::string path, aiTextureType textureT
 			loadedResources.at(static_cast<int>(ResourceType::TEXTURE))->insert(std::make_pair(path, textures.size() - 1));
 			return nullptr;
 		}
+	}
+}
+
+Texture* ResourceManager::GetTexturePtr(std::string path, const uint8_t* pData, size_t size, aiTextureType type)
+{
+	int textureIndex = GetResourceIndex(ResourceType::TEXTURE, path);
+	if (textureIndex >= 0)
+	{
+		return textures.at(textureIndex);
+	}
+	else
+	{
+		Texture* newTexture = new Texture(this->device, pData, size, type);
+		textures.push_back(newTexture);
+		loadedResources.at(static_cast<int>(ResourceType::TEXTURE))->insert(std::make_pair(path, textures.size() - 1));
+		return newTexture;
+	}
+}
+
+Texture* ResourceManager::GetColourTexturePtr(std::string name, Colour colour, aiTextureType textureType)
+{
+	int textureIndex = GetResourceIndex(ResourceType::TEXTURE, name);
+	if (textureIndex >= 0)
+	{
+		return textures.at(textureIndex);
+	}
+	else
+	{
+		Texture* newTexture = new Texture(this->device, colour, textureType);
+		textures.push_back(newTexture);
+		loadedResources.at(static_cast<int>(ResourceType::TEXTURE))->insert(std::make_pair(name, textures.size() - 1));
+		return newTexture;
 	}
 }
 

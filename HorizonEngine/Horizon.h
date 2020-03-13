@@ -18,7 +18,6 @@ public:
 	bool ProcessMessages();
 	void Update();
 	void RenderFrame();
-	bool InitializeControllers();
 
 private:
 	Timer timer;
@@ -26,6 +25,6 @@ private:
 	AudioEngine* audioEngine;
 	SoundEffect* soundEffect;
 
-	std::vector<Controller> controllers;
+	ControllerManager* controllerManager;
 };
 

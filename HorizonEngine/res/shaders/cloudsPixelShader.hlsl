@@ -22,7 +22,6 @@ float GetDensityAt(float3 position)
     float3 modPos = float3(abs(fmod(position.x, 10.0f)), position.y, abs(fmod(position.z, 10.0f)));
     float dist = distance(modPos, float3(5.0f, 3.0f, 5.0f));
     return smoothstep(3.0f, 5.5f, dist);
-    //return (0.5 + 0.5 * sin(position.x)) * (0.5 + 0.5 * sin(position.z)); //sin(position.y)
 }
 
 float4 main(PS_INPUT input) : SV_TARGET

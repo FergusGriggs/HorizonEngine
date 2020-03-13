@@ -20,15 +20,15 @@ bool Horizon::Initialize(HINSTANCE hInstance, std::string windowTitle, std::stri
 
 	timer.Start();
 
+	controllerManager = new ControllerManager(&keyboard);
+	controllerManager->AddController(&this->graphics.camera, ControllerType::CAMERA, 0.005f);
+	controllerManager->GetControllers()->at(0).SetActive(true);
+
 	if (!this->renderWindow.Initialize(this, hInstance, windowTitle, windowClass, width, height))
 	{
 		return false;
 	}
-	if (!this->graphics.Initialize(this->renderWindow.GetHWND(), width, height, &controllers))
-	{
-		return false;
-	}
-	if (!this->InitializeControllers())
+	if (!this->graphics.Initialize(this->renderWindow.GetHWND(), width, height, controllerManager))
 	{
 		return false;
 	}
@@ -43,7 +43,7 @@ bool Horizon::ProcessMessages()
 
 void Horizon::Update()
 {
-	deltaTime = timer.GetMillisecondsElapsed();
+	deltaTime = timer.GetMillisecondsElapsed() * 0.001f;
 	timer.Restart();
 
 	while (!keyboard.CharBufferIsEmpty())
@@ -64,9 +64,8 @@ void Horizon::Update()
 			{
 				float moveFactor = this->graphics.camera.GetZoom() / 90.0f;
 				if (moveFactor > 1.0f) moveFactor = 1.0f;
-				this->graphics.camera.RotateAxisVectors(this->graphics.camera.GetRightVector(), (float)mouseEvent.GetPosY() * 0.01f * moveFactor);
-				this->graphics.camera.RotateAxisVectors(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), (float)mouseEvent.GetPosX() * 0.01f * moveFactor);
-				//this->graphics.camera.AdjustRotation((float)mouseEvent.GetPosY() * 0.01f * moveFactor, (float)mouseEvent.GetPosX() * 0.01f * moveFactor, 0.0f);
+				this->graphics.camera.GetTransform()->RotateUsingAxis(this->graphics.camera.GetTransform()->GetRightVector(), (float)mouseEvent.GetPosY() * 0.01f * moveFactor);
+				this->graphics.camera.GetTransform()->RotateUsingAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), (float)mouseEvent.GetPosX() * 0.01f * moveFactor);
 			}
 		}
 		
@@ -105,31 +104,11 @@ void Horizon::Update()
 	this->graphics.SetMouseX(mouse.GetPosX());
 	this->graphics.SetMouseY(mouse.GetPosY());
 
-	size_t controllerSize = controllers.size();
-	for (size_t i = 0; i < controllerSize; ++i)
-	{
-		if (controllers.at(i).IsActive())
-		{
-			controllers.at(i).UpdateObject(deltaTime);
-		}
-	}
+	controllerManager->UpdateControllers(deltaTime);
 	
-
 	this->graphics.Update(deltaTime);
 }
 
 void Horizon::RenderFrame() {
 	graphics.RenderFrame(deltaTime);
-}
-
-bool Horizon::InitializeControllers()
-{
-	controllers.push_back(Controller(&this->graphics.camera, &keyboard, ControllerType::CAMERA, 0.005f));
-	controllers.push_back(Controller(this->graphics.GetGameObject("Boat"), &keyboard, ControllerType::HORIZONTAL, 0.01f));
-	controllers.push_back(Controller(this->graphics.GetGameObject("Man"), &keyboard, ControllerType::HORIZONTAL, 0.01f));
-	controllers.push_back(Controller(this->graphics.GetGameObject("Lady"), &keyboard, ControllerType::HORIZONTAL, 0.01f));
-
-	controllers.at(0).SetActive(true);
-
-	return true;
 }

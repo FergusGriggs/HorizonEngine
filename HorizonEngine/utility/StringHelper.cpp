@@ -39,6 +39,23 @@ std::string StringHelper::GetFileExtension(const std::string& fileName)
 	return std::string(fileName.substr(off + 1));
 }
 
+void StringHelper::RemoveDirectoriesFromStart(std::string& filePath, int numDirectories)
+{
+	int numDirectoriesFound = 0;
+	size_t strLength = filePath.size();
+	for (size_t i = 0; i < strLength; ++i)
+	{
+		if (filePath[i] == '\\' || filePath[i] == '/')
+		{
+			if (++numDirectoriesFound >= numDirectories)
+			{
+				filePath = filePath.substr(i + 1, strLength - 1 - i);
+				return;
+			}
+		}
+	}
+}
+
 void StringHelper::ReplaceChars(std::string& string, char existingChar, char newChar)
 {
 	size_t stringSize = string.length();

@@ -17,7 +17,7 @@ bool RenderableGameObject::Initialize(std::string label, const std::string& file
 		return false;
 	}
 
-	this->SetPosition(0.0f, 0.0f, 0.0f);
+	this->transform.SetPosition(DEFAULT_POSITION);
 
 	this->scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 
@@ -26,17 +26,21 @@ bool RenderableGameObject::Initialize(std::string label, const std::string& file
 
 void RenderableGameObject::Draw(const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader)
 {
+	XMFLOAT3 objectPosition = this->transform.GetPositionFloat3();
+
 	if (this->type == GameObjectType::RENDERABLE) {
-		model->Draw(XMMatrixScaling(this->scale.x, this->scale.y, this->scale.z) * this->modelMatrix, viewProjectionMatrix, cb_vs_vertexShader);
+		model->Draw(XMMatrixScaling(this->scale.x, this->scale.y, this->scale.z) * this->transform.GetRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z) , viewProjectionMatrix, cb_vs_vertexShader);
 	}
 	else {
-		model->Draw(this->modelMatrix, viewProjectionMatrix, cb_vs_vertexShader);
+		model->Draw(this->transform.GetRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z) , viewProjectionMatrix, cb_vs_vertexShader);
 	}
 }
 
 float RenderableGameObject::GetRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection)
 {
-	boundingSphere.Center = position;
+	XMFLOAT3 objectPosition = this->transform.GetPositionFloat3();
+
+	boundingSphere.Center = objectPosition;
 	if (label == "Boat") {
 		boundingSphere.Radius = 0.0f;
 	}

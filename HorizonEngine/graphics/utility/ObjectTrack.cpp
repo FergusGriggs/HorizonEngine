@@ -59,48 +59,48 @@ void ObjectTrack::Follow(GameObject* gameObject, float deltaTime, bool lookTo)
 	}
 	int trackSize = this->trackNodes.size();
 	if (trackSize == 0) {
-		gameObject->SetPosition(this->trackNodes[0].position);
-		if (lookTo) gameObject->SetLookAtPos(this->trackNodes[0].lookPoint);
+		gameObject->GetTransform()->SetPosition(this->trackNodes[0].position);
+		if (lookTo) gameObject->GetTransform()->LookAtPos(this->trackNodes[0].lookPoint);
 	}
 	else if (trackSize == 2) {
-		gameObject->SetPosition(LerpFloat3(this->trackNodes[0].position, this->trackNodes[1].position, this->delta));
-		if (lookTo) gameObject->SetLookAtPos(LerpFloat3(this->trackNodes[0].lookPoint, this->trackNodes[1].lookPoint, this->delta));
+		gameObject->GetTransform()->SetPosition(LerpFloat3(this->trackNodes[0].position, this->trackNodes[1].position, this->delta));
+		if (lookTo) gameObject->GetTransform()->LookAtPos(LerpFloat3(this->trackNodes[0].lookPoint, this->trackNodes[1].lookPoint, this->delta));
 	}
 	else if (trackSize >= 3) {
 		float upperDelta = (float)this->trackNodes.size() - 1.5f;
 		if (loopTrack) {
 			if (this->delta < 0.5f) {
-				gameObject->SetPosition(LerpQuadratic(this->midPoints[trackSize - 2].position, this->trackNodes[0].position, this->midPoints[0].position, 0.5f + this->delta));
-				if (lookTo) gameObject->SetLookAtPos(LerpQuadratic(this->midPoints[trackSize - 2].lookPoint, this->trackNodes[0].lookPoint, this->midPoints[0].lookPoint, 0.5f + this->delta));
+				gameObject->GetTransform()->SetPosition(LerpQuadratic(this->midPoints[trackSize - 2].position, this->trackNodes[0].position, this->midPoints[0].position, 0.5f + this->delta));
+				if (lookTo) gameObject->GetTransform()->LookAtPos(LerpQuadratic(this->midPoints[trackSize - 2].lookPoint, this->trackNodes[0].lookPoint, this->midPoints[0].lookPoint, 0.5f + this->delta));
 			}
 			else if (this->delta < upperDelta) {
 				int splineIndex = floor(this->delta - 0.5f);
 				float splineDelta = this->delta - 0.5f - (float)splineIndex;
-				gameObject->SetPosition(LerpQuadratic(this->midPoints[splineIndex].position, this->trackNodes[splineIndex + 1].position, this->midPoints[splineIndex + 1].position, splineDelta));
-				if (lookTo) gameObject->SetLookAtPos(LerpQuadratic(this->midPoints[splineIndex].lookPoint, this->trackNodes[splineIndex + 1].lookPoint, this->midPoints[splineIndex + 1].lookPoint, splineDelta));
+				gameObject->GetTransform()->SetPosition(LerpQuadratic(this->midPoints[splineIndex].position, this->trackNodes[splineIndex + 1].position, this->midPoints[splineIndex + 1].position, splineDelta));
+				if (lookTo) gameObject->GetTransform()->LookAtPos(LerpQuadratic(this->midPoints[splineIndex].lookPoint, this->trackNodes[splineIndex + 1].lookPoint, this->midPoints[splineIndex + 1].lookPoint, splineDelta));
 			}
 			else if (this->delta > upperDelta) {
 				float splineDelta = this->delta - upperDelta;
-				gameObject->SetPosition(LerpQuadratic(this->midPoints[trackSize - 2].position, this->trackNodes[0].position, this->midPoints[0].position, splineDelta));
-				if (lookTo) gameObject->SetLookAtPos(LerpQuadratic(this->midPoints[trackSize - 2].lookPoint, this->trackNodes[0].lookPoint, this->midPoints[0].lookPoint, splineDelta));
+				gameObject->GetTransform()->SetPosition(LerpQuadratic(this->midPoints[trackSize - 2].position, this->trackNodes[0].position, this->midPoints[0].position, splineDelta));
+				if (lookTo) gameObject->GetTransform()->LookAtPos(LerpQuadratic(this->midPoints[trackSize - 2].lookPoint, this->trackNodes[0].lookPoint, this->midPoints[0].lookPoint, splineDelta));
 			}
 		}
 		else {
 			if (this->delta < 0.5f) {
-				gameObject->SetPosition(LerpFloat3(this->trackNodes[0].position, this->midPoints[0].position, this->delta * 2.0f));
-				if (lookTo) gameObject->SetLookAtPos(LerpFloat3(this->trackNodes[0].lookPoint, this->midPoints[0].lookPoint, this->delta * 2.0f));
+				gameObject->GetTransform()->SetPosition(LerpFloat3(this->trackNodes[0].position, this->midPoints[0].position, this->delta * 2.0f));
+				if (lookTo) gameObject->GetTransform()->LookAtPos(LerpFloat3(this->trackNodes[0].lookPoint, this->midPoints[0].lookPoint, this->delta * 2.0f));
 			}
 			else if (this->delta < upperDelta) {
 				int splineIndex = floor(this->delta - 0.5f);
 				float splineDelta = this->delta - 0.5f - (float)splineIndex;
-				gameObject->SetPosition(LerpQuadratic(this->midPoints[splineIndex].position, this->trackNodes[splineIndex + 1].position, this->midPoints[splineIndex + 1].position, splineDelta));
-				if (lookTo) gameObject->SetLookAtPos(LerpQuadratic(this->midPoints[splineIndex].lookPoint, this->trackNodes[splineIndex + 1].lookPoint, this->midPoints[splineIndex + 1].lookPoint, splineDelta));
+				gameObject->GetTransform()->SetPosition(LerpQuadratic(this->midPoints[splineIndex].position, this->trackNodes[splineIndex + 1].position, this->midPoints[splineIndex + 1].position, splineDelta));
+				if (lookTo) gameObject->GetTransform()->LookAtPos(LerpQuadratic(this->midPoints[splineIndex].lookPoint, this->trackNodes[splineIndex + 1].lookPoint, this->midPoints[splineIndex + 1].lookPoint, splineDelta));
 			}
 			else if (this->delta > upperDelta) {
 				int splineIndex = floor(this->delta - 0.5f);
 				float splineDelta = this->delta - (float)splineIndex;
-				gameObject->SetPosition(LerpFloat3(this->midPoints[splineIndex].position, this->trackNodes[splineIndex + 1].position, (splineDelta - 0.5f) * 2.0f));
-				if (lookTo) gameObject->SetLookAtPos(LerpFloat3(this->midPoints[splineIndex].lookPoint, this->trackNodes[splineIndex + 1].lookPoint, (splineDelta - 0.5f) * 2.0f));
+				gameObject->GetTransform()->SetPosition(LerpFloat3(this->midPoints[splineIndex].position, this->trackNodes[splineIndex + 1].position, (splineDelta - 0.5f) * 2.0f));
+				if (lookTo) gameObject->GetTransform()->LookAtPos(LerpFloat3(this->midPoints[splineIndex].lookPoint, this->trackNodes[splineIndex + 1].lookPoint, (splineDelta - 0.5f) * 2.0f));
 			}
 		}
 	}
@@ -112,4 +112,19 @@ float ObjectTrack::GetDelta() {
 
 void ObjectTrack::SetDelta(float delta) {
 	this->delta = delta;
+}
+
+std::string ObjectTrack::GetLabel()
+{
+	return this->label;
+}
+
+void ObjectTrack::SetLabel(std::string label)
+{
+	this->label = label;
+}
+
+std::vector<ObjectTrackNode>* ObjectTrack::GetTrackNodes()
+{
+	return &this->trackNodes;
 }

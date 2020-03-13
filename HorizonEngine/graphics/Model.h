@@ -6,14 +6,17 @@
 #include "Mesh.h"
 #include <fstream>
 
+class ResourceManager;
+
 using namespace DirectX;
 
 class Model
 {
 public:
-	bool Initialize(const std::string & filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+	bool Initialize(const std::string & filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ResourceManager* resourceManager);
 	void Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader);
 	float GetHitRadius();
+	std::string GetPath();
 
 private:
 	bool LoadModel(const std::string& filePath);
@@ -23,14 +26,17 @@ private:
 
 	int GetTextureIndex(aiString * pString);
 	TextureStorageType DetermineTextureStorageType(const aiScene* pScene, aiMaterial* pMaterial, unsigned int index, aiTextureType textureType);
-	std::vector<Texture> LoadMaterialTextures(aiMaterial* pMaterial, aiTextureType textureType, const aiScene* pScene);
+	std::vector<Texture*> LoadMaterialTextures(aiMaterial* pMaterial, aiTextureType textureType, const aiScene* pScene);
 
 	std::vector<Mesh> meshes;
 
 	ID3D11Device* device = nullptr;
 	ID3D11DeviceContext* deviceContext = nullptr;
+	ResourceManager* resourceManager = nullptr;
 
+	std::string filePath = "";
 	std::string directory = "";
 	float modelHitRadius = 0.5f;
 };
 
+#include "utility/ResourceManager.h";

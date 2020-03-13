@@ -3,10 +3,12 @@
 
 #include "Model.h"
 
-bool Model::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+bool Model::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ResourceManager* resourceManager)
 {
+	this->filePath = filePath;
 	this->device = device;
 	this->deviceContext = deviceContext;
+	this->resourceManager = resourceManager;
 
 	try
 		{
@@ -43,6 +45,11 @@ void Model::Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatr
 float Model::GetHitRadius()
 {
 	return modelHitRadius;
+}
+
+std::string Model::GetPath()
+{
+	return this->filePath;
 }
 
 bool Model::LoadModel(const std::string& filePath)
@@ -130,19 +137,19 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, const XMMATRIX& tran
 		}
 	}
 
-	std::vector<Texture> textures;
+	std::vector<Texture*> textures;
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-	std::vector<Texture> diffuseTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_DIFFUSE, scene);
+	std::vector<Texture*> diffuseTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_DIFFUSE, scene);
 	textures.insert(textures.end(), diffuseTextures.begin(), diffuseTextures.end());
 
-	std::vector<Texture> specularTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_SPECULAR, scene);
+	std::vector<Texture*> specularTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_SPECULAR, scene);
 	textures.insert(textures.end(), specularTextures.begin(), specularTextures.end());
 
-	std::vector<Texture> normalTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_HEIGHT, scene);
+	std::vector<Texture*> normalTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_HEIGHT, scene);
 	textures.insert(textures.end(), normalTextures.begin(), normalTextures.end());
 
-	std::vector<Texture> depthTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_DISPLACEMENT, scene);
+	std::vector<Texture*> depthTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_DISPLACEMENT, scene);
 	textures.insert(textures.end(), depthTextures.begin(), depthTextures.end());
 
 	return Mesh(this->device, this->deviceContext, vertices, indices, textures, transformMatrix);
@@ -189,9 +196,9 @@ TextureStorageType Model::DetermineTextureStorageType(const aiScene* pScene, aiM
 	return TextureStorageType::NONE;
 }
 
-std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* pMaterial, aiTextureType textureType, const aiScene* pScene)
+std::vector<Texture*> Model::LoadMaterialTextures(aiMaterial* pMaterial, aiTextureType textureType, const aiScene* pScene)
 {
-	std::vector<Texture> materialTextures;
+	std::vector<Texture*> materialTextures;
 	TextureStorageType storageType = TextureStorageType::INVALID;
 	unsigned int textureCount = pMaterial->GetTextureCount(textureType);
 
@@ -201,33 +208,29 @@ std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* pMaterial, aiTextur
 
 		switch (textureType) {
 		case aiTextureType_DIFFUSE:
+		{
 			pMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColour);
 
 			if (aiColour.IsBlack()) {
-				materialTextures.push_back(Texture(this->device, Colours::UnloadedTextureColour, textureType));
+				materialTextures.push_back(resourceManager->GetColourTexturePtr("UNLOADED_DIFFUSE", Colours::UnloadedTextureColour, textureType));
 				return materialTextures;
 			}
-
-			materialTextures.push_back(Texture(this->device, Colour(aiColour.r * 255, aiColour.g * 255, aiColour.b * 255), textureType));
+			std::string key = std::to_string(static_cast<int>(aiColour.r * 255)) + "|" + std::to_string(static_cast<int>(aiColour.g * 255)) + "|" + std::to_string(static_cast<int>(aiColour.b * 255));
+			materialTextures.push_back(resourceManager->GetColourTexturePtr(key, Colour(aiColour.r * 255, aiColour.g * 255, aiColour.b * 255), textureType));
+			return materialTextures;
+		}
+		case aiTextureType_SPECULAR:
+			materialTextures.push_back(resourceManager->GetColourTexturePtr("UNLOADED_SPECULAR", Colours::UnloadedSpecularTextureColour, textureType));
 			return materialTextures;
 
-		case aiTextureType_SPECULAR:
-			pMaterial->Get(AI_MATKEY_COLOR_SPECULAR, aiColour);
-
-			if (aiColour.IsBlack()) {
-				materialTextures.push_back(Texture(this->device, Colours::UnloadedSpecularTextureColour, textureType));
-				return materialTextures;
-			}
-
-			materialTextures.push_back(Texture(this->device, Colour(aiColour.r * 255, aiColour.g * 255, aiColour.b * 255), textureType));
 			return materialTextures;
 
 		case aiTextureType_HEIGHT:
-			materialTextures.push_back(Texture(this->device, Colours::UnloadedNormalTextureColour, textureType));
+			materialTextures.push_back(resourceManager->GetColourTexturePtr("UNLOADED_NORMAL", Colours::UnloadedNormalTextureColour, textureType));
 			return materialTextures;
 		
 		case aiTextureType_DISPLACEMENT:
-			materialTextures.push_back(Texture(this->device, Colours::UnloadedDepthTextureColour, textureType));
+			materialTextures.push_back(resourceManager->GetColourTexturePtr("UNLOADED_DEPTH", Colours::UnloadedDepthTextureColour, textureType));
 			return materialTextures;
 		}
 	}
@@ -235,35 +238,37 @@ std::vector<Texture> Model::LoadMaterialTextures(aiMaterial* pMaterial, aiTextur
 		for (UINT i = 0; i < textureCount; i++) {
 			aiString path;
 			pMaterial->GetTexture(textureType, i, &path);
+
 			TextureStorageType storageType = DetermineTextureStorageType(pScene, pMaterial, i, textureType);
 
 			switch (storageType) {
 			case TextureStorageType::DISK:
 			{
 				std::string fileName = this->directory + "/" + path.C_Str();
-				Texture diskTexture = Texture(this->device, fileName, textureType);
-				materialTextures.push_back(diskTexture);
+				materialTextures.push_back(resourceManager->GetTexturePtr(fileName, textureType));
 				break;
 			}
 			case TextureStorageType::EMBEDDED_COMPRESSED:
 			{
 				const aiTexture* pTexture = pScene->GetEmbeddedTexture(path.C_Str());
-				Texture embeddedTexture = Texture(this->device, reinterpret_cast<uint8_t*>(pTexture->pcData), pTexture->mWidth, textureType);
-				materialTextures.push_back(embeddedTexture);
+				std::string key = this->directory + "/" + path.C_Str();
+				materialTextures.push_back(resourceManager->GetTexturePtr(key, reinterpret_cast<uint8_t*>(pTexture->pcData), pTexture->mWidth, textureType));
 				break;
 			}
 			case TextureStorageType::EMBEDDED_INDEX_COMPRESSED:
+			{
 				int index = GetTextureIndex(&path);
-				Texture embeddedIndexedTexture = Texture(this->device, reinterpret_cast<uint8_t*>(pScene->mTextures[index]->pcData), pScene->mTextures[index]->mWidth, textureType);
-				materialTextures.push_back(embeddedIndexedTexture);
+				std::string key = this->directory + "/" + path.C_Str();
+				materialTextures.push_back(resourceManager->GetTexturePtr(key, reinterpret_cast<uint8_t*>(pScene->mTextures[index]->pcData), pScene->mTextures[index]->mWidth, textureType));
 				break;
+			}
 			}
 		}
 		return materialTextures;
 	}
 
 	if (materialTextures.size() == 0) {
-		materialTextures.push_back(Texture(this->device, Colours::UnhandledTextureColour, textureType));
+		materialTextures.push_back(resourceManager->GetColourTexturePtr("UNHANDLED", Colours::UnhandledTextureColour, textureType));
 		return materialTextures;
 	}
 }

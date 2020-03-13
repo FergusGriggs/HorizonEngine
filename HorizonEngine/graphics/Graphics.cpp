@@ -3,12 +3,14 @@
 
 #include "Graphics.h"
 
-bool Graphics::Initialize(HWND hwnd, int width, int height, std::vector<Controller>* controllers)
+bool Graphics::Initialize(HWND hwnd, int width, int height, ControllerManager* controllerManager)
 {
 	fpsTimer.Start();
 
 	this->windowWidth = width;
 	this->windowHeight = height;
+
+	this->controllerManager = controllerManager;
 
 	if (!InitializeDirectX(hwnd))
 	{
@@ -31,8 +33,6 @@ bool Graphics::Initialize(HWND hwnd, int width, int height, std::vector<Controll
 		return false;
 	}
 
-	this->controllers = controllers;
-
 	//INIT IMGUI
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -48,8 +48,8 @@ bool Graphics::InitializeShaders() {
 
 	std::wstring shaderFolder = L"";
 #pragma region DetermineShaderPath
-	if (IsDebuggerPresent() == TRUE)
-	{
+	//if (IsDebuggerPresent() == TRUE)
+	//{
 #ifdef _DEBUG //Debug Mode
 #ifdef _WIN64 //x64
 		shaderFolder = L"../x64/Debug/";
@@ -58,12 +58,13 @@ bool Graphics::InitializeShaders() {
 #endif
 #else //Release Mode
 #ifdef _WIN64 //x64
-		shaderFolder = L"../x64/Release/";
+		//shaderFolder = L"../x64/Release/";
+	shaderFolder = L"res/shaders/";
 #else  //x86 (Win32)
 		shaderFolder = L"../Release/";
 #endif
 #endif
-	}
+	//}
 
 	//CREATE VERTEX SHADER INPUT LAYOUT
 	D3D11_INPUT_ELEMENT_DESC layout[] =
@@ -126,11 +127,11 @@ bool Graphics::InitializeScene()
 		this->cb_ps_pixelShader.data.useNormalMapping = true;
 
 		//LOAD AXIS MODELS
-		if (!this->axisTranslateModel.Initialize("res/models/axis/translate2.obj", this->device.Get(), this->deviceContext.Get())) {
+		if (!this->axisTranslateModel.Initialize("res/models/axis/translate2.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
 			return false;
 		}
 
-		if (!this->axisRotateModel.Initialize("res/models/axis/rotate2.obj", this->device.Get(), this->deviceContext.Get())) {
+		if (!this->axisRotateModel.Initialize("res/models/axis/rotate2.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
 			return false;
 		}
 
@@ -148,23 +149,30 @@ bool Graphics::InitializeScene()
 		if (!clouds.Initialize("Clouds", "res/models/simple_plane.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
 			return false;
 		}
-		clouds.SetPosition(0.0f, 35.0f, 0.0f);
+		clouds.GetTransform()->SetPosition(0.0f, 35.0f, 0.0f);
 
 		if (!ocean.Initialize("Ocean", "res/models/ocean_smooth_large_2.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
 			return false;
 		}
-		ocean.SetPosition(0.0f, -4.0f, 0.0f);
+		ocean.GetTransform()->SetPosition(0.0f, -4.0f, 0.0f);
 
-		if (!LoadScene("demo_scene.txt"))
+		if (!directionalLight.Initialize("Directional Light", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+			return false;
+		}
+		directionalLight.GetTransform()->SetPosition(2.0f, 6.0f, 2.0f);
+		directionalLight.GetTransform()->LookAtPos(XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+		directionalLight.SetColour(XMFLOAT3(0.456f, 0.369f, 0.322f));
+
+		if (!LoadScene("test.txt"))
 		{
 			return false;
 		}
 
-		camera.SetPosition(0.0f, 10.0f, -7.0f);
-		camera.SetLookAtPos(XMFLOAT3(0.0f, 7.0f, 0.0f));
-		camera.SetProjectionValues(40.0f, static_cast<float>(this->windowWidth) / static_cast<float>(this->windowHeight), 0.1f, 1000.0f);
-		camera.SetObjectTrack(objectTracks.at("camera_track"));
-		camera.SetFollowingObjectTrack(true);
+		camera.GetTransform()->SetPosition(0.0f, 10.0f, -7.0f);
+		camera.GetTransform()->LookAtPos(XMVectorSet(0.0f, 7.0f, 0.0f, 1.0f));
+		camera.SetProjectionValues(90.0f, static_cast<float>(this->windowWidth) / static_cast<float>(this->windowHeight), 0.1f, 1000.0f);
+		//camera.SetObjectTrack(objectTracks.at("camera_track"));
+		//camera.SetFollowingObjectTrack(true);
 	}
 	catch (COMException & exception)
 	{
@@ -174,28 +182,32 @@ bool Graphics::InitializeScene()
 	return true;
 }
 
-void Graphics::RenderFrame(float deltaTime) {
-	//UPDATE THE PIXEL SHADER CONSTANT BUFFER
+void Graphics::RenderFrame(float deltaTime)
+{
+	camera.UpdateView();
 
-	Light* directionalLight = dynamic_cast<Light*>(gameObjectMap.at("Directional Light"));
-	directionalLight->UpdateShaderVariables(this->cb_ps_pixelShader);
+	//Directional light shader variables
+	directionalLight.UpdateShaderVariables(this->cb_ps_pixelShader);
 
+	//Point light shader variables
 	size_t numPointLights = pointLights.size();
 	for (size_t i = 0; i < numPointLights; ++i)
 	{
 		pointLights.at(i)->UpdateShaderVariables(this->cb_ps_pixelShader, i);
 	}
 	
+	//Spot light shader variables
 	size_t numSpotLights = spotLights.size();
 	for (size_t i = 0; i < numSpotLights; ++i)
 	{
 		spotLights.at(i)->UpdateShaderVariables(this->cb_ps_pixelShader, i);
 	}
 
+	//General shader variables
 	this->cb_ps_pixelShader.data.numPointLights = numPointLights;
 	this->cb_ps_pixelShader.data.numSpotLights = numSpotLights;
 
-	this->cb_ps_pixelShader.data.cameraPosition = camera.GetPositionFloat3();
+	this->cb_ps_pixelShader.data.cameraPosition = camera.GetTransform()->GetPositionFloat3();
 
 	this->cb_ps_pixelShader.data.objectMaterial.shininess = 4.0f;
 	this->cb_ps_pixelShader.data.objectMaterial.specularity = 0.75f;
@@ -204,7 +216,7 @@ void Graphics::RenderFrame(float deltaTime) {
 	this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_pixelShader.GetAddressOf());
 
 	//CLEAR RENDER TARGET VIEW AND DEPTH STENCIL VIEW
-	float backgroundColour[] = { 0.62f * directionalLight->colour.x, 0.90 * directionalLight->colour.y, 1.0f * directionalLight->colour.z, 1.0f };
+	float backgroundColour[] = { 0.62f * directionalLight.colour.x, 0.90 * directionalLight.colour.y, 1.0f * directionalLight.colour.z, 1.0f };
 	this->deviceContext->ClearRenderTargetView(this->renderTargetView.Get(), backgroundColour);
 	this->deviceContext->ClearDepthStencilView(this->depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -213,7 +225,8 @@ void Graphics::RenderFrame(float deltaTime) {
 	this->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//SET RASTERIZER STATE
-	if (useWireframe) {
+	if (useWireframe)
+	{
 		this->deviceContext->RSSetState(this->wireframeRasterizerState.Get());
 	}
 	else
@@ -248,7 +261,7 @@ void Graphics::RenderFrame(float deltaTime) {
 		this->cb_ps_noLightPixelShader.data.justColour = 1;
 		this->cb_ps_noLightPixelShader.MapToGPU();
 
-		skybox.SetPosition(camera.GetPositionFloat3());
+		skybox.GetTransform()->SetPosition(camera.GetTransform()->GetPositionFloat3());
 		skybox.Draw(viewProjMat, &this->cb_vs_vertexShader);
 
 		this->cb_ps_noLightPixelShader.data.justColour = 0;
@@ -273,30 +286,32 @@ void Graphics::RenderFrame(float deltaTime) {
 			renderableGameObject->Draw(viewProjMat, &this->cb_vs_vertexShader);
 		}
 
+		//DRAW WATER
+
 		cb_ps_pixelShader.data.objectMaterial.shininess = 8.0f;
 		cb_ps_pixelShader.data.objectMaterial.specularity = 0.5f;
 		cb_ps_pixelShader.data.fresnel = 1;
-		cb_ps_pixelShader.MapToGPU();
 
-		//DRAW WATER
+		cb_ps_pixelShader.MapToGPU();
+		
 		this->deviceContext->VSSetShader(waterVertexShader.GetShader(), NULL, 0);
 		this->deviceContext->PSSetShaderResources(4, 1, noiseTexture->GetTextureResourceViewAddress());
 
 		ocean.Draw(viewProjMat, &this->cb_vs_vertexShader);
+
+		//DRAWCLOUDS
 
 		this->deviceContext->VSSetShader(vertexShader.GetShader(), NULL, 0);
 
 		cb_ps_pixelShader.data.fresnel = 0;
 		cb_ps_pixelShader.data.objectMaterial.specularity = 1.0f;
 
-		//DRAWCLOUDS
-
 		this->deviceContext->PSSetShader(cloudsPixelShader.GetShader(), NULL, 0);
 
 		this->deviceContext->PSSetConstantBuffers(0, 1, this->cb_ps_cloudsPixelShader.GetAddressOf());
 
-		this->cb_ps_cloudsPixelShader.data.cameraPosition = camera.GetPositionFloat3();
-		XMStoreFloat3(&this->cb_ps_cloudsPixelShader.data.lightDirection, dynamic_cast<Light*>(gameObjectMap["Directional Light"])->GetFrontVector());
+		this->cb_ps_cloudsPixelShader.data.cameraPosition = camera.GetTransform()->GetPositionFloat3();
+		XMStoreFloat3(&this->cb_ps_cloudsPixelShader.data.lightDirection, directionalLight.GetTransform()->GetFrontVector());
 
 		this->cb_ps_cloudsPixelShader.MapToGPU();
 
@@ -350,7 +365,7 @@ void Graphics::RenderFrame(float deltaTime) {
 	spriteFont->DrawString(spriteBatch.get(), StringHelper::StringToWide(fpsString).c_str(), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
 	
 	if (selectingGameObject) {
-		XMFLOAT2 screenNDC = camera.GetNDCFrom3DPos(selectedObject->GetPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f));//XMFLOAT2(-0.5,0.5);
+		XMFLOAT2 screenNDC = camera.GetNDCFrom3DPos(selectedObject->GetTransform()->GetPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f));//XMFLOAT2(-0.5,0.5);
 		XMFLOAT2 screenPos = DirectX::XMFLOAT2((screenNDC.x * 0.5f + 0.5f) * windowWidth, (1.0f - (screenNDC.y * 0.5f + 0.5f)) * windowHeight);
 		XMVECTOR size = spriteFont->MeasureString(StringHelper::StringToWide(selectedObject->GetLabel()).c_str());
 		screenPos.x -= XMVectorGetX(size) * 0.5f;
@@ -377,38 +392,38 @@ void Graphics::UpdateSelectedObject() {
 	if (mouseNDCX > -1.0f && mouseNDCX < 1.0f && mouseNDCY > -1.0f && mouseNDCY < 1.0f) {
 		//TRANSLATING
 		if (this->axisEditState == AxisEditState::EDIT_TRANSLATE) {
-			XMFLOAT3 objectPos = selectedObject->GetPositionFloat3();
+			XMFLOAT3 objectPos = selectedObject->GetTransform()->GetPositionFloat3();
 			switch (this->axisEditSubState) {
 			case AxisEditSubState::EDIT_X:
 			{
 				//GET INTERSECT POINT WITH MOUSE RAY
-				XMVECTOR intersect = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR intersect = RayPlaneIntersect(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
 				float currentAxisGrabOffset = XMVectorGetX(intersect); //GET RELEVANT VECTOR COMPONENT
 				if (this->lastAxisGrabOffset != FLT_MAX) { //CHECK IF FIRST ITERATION
 					float diff = currentAxisGrabOffset - this->lastAxisGrabOffset; //FIND DIFFERENCE
-					selectedObject->AdjustPosition(diff, 0.0f, 0.0f); //MOVE OBJECT BY DIFFERENCE
+					selectedObject->GetTransform()->AdjustPosition(diff, 0.0f, 0.0f); //MOVE OBJECT BY DIFFERENCE
 				}
 				this->lastAxisGrabOffset = currentAxisGrabOffset; //SET LAST OFFSET
 				break;
 			}
 			case AxisEditSubState::EDIT_Y:
 			{
-				XMVECTOR intersect = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), XMVector3Normalize(XMVectorSet(camera.GetPositionFloat3().x - objectPos.x, 0.0f, camera.GetPositionFloat3().z - objectPos.z, 0.0f)), XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR intersect = RayPlaneIntersect(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), XMVector3Normalize(XMVectorSet(camera.GetTransform()->GetPositionFloat3().x - objectPos.x, 0.0f, camera.GetTransform()->GetPositionFloat3().z - objectPos.z, 0.0f)), XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
 				float currentAxisGrabOffset = XMVectorGetY(intersect);
 				if (this->lastAxisGrabOffset != FLT_MAX) {
 					float diff = currentAxisGrabOffset - this->lastAxisGrabOffset;
-					selectedObject->AdjustPosition(0.0f, diff, 0.0f);
+					selectedObject->GetTransform()->AdjustPosition(0.0f, diff, 0.0f);
 				}
 				this->lastAxisGrabOffset = currentAxisGrabOffset;
 				break;
 			}
 			case AxisEditSubState::EDIT_Z:
 			{
-				XMVECTOR intersect = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR intersect = RayPlaneIntersect(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
 				float currentAxisGrabOffset = XMVectorGetZ(intersect);
 				if (this->lastAxisGrabOffset != FLT_MAX) {
 					float diff = currentAxisGrabOffset - this->lastAxisGrabOffset;
-					selectedObject->AdjustPosition(0.0f, 0.0f, diff);
+					selectedObject->GetTransform()->AdjustPosition(0.0f, 0.0f, diff);
 				}
 				this->lastAxisGrabOffset = currentAxisGrabOffset;
 				break;
@@ -417,8 +432,8 @@ void Graphics::UpdateSelectedObject() {
 		}
 		//ROTATING
 		else if (this->axisEditState == AxisEditState::EDIT_ROTATE) {
-			XMFLOAT3 objectPos = selectedObject->GetPositionFloat3();
-			XMMATRIX modelRotationMatrix = selectedObject->GetRotationMatrix();
+			XMFLOAT3 objectPos = selectedObject->GetTransform()->GetPositionFloat3();
+			XMMATRIX modelRotationMatrix = selectedObject->GetTransform()->GetRotationMatrix();
 			XMMATRIX inverseModelRotationMatrix = XMMatrixInverse(nullptr, modelRotationMatrix);
 
 			switch (this->axisEditSubState) {
@@ -427,13 +442,13 @@ void Graphics::UpdateSelectedObject() {
 				//COMPUTE WORLD SPACE AXIS VECTOR (PLANE NORMAL)
 				XMVECTOR planeNormal = XMVector3Normalize(XMVector3Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), modelRotationMatrix));
 				//GET INTERSECT POINT OF THIS PLANE WITH MOUSE RAY
-				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetPositionVector(); //COMPUTE DIFFERENCE
+				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetTransform()->GetPositionVector(); //COMPUTE DIFFERENCE
 				XMVECTOR modelSpaceCentreDiff = XMVector3Transform(centreDiff, inverseModelRotationMatrix); //TRANSFORM TO MODEL SPACE
 				float rotation = atan2(XMVectorGetY(modelSpaceCentreDiff), XMVectorGetZ(modelSpaceCentreDiff)); //WORK OUT ANGLE OF ROTATION
 				if (this->lastAxisGrabOffset != FLT_MAX) { //IF NOT FIRST ITERATION
 					float rotationDiff = rotation - this->lastAxisGrabOffset; //FIND ANGLE DIFF
-					selectedObject->RotateAxisVectors(selectedObject->GetRightVector(), -rotationDiff); //ROTATE AXIS BY DIFFERENCE
+					selectedObject->GetTransform()->RotateUsingAxis(selectedObject->GetTransform()->GetRightVector(), -rotationDiff); //ROTATE AXIS BY DIFFERENCE
 					this->lastAxisGrabOffset = rotation - rotationDiff; //SET LAST OFFSET
 				}
 				else {
@@ -444,16 +459,13 @@ void Graphics::UpdateSelectedObject() {
 			case AxisEditSubState::EDIT_Y:
 			{
 				XMVECTOR planeNormal = XMVector3Normalize(XMVector3Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), modelRotationMatrix));
-				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetPositionVector();
+				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetTransform()->GetPositionVector();
 				XMVECTOR modelSpaceCentreDiff = XMVector3Transform(centreDiff, inverseModelRotationMatrix);
-				float x = XMVectorGetX(modelSpaceCentreDiff);
-				float y = XMVectorGetY(modelSpaceCentreDiff);
-				float z = XMVectorGetZ(modelSpaceCentreDiff);
 				float rotation = atan2(XMVectorGetZ(modelSpaceCentreDiff), XMVectorGetX(modelSpaceCentreDiff));
 				if (this->lastAxisGrabOffset != FLT_MAX) {
 					float rotationDiff = rotation - this->lastAxisGrabOffset;
-					selectedObject->RotateAxisVectors(selectedObject->GetUpVector(), -rotationDiff);
+					selectedObject->GetTransform()->RotateUsingAxis(selectedObject->GetTransform()->GetUpVector(), -rotationDiff);
 					this->lastAxisGrabOffset = rotation - rotationDiff;
 				}
 				else {
@@ -464,13 +476,13 @@ void Graphics::UpdateSelectedObject() {
 			case AxisEditSubState::EDIT_Z:
 			{
 				XMVECTOR planeNormal = XMVector3Normalize(XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), modelRotationMatrix));
-				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetPositionVector();
+				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetTransform()->GetPositionVector();
 				XMVECTOR modelSpaceCentreDiff = XMVector3Transform(centreDiff, inverseModelRotationMatrix);
 				float rotation = atan2(XMVectorGetY(modelSpaceCentreDiff), XMVectorGetX(modelSpaceCentreDiff));
 				if (this->lastAxisGrabOffset != FLT_MAX) {
 					float rotationDiff = rotation - this->lastAxisGrabOffset;
-					selectedObject->RotateAxisVectors(selectedObject->GetFrontVector(), rotationDiff);
+					selectedObject->GetTransform()->RotateUsingAxis(selectedObject->GetTransform()->GetFrontVector(), rotationDiff);
 					this->lastAxisGrabOffset = rotation - rotationDiff;
 				}
 				else {
@@ -492,8 +504,43 @@ XMFLOAT3 Graphics::ReadFloat3(std::ifstream& stream)
 	return vector;
 }
 
+XMFLOAT4 Graphics::ReadFloat4(std::ifstream& stream)
+{
+	XMFLOAT4 vector;
+	stream >> vector.x;
+	stream >> vector.y;
+	stream >> vector.z;
+	stream >> vector.w;
+	return vector;
+}
+
+void Graphics::WriteFloat3(const XMFLOAT3& float3, std::ofstream& stream)
+{
+	stream << float3.x << ' ' << float3.y << ' ' << float3.z << ' ';
+}
+
+void Graphics::WriteFloat3(const XMVECTOR& float3, std::ofstream& stream)
+{
+	stream << XMVectorGetX(float3) << ' ' << XMVectorGetY(float3) << ' ' << XMVectorGetZ(float3) << ' ';
+}
+
+void Graphics::WriteFloat4(const XMFLOAT4& float4, std::ofstream& stream)
+{
+	stream << float4.x << ' ' << float4.y << ' ' << float4.z << ' ' << float4.w << ' ';
+}
+
+void Graphics::WriteFloat4(const XMVECTOR& float4, std::ofstream& stream)
+{
+	stream << XMVectorGetX(float4) << ' ' << XMVectorGetY(float4) << ' ' << XMVectorGetZ(float4) << ' ' << XMVectorGetW(float4) << ' ';
+}
+
 bool Graphics::LoadScene(const char* sceneName)
 {
+	if (sceneLoaded)
+	{
+		UnloadScene();
+	}
+
 	std::string sceneFilePath = "res/scenes/";
 	sceneFilePath += sceneName;
 
@@ -527,6 +574,8 @@ bool Graphics::LoadScene(const char* sceneName)
 				}
 
 				track->GenerateMidPoints();
+
+				track->SetLabel(trackName);
 
 				this->objectTracks.insert(std::make_pair(trackName, track));
 			}
@@ -599,6 +648,22 @@ bool Graphics::LoadScene(const char* sceneName)
 					gameObject = dynamic_cast<GameObject*>(spotLight);
 					break;
 				}
+				case GameObjectType::PHYSICS:
+				{
+					PhysicsGameObject* physicsGameObject = new PhysicsGameObject();
+
+					std::string fileName;
+					sceneFile >> fileName;
+					StringHelper::ReplaceChars(fileName, '|', ' ');
+					fileName = "res/models/" + fileName;
+
+					if (!physicsGameObject->Initialize(label, fileName, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+						return false;
+					}
+
+					gameObject = dynamic_cast<GameObject*>(physicsGameObject);
+					break;
+				}
 				default:
 				{
 					gameObject = new GameObject();
@@ -606,7 +671,7 @@ bool Graphics::LoadScene(const char* sceneName)
 				}
 				}
 
-				gameObject->SetPosition(ReadFloat3(sceneFile));
+				gameObject->GetTransform()->SetPosition(ReadFloat3(sceneFile));
 
 				int rotationType;
 				sceneFile >> rotationType;
@@ -614,18 +679,31 @@ bool Graphics::LoadScene(const char* sceneName)
 				switch (rotationType)
 				{
 				case 1:
+				{
 					XMFLOAT3 front = ReadFloat3(sceneFile);
 					XMFLOAT3 right = ReadFloat3(sceneFile);
 					XMFLOAT3 up = ReadFloat3(sceneFile);
 
-					gameObject->SetFrontVector(XMVectorSet(front.x, front.y, front.z, 0.0f));
-					gameObject->SetRightVector(XMVectorSet(right.x, right.y, right.z, 0.0f));
-					gameObject->SetUpVector(XMVectorSet(up.x, up.y, up.z, 0.0f));
-					break;
+					// Outdated method
 
-				case 2:
-					gameObject->SetLookAtPos(ReadFloat3(sceneFile));
+					/*gameObject->GetTransform()->SetFrontVector(XMVectorSet(front.x, front.y, front.z, 0.0f));
+					gameObject->GetTransform()->SetRightVector(XMVectorSet(right.x, right.y, right.z, 0.0f));
+					gameObject->GetTransform()->SetUpVector(XMVectorSet(up.x, up.y, up.z, 0.0f));*/
+
 					break;
+				}
+					
+				case 2:
+					gameObject->GetTransform()->LookAtPos(ReadFloat3(sceneFile));
+					break;
+				case 3:
+				{
+					XMFLOAT4 orientation = ReadFloat4(sceneFile);
+					XMVECTOR orientationVector = XMLoadFloat4(&orientation);
+					gameObject->GetTransform()->SetOrientationQuaternion(orientationVector);
+
+					break;
+				}
 				}
 
 				bool hasTrack;
@@ -658,6 +736,21 @@ bool Graphics::LoadScene(const char* sceneName)
 					gameObject->GetRelativePositions()->push_back(XMVectorSet(cameraRelativePosition.x, cameraRelativePosition.y, cameraRelativePosition.z, 0.0f));
 				}
 
+				bool hasController;
+				sceneFile >> hasController;
+
+				if (hasController)
+				{
+					int controllerTypeInt;
+					sceneFile >> controllerTypeInt;
+
+					float moveSpeed;
+					sceneFile >> moveSpeed;
+
+					ControllerType controllerType = static_cast<ControllerType>(controllerTypeInt);
+					controllerManager->AddController(gameObject, controllerType, moveSpeed);
+				}
+
 				bool floating;
 				sceneFile >> floating;
 
@@ -668,6 +761,7 @@ bool Graphics::LoadScene(const char* sceneName)
 				switch (objectType)
 				{
 				case GameObjectType::RENDERABLE:
+				case GameObjectType::PHYSICS:
 				{
 					RenderableGameObject* renderableGameObject = dynamic_cast<RenderableGameObject*>(gameObject);
 					renderableGameObjects.push_back(renderableGameObject);
@@ -694,10 +788,216 @@ bool Graphics::LoadScene(const char* sceneName)
 			return false;
 		}*/
 
+		sceneLoaded = true;
+
 		return true;
 	}
 
 	return false;
+}
+
+bool Graphics::SaveScene(const char* sceneName)
+{
+	std::string sceneFilePath = "res/scenes/";
+	sceneFilePath += sceneName;
+
+	std::ofstream sceneFile(sceneFilePath.c_str());
+
+	if (sceneFile)
+	{
+		try
+		{
+			sceneFile << this->objectTracks.size() << "\n\n";
+
+			std::unordered_map<std::string, ObjectTrack*>::iterator objectTrackIterator = this->objectTracks.begin();
+			while (objectTrackIterator != this->objectTracks.end())
+			{
+				std::vector<ObjectTrackNode>* trackNodes = objectTrackIterator->second->GetTrackNodes();
+
+				size_t numTrackNodes = trackNodes->size();
+
+				sceneFile << objectTrackIterator->first << ' ' << numTrackNodes << '\n';
+
+				for (size_t i = 0; i < numTrackNodes; ++i)
+				{
+					WriteFloat3(trackNodes->at(i).position, sceneFile);
+					WriteFloat3(trackNodes->at(i).lookPoint, sceneFile);
+
+					sceneFile << '\n';
+				}
+
+				sceneFile << '\n';
+
+				++objectTrackIterator;
+			}
+
+			sceneFile << this->gameObjectMap.size() << "\n\n";
+
+			std::unordered_map<std::string, GameObject*>::iterator objectMapIterator = this->gameObjectMap.begin();
+			while (objectMapIterator != this->gameObjectMap.end())
+			{
+				GameObjectType objectType = objectMapIterator->second->GetType();
+				int objectTypeInt = static_cast<int>(objectType);
+				sceneFile << objectTypeInt << ' ';
+
+				std::string label = objectMapIterator->first;
+				StringHelper::ReplaceChars(label, ' ', '|');
+				sceneFile << label << ' ';
+
+				switch (objectType)
+				{
+				case GameObjectType::RENDERABLE:
+				{
+					RenderableGameObject* renderableGameObject = dynamic_cast<RenderableGameObject*>(objectMapIterator->second);
+					std::string path = renderableGameObject->GetModel()->GetPath();
+					StringHelper::RemoveDirectoriesFromStart(path, 2);
+					sceneFile << path;
+					break;
+				}
+				case GameObjectType::LIGHT:
+				{
+					Light* directionalLight = dynamic_cast<Light*>(objectMapIterator->second);
+					WriteFloat3(directionalLight->GetColour(), sceneFile);
+					break;
+				}
+				case GameObjectType::POINT_LIGHT:
+				{
+					PointLight* pointLight = dynamic_cast<PointLight*>(objectMapIterator->second);
+					WriteFloat3(pointLight->GetColour(), sceneFile);
+					break;
+				}
+				case GameObjectType::SPOT_LIGHT:
+				{
+					SpotLight* spotLight = dynamic_cast<SpotLight*>(objectMapIterator->second);
+					WriteFloat3(spotLight->GetColour(), sceneFile);
+					break;
+				}
+				}
+
+				sceneFile << '\n';
+
+				WriteFloat3(objectMapIterator->second->GetTransform()->GetPositionFloat3(), sceneFile);
+				sceneFile << '\n';
+
+				sceneFile << 3 << ' ';
+				WriteFloat4(objectMapIterator->second->GetTransform()->GetOrientation(), sceneFile);
+				sceneFile << '\n';
+
+				ObjectTrack* objectTrack = objectMapIterator->second->GetObjectTrack();
+				if (objectTrack != nullptr)
+				{
+					sceneFile << 1 << ' ' << objectTrack->GetLabel() << ' ' << objectMapIterator->second->GetFollowingObjectTrack() << ' ' << objectMapIterator->second->GetObjectTrackDelta() << '\n';
+				}
+				else
+				{
+					sceneFile << 0 << '\n';
+				}
+
+				size_t numRelativeCams = objectMapIterator->second->GetRelativePositions()->size();
+
+				sceneFile << numRelativeCams << '\n';
+
+				for (size_t i = 0; i < numRelativeCams; ++i)
+				{
+					WriteFloat3(objectMapIterator->second->GetRelativePositions()->at(i), sceneFile);
+					sceneFile << '\n';
+				}
+
+				if (objectMapIterator->second->GetController() != nullptr)
+				{
+					sceneFile << "1 " << static_cast<int>(objectMapIterator->second->GetController()->GetType()) << ' ' << objectMapIterator->second->GetController()->GetMoveSpeed() << '\n';
+				}
+				else
+				{
+					sceneFile << "0\n";
+				}
+
+				sceneFile << objectMapIterator->second->GetFloating() << "\n\n";
+
+				++objectMapIterator;
+			}
+		}
+		catch (std::exception e)
+		{
+			ErrorLogger::Log("Failed to save scene");
+			return false;
+		}
+
+		return true;
+	}
+	
+	return false;
+}
+
+bool Graphics::SaveSceneTGP(const char* sceneName)
+{
+	std::string sceneFilePath = "res/scenes/";
+	sceneFilePath += sceneName;
+
+	std::ofstream sceneFile(sceneFilePath.c_str());
+
+	return true;
+}
+
+void Graphics::UnloadScene()
+{
+	//Remove Object Tracks
+	std::unordered_map<std::string, ObjectTrack*>::iterator objectTrackIterator = this->objectTracks.begin();
+	while (objectTrackIterator != this->objectTracks.end())
+	{
+		delete objectTrackIterator->second;
+		++objectTrackIterator;
+	}
+
+	this->objectTracks.clear();
+
+	//Remove Game Objects
+	std::unordered_map<std::string, GameObject*>::iterator objectMapIterator = this->gameObjectMap.begin();
+	while (objectMapIterator != this->gameObjectMap.end())
+	{
+		RemoveGameObject(objectMapIterator->first);
+		++objectMapIterator;
+	}
+
+	this->gameObjectMap.clear();
+	this->renderableGameObjects.clear();
+	this->pointLights.clear();
+	this->spotLights.clear();
+
+	if (selectingGameObject)
+	{
+		selectingGameObject = false;
+		selectedObject = nullptr;
+		lastAxisGrabOffset = FLT_MAX;
+		lastGrabPos = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+	}
+	
+	sceneLoaded = false;
+}
+
+void Graphics::RemoveGameObject(std::string gameObjectLabel)
+{
+	//If the object exists in the map
+	std::unordered_map<std::string, GameObject*>::iterator iterator = this->gameObjectMap.find(gameObjectLabel);
+	if (iterator != this->gameObjectMap.end())
+	{
+		//Remove controller
+		if (iterator->second->GetController() != nullptr)
+		{
+			std::vector<Controller>* controllers = this->controllerManager->GetControllers();
+			size_t numControllers = controllers->size();
+			for (size_t i = 0; i < numControllers; ++i)
+			{
+				if (iterator->second->GetController() == &controllers->at(i))
+				{
+					controllers->erase(controllers->begin() + i);
+					break;
+				}
+			}
+		}
+		
+		delete iterator->second;
+	}
 }
 
 void Graphics::UpdateImGui()
@@ -707,11 +1007,25 @@ void Graphics::UpdateImGui()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
+	//New Object Menu
+	if (newObjectMenuOpen)
+	{
+		if (ImGui::Button("Create Object"))
+		{
+
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel"))
+		{
+			newObjectMenuOpen = false;
+		}
+	}
+
 	//SELECTED OBJECT MENU
 	if (selectingGameObject) {
 		ImGui::Begin("Game Object Settings"); //TITLE
 		ImGui::Text(("Label: " + selectedObject->GetLabel()).c_str()); //OBJECT LABEL
-		XMFLOAT3 pos = selectedObject->GetPositionFloat3();
+		XMFLOAT3 pos = selectedObject->GetTransform()->GetPositionFloat3();
 		ImGui::Text(("X: " + std::to_string(pos.x) + "Y: " + std::to_string(pos.y) + "Z: " + std::to_string(pos.z)).c_str()); //POSITION
 		if (selectedObject->GetObjectTrack() != nullptr) { //FOLLOW TRACK CHECKBOX
 			bool followingTrack = selectedObject->GetFollowingObjectTrack();
@@ -759,7 +1073,7 @@ void Graphics::UpdateImGui()
 			this->axisEditState = AxisEditState::EDIT_ROTATE;
 		}
 		if (ImGui::Button("Reset Rotation")) {
-			this->selectedObject->SetRotation(0.0f, 0.0f, 0.0f);
+			this->selectedObject->GetTransform()->SetOrientationQuaternion(XMQuaternionIdentity());
 		}
 		GameObjectType type = selectedObject->GetType();
 		if (type == GameObjectType::RENDERABLE) {//IF IT IS A RENDERABLE, ALLOW SCALING
@@ -771,10 +1085,10 @@ void Graphics::UpdateImGui()
 			Light* lightObj = reinterpret_cast<Light*>(selectedObject);
 			ImGui::ColorEdit3("Colour", &(lightObj->colour.x));
 			if (ImGui::Button("Move to Camera")) {
-				XMVECTOR lightPosition = this->camera.GetPositionVector();
-				lightPosition += this->camera.GetFrontVector();
-				lightObj->SetPosition(lightPosition);
-				lightObj->CopyAxisVectorsFrom(&camera);
+				XMVECTOR lightPosition = this->camera.GetTransform()->GetPositionVector();
+				lightPosition += this->camera.GetTransform()->GetFrontVector();
+				lightObj->GetTransform()->SetPosition(lightPosition);
+				lightObj->GetTransform()->CopyOrientationFrom(*camera.GetTransform());
 				lightObj->SetFollowingObjectTrack(false);
 			}
 
@@ -812,6 +1126,21 @@ void Graphics::UpdateImGui()
 			if (i < numRelativeCameras - 1)
 			{
 				ImGui::SameLine();
+			}
+		}
+
+		if (selectedObject->GetController() != nullptr)
+		{
+			ImGui::Checkbox("Control Object", selectedObject->GetController()->IsActivePtr());
+		}
+
+		if (type == GameObjectType::PHYSICS)
+		{
+			PhysicsGameObject* object = dynamic_cast<PhysicsGameObject*>(selectedObject);
+			ImGui::Checkbox("Static", object->GetParticleModel()->IsStaticPtr());
+			if (ImGui::Button("Apply Upwards Thrust"))
+			{
+				object->GetParticleModel()->AddThrust(XMVectorSet(0.0f, 1000.0f, 0.0f, 0.0f), 1.0f);
 			}
 		}
 
@@ -893,9 +1222,28 @@ void Graphics::UpdateImGui()
 
 	ImGui::Begin("Scene Settings");
 	
+	if (ImGui::Button("Save Scene"))
+	{
+		SaveScene("test.txt");
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Save Scene TGP"))
+	{
+		SaveScene("test.txt");
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Load test.txt"))
+	{
+		LoadScene("test.txt");
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Unload Scene"))
+	{
+		UnloadScene();
+	}
+
 	//DIRECTIONAL LIGHT COLOUR
-	ImGui::ColorEdit3("Dir Light Colour", &(dynamic_cast<Light*>(gameObjectMap["Directional Light"])->colour.x));
-	float cameraTrackDelta = camera.GetObjectTrackDelta();
+	ImGui::ColorEdit3("Dir Light Colour", &(directionalLight.colour.x));
 
 	//NORMAL MAPPING CHECKBOX
 	bool useNormalMapping = static_cast<bool>(this->cb_ps_pixelShader.data.useNormalMapping);
@@ -926,18 +1274,6 @@ void Graphics::UpdateImGui()
 
 	ImGui::End();
 
-	ImGui::Begin("Input Settings");
-	ImGui::Text("Keyboard Input will");
-	ImGui::Text("affect following objects:");
-	size_t controllerSize = controllers->size();
-	for (size_t i = 0; i < controllerSize; ++i)
-	{
-		ImGui::Checkbox(controllers->at(i).GetGameObject()->GetLabel().c_str(), controllers->at(i).IsActivePtr());
-		ImGui::SameLine();
-	}
-
-	ImGui::End();
-
 	ImGui::Begin("Camera Settings");
 	//CAMERA TRACK CHECKBOX
 	bool followTrack = camera.GetFollowingObjectTrack();
@@ -951,16 +1287,19 @@ void Graphics::UpdateImGui()
 		*camera.GetUsingRelativeCameraPtr() = false;
 	}
 
+	ImGui::Checkbox("Control Camera", controllerManager->GetControllers()->at(0).IsActivePtr());
+
 	//CAMERA TRACK DELTA
-	ImGui::DragFloat("Camera Track Delta", &cameraTrackDelta, 0.005f, -0.5f, 10.0f);
-	camera.SetObjectTrackDelta(cameraTrackDelta);
+	//float cameraTrackDelta = camera.GetObjectTrackDelta();
+	//ImGui::DragFloat("Camera Track Delta", &cameraTrackDelta, 0.005f, -0.5f, 10.0f);
+	//camera.SetObjectTrackDelta(cameraTrackDelta);
 
 	if (ImGui::Button("Static View One"))
 	{
 		*camera.GetUsingRelativeCameraPtr() = false;
 		camera.SetFollowingObjectTrack(false);
-		camera.SetPosition(XMFLOAT3(0.0f, 37.5f, 0.0f));
-		camera.SetLookAtPos(XMFLOAT3(0.0f, 0.0f, 0.5f));
+		camera.GetTransform()->SetPosition(XMFLOAT3(0.0f, 37.5f, 0.0f));
+		camera.GetTransform()->LookAtPos(XMFLOAT3(0.0f, 0.0f, 0.5f));
 		camera.SetZoom(80.0f);
 	}
 	ImGui::SameLine();
@@ -968,8 +1307,8 @@ void Graphics::UpdateImGui()
 	{
 		*camera.GetUsingRelativeCameraPtr() = false;
 		camera.SetFollowingObjectTrack(false);
-		camera.SetPosition(XMFLOAT3(10.0f, 10.0f, 10.0f));
-		camera.SetLookAtPos(XMFLOAT3(3.0f, 2.5f, 3.0f));
+		camera.GetTransform()->SetPosition(XMFLOAT3(10.0f, 10.0f, 10.0f));
+		camera.GetTransform()->LookAtPos(XMFLOAT3(3.0f, 2.5f, 3.0f));
 		camera.SetZoom(70.0f);
 	}
 
@@ -1206,7 +1545,7 @@ void Graphics::CheckSelectingObject()
 	float distance;
 
 	if (this->selectingGameObject) {
-		XMFLOAT3 objectPos = this->selectedObject->GetPositionFloat3();
+		XMFLOAT3 objectPos = this->selectedObject->GetTransform()->GetPositionFloat3();
 
 		float objectHitRadius = this->selectedObject->GetModel()->GetHitRadius();
 
@@ -1227,19 +1566,19 @@ void Graphics::CheckSelectingObject()
 			this->zAxisTranslateBoudingBox.Center = XMFLOAT3(objectPos.x, objectPos.y, objectPos.z + 0.6f);
 
 			//CHECK IF AN AXIS IS CLICKED ON
-			if (this->xAxisTranslateBoudingBox.Intersects(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), distance)) {
+			if (this->xAxisTranslateBoudingBox.Intersects(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), distance)) {
 				if (distance < closestDist) {
 					closestDist = distance;
 					this->axisEditSubState = AxisEditSubState::EDIT_X;
 				}
 			}
-			if (this->yAxisTranslateBoudingBox.Intersects(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), distance)) {
+			if (this->yAxisTranslateBoudingBox.Intersects(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), distance)) {
 				if (distance < closestDist) {
 					closestDist = distance;
 					this->axisEditSubState = AxisEditSubState::EDIT_Y;
 				}
 			}
-			if (this->zAxisTranslateBoudingBox.Intersects(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), distance)) {
+			if (this->zAxisTranslateBoudingBox.Intersects(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), distance)) {
 				if (distance < closestDist) {
 					closestDist = distance;
 					this->axisEditSubState = AxisEditSubState::EDIT_Z;
@@ -1255,17 +1594,17 @@ void Graphics::CheckSelectingObject()
 		//ROTATE
 		else if (this->axisEditState == AxisEditState::EDIT_ROTATE) {
 
-			XMMATRIX modelRotationMatrix = selectedObject->GetRotationMatrix();
+			XMMATRIX modelRotationMatrix = selectedObject->GetTransform()->GetRotationMatrix();
 
 			{
 				//GET TRANSFORMED AXIS VECTOR (PLANE NORMAL)
 				XMVECTOR planeNormal = XMVector3Normalize(XMVector4Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), modelRotationMatrix));
 				//GET INTERSECT POINT WITH THIS PLANE AND THE MOUSE RAY
-				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetPositionVector(); //FIND VECTOR DIFFERENCE
+				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetTransform()->GetPositionVector(); //FIND VECTOR DIFFERENCE
 				float distanceToCentre = XMVectorGetX(XMVector3Length(centreDiff));//GET SCALAR DISTANCE
 				if (distanceToCentre > objectHitRadius - objectHitRadius * 0.1f && distanceToCentre < objectHitRadius + objectHitRadius * 0.1f) { //CHECK IF THE INTERSECT IS ON THE RING
-					XMVECTOR camToIntersect = planeIntersectPoint - camera.GetPositionVector(); //FIND VECTOR DIFF FROM CAMERA TO THE POINT
+					XMVECTOR camToIntersect = planeIntersectPoint - camera.GetTransform()->GetPositionVector(); //FIND VECTOR DIFF FROM CAMERA TO THE POINT
 					float camToIntersectDist = XMVectorGetX(XMVector3Length(camToIntersect)); //FIND SCALAR DISTANCE FROM CAMERA TO THE POINT
 					if (camToIntersectDist < closestDist) { //IF LESS THAN THE LAST DISTANCE SET VARIABLES
 						closestDist = camToIntersectDist;
@@ -1275,11 +1614,11 @@ void Graphics::CheckSelectingObject()
 			}
 			{
 				XMVECTOR planeNormal = XMVector3Normalize(XMVector3Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), modelRotationMatrix));
-				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetPositionVector();
+				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetTransform()->GetPositionVector();
 				float distanceToCentre = XMVectorGetX(XMVector3Length(centreDiff));
 				if (distanceToCentre > objectHitRadius - objectHitRadius * 0.1f && distanceToCentre < objectHitRadius + objectHitRadius * 0.1f) {
-					XMVECTOR camToIntersect = planeIntersectPoint - camera.GetPositionVector();
+					XMVECTOR camToIntersect = planeIntersectPoint - camera.GetTransform()->GetPositionVector();
 					float camToIntersectDist = XMVectorGetX(XMVector3Length(camToIntersect));
 					if (camToIntersectDist < closestDist) {
 						closestDist = camToIntersectDist;
@@ -1289,11 +1628,11 @@ void Graphics::CheckSelectingObject()
 			}
 			{
 				XMVECTOR planeNormal = XMVector3Normalize(XMVector4Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), modelRotationMatrix));
-				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetPositionVector();
+				XMVECTOR planeIntersectPoint = RayPlaneIntersect(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+				XMVECTOR centreDiff = planeIntersectPoint - this->selectedObject->GetTransform()->GetPositionVector();
 				float distanceToCentre = XMVectorGetX(XMVector3Length(centreDiff));
 				if (distanceToCentre > objectHitRadius - objectHitRadius * 0.1f && distanceToCentre < objectHitRadius + objectHitRadius * 0.1f) {
-					XMVECTOR camToIntersect = planeIntersectPoint - camera.GetPositionVector();
+					XMVECTOR camToIntersect = planeIntersectPoint - camera.GetTransform()->GetPositionVector();
 					float camToIntersectDist = XMVectorGetX(XMVector3Length(camToIntersect));
 					if (camToIntersectDist < closestDist) {
 						closestDist = camToIntersectDist;
@@ -1314,7 +1653,7 @@ void Graphics::CheckSelectingObject()
 	while (mapIterator != gameObjectMap.end())
 	{
 		RenderableGameObject* gameObject = dynamic_cast<RenderableGameObject*>(mapIterator->second);
-		distance = gameObject->GetRayIntersectDist(camera.GetPositionVector(), camera.GetMouseToWorldVectorDirection());
+		distance = gameObject->GetRayIntersectDist(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection());
 		if (distance < closestDist) {
 			closestDist = distance;
 			this->selectedObject = gameObject;
@@ -1337,8 +1676,8 @@ void Graphics::CheckSelectingObject()
 
 void Graphics::DrawAxisForObject(GameObject* gameObject, const XMMATRIX& viewProjection)
 {
-	XMFLOAT3 gameObjectPosition = gameObject->GetPositionFloat3();
-	XMMATRIX modelMatrix = XMMatrixTranslation(gameObjectPosition.x, gameObjectPosition.y, gameObjectPosition.z);
+	XMFLOAT3 gameObjectPosition = gameObject->GetTransform()->GetPositionFloat3();
+	XMMATRIX translationMatrix = XMMatrixTranslation(gameObjectPosition.x, gameObjectPosition.y, gameObjectPosition.z);
 
 	float scale = this->selectedObject->GetModel()->GetHitRadius();
 
@@ -1346,10 +1685,10 @@ void Graphics::DrawAxisForObject(GameObject* gameObject, const XMMATRIX& viewPro
 	if (scale < 0.75f) scale = 0.75f;
 
 	if (this->axisEditState == AxisEditState::EDIT_TRANSLATE) {
-		this->axisTranslateModel.Draw(XMMatrixScaling(scale, scale, scale) * modelMatrix, viewProjection, &cb_vs_vertexShader);
+		this->axisTranslateModel.Draw(XMMatrixScaling(scale, scale, scale) * translationMatrix, viewProjection, &cb_vs_vertexShader);
 	}
-	else if (this->axisEditState == AxisEditState::EDIT_ROTATE) { //MULTIPLY BY ACTUAL MODEL MATRIX WHEN ROTATING
-		this->axisRotateModel.Draw(XMMatrixScaling(scale, scale, scale) * this->selectedObject->GetModelMatrix(), viewProjection, &cb_vs_vertexShader);
+	else if (this->axisEditState == AxisEditState::EDIT_ROTATE) { //Multiply by rotation matrix when rotating
+		this->axisRotateModel.Draw(XMMatrixScaling(scale, scale, scale) * this->selectedObject->GetTransform()->GetRotationMatrix() * translationMatrix, viewProjection, &cb_vs_vertexShader);
 	}
 }
 
@@ -1380,24 +1719,18 @@ float Graphics::GetWaterHeightAt(float posX, float posZ)
 
 void Graphics::FloatObject(GameObject* object)
 {
-	XMFLOAT3 positionFloat = object->GetPositionFloat3();
+	XMFLOAT3 positionFloat = object->GetTransform()->GetPositionFloat3();
 	XMVECTOR position = XMVectorSet(0.0f, GetWaterHeightAt(positionFloat.x, positionFloat.z), 0.0f, 0.0f);
 
-	XMVECTOR objectFront = object->GetFrontVector();
-	XMVECTOR objectRight = object->GetRightVector();
+	object->GetTransform()->SetPosition(XMFLOAT3(positionFloat.x, XMVectorGetY(position) - 3.5f, positionFloat.z));
+
+	XMVECTOR objectFront = object->GetTransform()->GetFrontVector();
+	XMVECTOR objectRight = object->GetTransform()->GetRightVector();
 
 	XMVECTOR tangent = XMVector3Normalize(XMVectorSet(XMVectorGetX(objectRight), GetWaterHeightAt(positionFloat.x + XMVectorGetX(objectRight), positionFloat.z + XMVectorGetZ(objectRight)), XMVectorGetZ(objectRight), 0.0f) - position);
 	XMVECTOR bitangent = XMVector3Normalize(XMVectorSet(XMVectorGetX(objectFront), GetWaterHeightAt(positionFloat.x + XMVectorGetX(objectFront), positionFloat.z + XMVectorGetZ(objectFront)), XMVectorGetZ(objectFront), 0.0f) - position);
 
-	/*XMVECTOR tangent = XMVector3Normalize(XMVectorSet(0.025f, GetWaterHeightAt(positionFloat.x + 0.025f, positionFloat.z), 0.0f, 0.0f) - position);
-	XMVECTOR bitangent = XMVector3Normalize(XMVectorSet(0.0f, GetWaterHeightAt(positionFloat.x, positionFloat.z + 0.025f), 0.025f, 0.0f) - position);*/
 	XMVECTOR normal = XMVector3Normalize(XMVector3Cross(bitangent, tangent));
-
-	object->SetFrontVector(bitangent);
-	object->SetUpVector(normal);
-	object->SetRightVector(tangent);
-
-	object->SetPosition(XMFLOAT3(positionFloat.x, XMVectorGetY(position) - 3.5f, positionFloat.z));
 
 	XMMATRIX rotationMatrix =  XMMATRIX(tangent, normal, bitangent, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
 
@@ -1405,9 +1738,5 @@ void Graphics::FloatObject(GameObject* object)
 	rotationMatrix.r[1].m128_f32[3] = 0.0f;
 	rotationMatrix.r[2].m128_f32[3] = 0.0f;
 
-	object->SetRotationMatrix(rotationMatrix);
-
-	//object->SetRotationMatrix(XMMatrixLookToLH(XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), -bitangent, normal));
-
-	object->UpdateModelMatrix();
+	object->GetTransform()->SetOrientationRotationMatrix(rotationMatrix);
 }

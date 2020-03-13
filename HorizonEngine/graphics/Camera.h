@@ -31,9 +31,9 @@ public:
 	void SetRelativeObject(GameObject* relativeObject, XMVECTOR relativePosition);
 	bool* GetUsingRelativeCameraPtr();
 
-private:
-	void UpdateModelMatrix() override;
+	void UpdateView();
 
+private:
 	XMMATRIX view;
 	XMMATRIX projection;
 

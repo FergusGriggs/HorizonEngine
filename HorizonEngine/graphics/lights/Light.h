@@ -14,14 +14,10 @@ public:
 	void virtual UpdateShaderVariables(ConstantBuffer<CB_PS_pixelShader>& cb_ps_pixelShader, int lightIndex = 0);
 
 	void SetColour(DirectX::XMFLOAT3 colour);
+	DirectX::XMFLOAT3 GetColour();
 
 	void SetAmbientStrength(float ambientStrength);
-	void SetSpecularStrength(float specularStrength);
-	void SetShininess(float shininess);
-
 	float GetAmbientStrength();
-	float GetSpecularStrength();
-	float GetShininess();
 
 
 	DirectX::XMFLOAT3 colour = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);

@@ -16,9 +16,8 @@ bool Light::Initialize(std::string label, ID3D11Device* device, ID3D11DeviceCont
 	if (this->model == nullptr)
 		return false;
 
-	this->SetPosition(0.0f, 0.0f, 0.0f);
-	this->SetRotation(0.0f, 0.0f, 0.0f);
-	this->UpdateModelMatrix();
+	this->transform.SetPosition(XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+	this->transform.SetOrientationQuaternion(XMQuaternionIdentity());
 
 	return true;
 }
@@ -28,11 +27,16 @@ void Light::UpdateShaderVariables(ConstantBuffer<CB_PS_pixelShader>& cb_ps_pixel
 	cb_ps_pixelShader.data.directionalLight.colour = this->colour;
 	cb_ps_pixelShader.data.directionalLight.ambientStrength = this->ambientStrength;
 
-	XMStoreFloat3(&cb_ps_pixelShader.data.directionalLight.direction, this->GetFrontVector());
+	XMStoreFloat3(&cb_ps_pixelShader.data.directionalLight.direction, this->transform.GetFrontVector());
 }
 
 void Light::SetColour(DirectX::XMFLOAT3 colour) {
 	this->colour = colour;
+}
+
+DirectX::XMFLOAT3 Light::GetColour()
+{
+	return this->colour;
 }
 
 void Light::SetAmbientStrength(float ambientStrength) {
