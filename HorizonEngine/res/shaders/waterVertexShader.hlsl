@@ -34,9 +34,9 @@ SamplerState samplerState : SAMPLER : register(s0);
 
 float GetWaterHeightAt(float posX, float posZ)
 {
-    float value = sin(posX * 1.5f + gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + gameTime * 0.0019f) * 0.05f;
-    value += sin(-posX * 0.4f + gameTime * 0.0012f) * 0.15f + sin(posZ * 0.5f + gameTime * 0.0013f) * 0.15f;
-    value += sin(posX * 0.2f + gameTime * 0.0006f) * 0.5f + sin(-posZ * 0.22f + gameTime * 0.0004f) * 0.45f;
+    float value = sin(posX * 1.5f + gameTime * 1.7f) * 0.05f + sin(posZ * 1.5f + gameTime * 1.9f) * 0.05f;
+    value += sin(-posX * 0.4f + gameTime * 1.2f) * 0.15f + sin(posZ * 0.5f + gameTime * 1.3f) * 0.15f;
+    value += sin(posX * 0.2f + gameTime * 0.6f) * 0.5f + sin(-posZ * 0.22f + gameTime * 0.4f) * 0.45f;
     return value * waveAmplitude;
     //return noiseTexture.Sample(samplerState, float2(posX, posZ), 1);
 }

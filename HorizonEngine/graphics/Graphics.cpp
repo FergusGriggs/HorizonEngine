@@ -760,23 +760,25 @@ bool Graphics::LoadScene(const char* sceneName)
 
 				switch (objectType)
 				{
-				case GameObjectType::RENDERABLE:
 				case GameObjectType::PHYSICS:
 				{
-					RenderableGameObject* renderableGameObject = dynamic_cast<RenderableGameObject*>(gameObject);
-					renderableGameObjects.push_back(renderableGameObject);
+					physicsGameObjects.push_back(dynamic_cast<PhysicsGameObject*>(gameObject));
+					renderableGameObjects.push_back(dynamic_cast<RenderableGameObject*>(gameObject));
+					break;
+				}
+				case GameObjectType::RENDERABLE:
+				{
+					renderableGameObjects.push_back(dynamic_cast<RenderableGameObject*>(gameObject));
 					break;
 				}
 				case GameObjectType::POINT_LIGHT:
 				{
-					PointLight* pointLight = dynamic_cast<PointLight*>(gameObject);
-					pointLights.push_back(pointLight);
+					pointLights.push_back(dynamic_cast<PointLight*>(gameObject));
 					break;
 				}
 				case GameObjectType::SPOT_LIGHT:
 				{
-					SpotLight* spotLight = dynamic_cast<SpotLight*>(gameObject);
-					spotLights.push_back(spotLight);
+					spotLights.push_back(dynamic_cast<SpotLight*>(gameObject));
 					break;
 				}
 				}
@@ -1137,10 +1139,15 @@ void Graphics::UpdateImGui()
 		if (type == GameObjectType::PHYSICS)
 		{
 			PhysicsGameObject* object = dynamic_cast<PhysicsGameObject*>(selectedObject);
-			ImGui::Checkbox("Static", object->GetParticleModel()->IsStaticPtr());
+			ImGui::Checkbox("Static", object->GetRigidBody()->IsStaticPtr());
 			if (ImGui::Button("Apply Upwards Thrust"))
 			{
-				object->GetParticleModel()->AddThrust(XMVectorSet(0.0f, 1000.0f, 0.0f, 0.0f), 1.0f);
+				object->GetRigidBody()->AddThrust(XMVectorSet(0.0f, 1000.0f, 0.0f, 0.0f), 1.0f);
+			}
+			if (ImGui::Button("Apply Torque"))
+			{
+				XMVECTOR worldPos = (object->GetTransform()->GetPositionVector() + camera.GetTransform()->GetPositionVector()) * 0.5f;
+				object->GetRigidBody()->AddTorque(worldPos - object->GetTransform()->GetPositionVector(), XMVectorSet(0.0f, 100.0f, 0.0f, 0.0f));
 			}
 		}
 
@@ -1345,6 +1352,8 @@ void Graphics::Update(float deltaTime)
 		renderableGameObjects.at(i)->Update(deltaTime);
 	}
 
+	CheckObjectCollisions();
+
 	size_t numPointLights = pointLights.size();
 	for (size_t i = 0; i < numPointLights; ++i)
 	{
@@ -1359,6 +1368,20 @@ void Graphics::Update(float deltaTime)
 	
 	//UPDATE IMGUI
 	UpdateImGui();
+}
+
+void Graphics::CheckObjectCollisions()
+{
+	/*for (int i = 0; i < physicsGameObjects.size(); ++i)
+	{
+		for (int j = i + 1; j < physicsGameObjects.size(); ++j)
+		{
+			if (physicsGameObjects[i]->GetModel()->GetAxisAllignedBoundingBox().Instersects())
+			{
+
+			}
+		}
+	}*/
 }
 
 void Graphics::AdjustMouseX(int xPos)
@@ -1712,8 +1735,8 @@ float Graphics::GetWaterHeightAt(float posX, float posZ)
 {
 	float gameTime = cb_vs_vertexShader.data.gameTime;
 	float value = 0.0f;// sin(posX * 1.5f + gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + gameTime * 0.0019f) * 0.05f;
-	value += sin(-posX * 0.4f + gameTime * 0.0012f) * 0.15f + sin(posZ * 0.5f + gameTime * 0.0013f) * 0.15f;
-	value += sin(posX * 0.2f + gameTime * 0.0006f) * 0.5f + sin(-posZ * 0.22f + gameTime * 0.0004f) * 0.45f;
+	value += sin(-posX * 0.4f + gameTime * 1.2f) * 0.15f + sin(posZ * 0.5f + gameTime * 1.3f) * 0.15f;
+	value += sin(posX * 0.2f + gameTime * 0.6f) * 0.5f + sin(-posZ * 0.22f + gameTime * 0.4f) * 0.45f;
 	return value * this->cb_vs_vertexShader.data.waveAmplitude;
 }
 

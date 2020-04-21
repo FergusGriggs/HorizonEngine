@@ -29,7 +29,8 @@ void Model::Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatr
 {
 	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexShader->GetAddressOf());
 
-	for (int i = 0; i < meshes.size(); i++) {
+	for (int i = 0; i < meshes.size(); i++)
+	{
 		cb_vs_vertexShader->data.modelViewProjectionMatrix = this->meshes[i].GetTransformMatrix() * modelMatrix * viewProjectionMatrix;
 		//this->cb_vs_vertexShader->data.modelViewProjectionMatrix = XMMatrixTranspose(this->cb_vs_vertexShader->data.modelViewProjectionMatrix);
 
@@ -52,6 +53,16 @@ std::string Model::GetPath()
 	return this->filePath;
 }
 
+BoundingBox Model::GetBoundingBox()
+{
+	return this->boundingBox;
+}
+
+std::vector<XMFLOAT3>* Model::GetVertices()
+{
+	return &this->vertices;
+}
+
 bool Model::LoadModel(const std::string& filePath)
 {
 	this->directory = StringHelper::GetDirectoryFromPath(filePath);
@@ -65,6 +76,8 @@ bool Model::LoadModel(const std::string& filePath)
 	}
 
 	this->ProcessNode(pScene->mRootNode, pScene, XMMatrixIdentity());// * XMMatrixScaling(0.025f, 0.025f, 0.025f)
+
+	BoundingBox::CreateFromPoints(this->boundingBox, vertices.size(), &(vertices.at(0)), sizeof(XMFLOAT3));
 
 	this->LoadModelMetaData(filePath.substr(0, filePath.length() - 4) + "_meta.txt");//remove model file extension, add '_meta.txt'
 
@@ -95,7 +108,7 @@ void Model::ProcessNode(aiNode* node, const aiScene* scene, const XMMATRIX& pare
 
 Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMatrix)
 {
-	std::vector<Vertex> vertices;
+	std::vector<Vertex> meshVertices;
 	std::vector<DWORD> indices;
 
 	for (UINT i = 0; i < mesh->mNumVertices; i++) {
@@ -124,7 +137,8 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, const XMMATRIX& tran
 			vertex.texCoord.y = (float)mesh->mTextureCoords[0][i].y;
 		}
 
-		vertices.push_back(vertex);
+		meshVertices.push_back(vertex);
+		this->vertices.push_back(vertex.pos);
 	}
 
 
@@ -152,7 +166,7 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, const XMMATRIX& tran
 	std::vector<Texture*> depthTextures = LoadMaterialTextures(material, aiTextureType::aiTextureType_DISPLACEMENT, scene);
 	textures.insert(textures.end(), depthTextures.begin(), depthTextures.end());
 
-	return Mesh(this->device, this->deviceContext, vertices, indices, textures, transformMatrix);
+	return Mesh(this->device, this->deviceContext, meshVertices, indices, textures, transformMatrix);
 }
 
 int Model::GetTextureIndex(aiString* pString)

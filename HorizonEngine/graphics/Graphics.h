@@ -51,6 +51,7 @@ public:
 	bool Initialize(HWND hwnd, int width, int height, ControllerManager* controllerManager);
 	void RenderFrame(float deltaTime);
 	void Update(float deltaTime);
+	void CheckObjectCollisions();
 
 	void AdjustMouseX(int xPos);
 	void AdjustMouseY(int yPos);
@@ -95,6 +96,7 @@ public:
 
 	std::unordered_map<std::string, GameObject*> gameObjectMap;
 	std::vector<RenderableGameObject*> renderableGameObjects;
+	std::vector<PhysicsGameObject*> physicsGameObjects;
 	std::vector<PointLight*> pointLights;
 	std::vector<SpotLight*> spotLights;
 

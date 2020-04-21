@@ -6,6 +6,8 @@
 #include "Mesh.h"
 #include <fstream>
 
+#include <DirectXCollision.h>
+
 class ResourceManager;
 
 using namespace DirectX;
@@ -17,6 +19,9 @@ public:
 	void Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader);
 	float GetHitRadius();
 	std::string GetPath();
+
+	BoundingBox GetBoundingBox();
+	std::vector<XMFLOAT3>* GetVertices();
 
 private:
 	bool LoadModel(const std::string& filePath);
@@ -37,6 +42,9 @@ private:
 	std::string filePath = "";
 	std::string directory = "";
 	float modelHitRadius = 0.5f;
+
+	BoundingBox boundingBox;
+	std::vector<XMFLOAT3> vertices;
 };
 
 #include "utility/ResourceManager.h";

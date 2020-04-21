@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <DirectXCollision.h>
-
 #include "Model.h"
 #include "utility/ObjectTrack.h"
 #include "Transform.h"

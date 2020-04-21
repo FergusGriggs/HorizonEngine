@@ -25,7 +25,5 @@ protected:
 	Model* axisModel;
 
 	XMFLOAT3 scale;
-
-	BoundingSphere boundingSphere;
 };
 

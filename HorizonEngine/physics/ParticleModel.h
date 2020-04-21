@@ -10,9 +10,15 @@ using namespace DirectX;
 const float GRAVITY = 9.81f;
 //const float GRAVITY = 0.0981f;
 
+enum class ParticleModelType
+{
+	BASE,
+	RIGID_BODY,
+};
+
 class ParticleModel
 {
-private:
+protected:
 	bool isStatic;
 	float mass;
 	float drag;
@@ -26,6 +32,8 @@ private:
 	XMVECTOR netForce;
 
 	std::vector<std::pair<XMVECTOR, float>> thrustForces;
+
+	ParticleModelType type;
 
 public:
 	ParticleModel();
@@ -45,7 +53,7 @@ public:
 	void ApplyThrustForces(float deltaTime);
 
 	void AddThrust(XMVECTOR force, float duration);
-	void Update(float deltaTime);
+	virtual void Update(float deltaTime);
 
 	void ApplyGravity(float deltaTime);
 	void ApplyDrag(float deltaTime);
@@ -55,5 +63,7 @@ public:
 	void SetTransformReference(Transform* transformReference);
 
 	void CheckAbsoluteFloorHeight();
+
+	ParticleModelType GetType();
 };
 

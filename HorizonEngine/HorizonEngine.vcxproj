@@ -177,6 +177,7 @@
     <ClCompile Include="physics\ParticleModel.cpp" />
     <ClCompile Include="graphics\PhysicsGameObject.cpp" />
     <ClCompile Include="graphics\Transform.cpp" />
+    <ClCompile Include="physics\RigidBody.cpp" />
     <ClCompile Include="utility\ErrorLogger.cpp" />
     <ClCompile Include="graphics\Graphics.cpp" />
     <ClCompile Include="graphics\imgui\imgui.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="physics\ParticleModel.h" />
     <ClInclude Include="graphics\PhysicsGameObject.h" />
     <ClInclude Include="graphics\Transform.h" />
+    <ClInclude Include="physics\RigidBody.h" />
     <ClInclude Include="utility\COMException.h" />
     <ClInclude Include="graphics\GameObject.h" />
     <ClInclude Include="graphics\Camera.h" />

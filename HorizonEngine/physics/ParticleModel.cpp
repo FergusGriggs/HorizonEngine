@@ -59,8 +59,9 @@ ParticleModel::ParticleModel()
 	this->mass = 50.0f;
 	this->drag = 0.1f;
 	this->transformReference = nullptr;
-	this->isStatic = false;
+	this->isStatic = true;
 	this->absoluteFloorHeight = 1.0f;
+	this->type = ParticleModelType::BASE;
 }
 
 void ParticleModel::SetIsStatic(bool isStatic)
@@ -158,4 +159,9 @@ void ParticleModel::CheckAbsoluteFloorHeight()
 		this->velocity = XMVectorSet(XMVectorGetX(this->velocity), -0.3f * XMVectorGetY(this->velocity), XMVectorGetZ(this->velocity), 0.0f);
 		this->transformReference->SetPosition(XMVectorSet(position.x, this->absoluteFloorHeight + this->absoluteFloorHeight - position.y, position.z, 1.0f));
 	}
+}
+
+ParticleModelType ParticleModel::GetType()
+{
+	return this->type;
 }

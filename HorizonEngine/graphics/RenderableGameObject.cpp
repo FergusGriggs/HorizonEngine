@@ -38,16 +38,22 @@ void RenderableGameObject::Draw(const XMMATRIX& viewProjectionMatrix, ConstantBu
 
 float RenderableGameObject::GetRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection)
 {
+	BoundingBox objectBoundingBox = this->model->GetBoundingBox();
 	XMFLOAT3 objectPosition = this->transform.GetPositionFloat3();
+	objectBoundingBox.Center.x += objectPosition.x;
+	objectBoundingBox.Center.y += objectPosition.y;
+	objectBoundingBox.Center.z += objectPosition.z;
 
-	boundingSphere.Center = objectPosition;
-	if (label == "Boat") {
-		boundingSphere.Radius = 0.0f;
-	}
-	boundingSphere.Radius = this->model->GetHitRadius();
+	XMFLOAT4 orientationFloat4;
+	XMStoreFloat4(&orientationFloat4, this->transform.GetOrientation());
+
+	BoundingOrientedBox orientedObjectBoundingBox = BoundingOrientedBox(objectBoundingBox.Center, objectBoundingBox.Extents, orientationFloat4);
+	
 	float distance;
-	boundingSphere.Intersects(rayOrigin, rayDirection, distance);
-	if (distance > 0.0f) {
+	orientedObjectBoundingBox.Intersects(rayOrigin, rayDirection, distance);
+	if (distance > 0.0f)
+	{
+		// Do face check
 		return distance;
 	}
 	return FLT_MAX;
