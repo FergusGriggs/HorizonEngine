@@ -110,7 +110,7 @@ bool Graphics::InitializeScene()
 
 		COM_ERROR_IF_FAILED(hr, "Failed to create 'cb_vs_vertexShader' constant buffer.");
 
-		cb_vs_vertexShader.data.waveAmplitude = 1.0f;
+		cb_vs_vertexShader.data.waveAmplitude = 3.5f;
 
 		hr = this->cb_ps_pixelShader.Initialize(this->device.Get(), this->deviceContext.Get());
 
@@ -135,6 +135,17 @@ bool Graphics::InitializeScene()
 			return false;
 		}
 
+		if (!this->particleMesh.Initialize("res/models/particle.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+			return false;
+		}
+
+		if (!this->springModel.Initialize("res/models/spring.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+			return false;
+		}
+
+		particleSystem = new ParticleSystem(&particleMesh);
+		particleSystem->AddEmitter(XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), 0.25f, 5.0f, 0.25f, 1.5f, 0.25f, 0.005f, 0.25f);
+
 		//SET TRANSLATE AXIS DEFAULT BOUNDS / EXTENTS
 		xAxisTranslateDefaultBounds = XMFLOAT3(0.45f, 0.05f, 0.05f);
 		yAxisTranslateDefaultBounds = XMFLOAT3(0.05f, 0.45f, 0.05f);
@@ -154,19 +165,30 @@ bool Graphics::InitializeScene()
 		if (!ocean.Initialize("Ocean", "res/models/ocean_smooth_large_2.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
 			return false;
 		}
-		ocean.GetTransform()->SetPosition(0.0f, -4.0f, 0.0f);
+		ocean.GetTransform()->SetPosition(0.0f, 1.0f, 0.0f);
 
 		if (!directionalLight.Initialize("Directional Light", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
 			return false;
 		}
 		directionalLight.GetTransform()->SetPosition(2.0f, 6.0f, 2.0f);
 		directionalLight.GetTransform()->LookAtPos(XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
-		directionalLight.SetColour(XMFLOAT3(0.456f, 0.369f, 0.322f));
+		directionalLight.SetColour(XMFLOAT3(0.8f, 0.65f, 0.52f));
 
 		if (!LoadScene("test.txt"))
 		{
 			return false;
 		}
+
+		dynamic_cast<RenderableGameObject*>(gameObjectMap.at("floor1"))->SetScale(XMFLOAT3(5.0f, 1.0f, 5.0f));
+
+		springs.push_back(new Spring(XMVectorSet(0.0f, 10.0f, 5.0f, 0.0f), physicsGameObjects.at(0)->GetRigidBody(), 5.0f, 150.0f));
+		springs.push_back(new Spring(physicsGameObjects.at(3)->GetRigidBody(), physicsGameObjects.at(4)->GetRigidBody(), 10.0f, 150.0f));
+
+		dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box1"))->GetRigidBody()->SetIsStatic(false);
+		dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box2"))->GetRigidBody()->SetIsStatic(false);
+		dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box3"))->GetRigidBody()->SetIsStatic(false);
+		dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box4"))->GetRigidBody()->SetIsStatic(false);
+		dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box5"))->GetRigidBody()->SetIsStatic(false);
 
 		camera.GetTransform()->SetPosition(0.0f, 10.0f, -7.0f);
 		camera.GetTransform()->LookAtPos(XMVectorSet(0.0f, 7.0f, 0.0f, 1.0f));
@@ -284,6 +306,38 @@ void Graphics::RenderFrame(float deltaTime)
 			}
 
 			renderableGameObject->Draw(viewProjMat, &this->cb_vs_vertexShader);
+		}
+
+		//Draw particles
+		particleSystem->DrawParticles(viewProjMat, &this->cb_vs_vertexShader);
+
+
+		//Draw Springs
+		XMMATRIX springModelMatrix;
+		for (int i = 0; i < springs.size(); ++i)
+		{
+			XMVECTOR springStart = springs[i]->GetSpringStart()->GetTransformReference()->GetPositionVector();
+			XMVECTOR springEnd = springs[i]->GetSpringEnd()->GetTransformReference()->GetPositionVector();
+
+			float scale = XMVectorGetX(XMVector3Length(springEnd - springStart)) / 5.0f;
+
+			XMVECTOR front = XMVectorSetW(XMVector3Normalize(springEnd - springStart), 0.0f);
+			XMVECTOR up = XMVectorSetW(XMVector3Normalize(XMVector3Cross(front, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f))), 0.0f);
+			XMVECTOR right = XMVectorSetW(XMVector3Cross(front, up), 0.0f);
+
+			if (abs(XMVectorGetZ(front)) == 1.0f)
+			{
+				springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
+			}
+			else
+			{
+				springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMATRIX(up, right, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
+				//springModelMatrix = XMMatrixLookToLH(XMVectorZero(), front, up) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart)); //XMMatrixScaling(1.0f, scale, 1.0f) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart)) * 
+			}
+			
+			//springModelMatrix = XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
+
+			springModel.Draw(springModelMatrix, viewProjMat, &this->cb_vs_vertexShader);
 		}
 
 		//DRAW WATER
@@ -1142,12 +1196,21 @@ void Graphics::UpdateImGui()
 			ImGui::Checkbox("Static", object->GetRigidBody()->IsStaticPtr());
 			if (ImGui::Button("Apply Upwards Thrust"))
 			{
-				object->GetRigidBody()->AddThrust(XMVectorSet(0.0f, 1000.0f, 0.0f, 0.0f), 1.0f);
+				object->GetRigidBody()->AddThrust(XMVectorSet(0.0f, 850.0f, 0.0f, 0.0f), 0.5f);
+			}
+			if (ImGui::Button("Apply Forward Thrust"))
+			{
+				object->GetRigidBody()->AddThrust(XMVector3Normalize(object->GetTransform()->GetPositionVector() - this->camera.GetTransform()->GetPositionVector()) * 800.0f, 0.5f);
 			}
 			if (ImGui::Button("Apply Torque"))
 			{
 				XMVECTOR worldPos = (object->GetTransform()->GetPositionVector() + camera.GetTransform()->GetPositionVector()) * 0.5f;
 				object->GetRigidBody()->AddTorque(worldPos - object->GetTransform()->GetPositionVector(), XMVectorSet(0.0f, 100.0f, 0.0f, 0.0f));
+			}
+			if (ImGui::Button("Apply Split Force"))
+			{
+				XMVECTOR worldPos = camera.GetTransform()->GetPositionVector();
+				object->GetRigidBody()->AddForceSplit(worldPos, camera.GetTransform()->GetFrontVector() * 10000.0f);
 			}
 		}
 
@@ -1281,6 +1344,29 @@ void Graphics::UpdateImGui()
 
 	ImGui::End();
 
+
+	ImGui::Begin("Particle System Settings");
+
+	ImGui::SliderFloat3("Position", &this->particleSystem->GetEmitters()->at(0)->GetPosition()->m128_f32[0], -10.0f, 10.0f);
+
+	XMVECTOR* ParticleEmitterDirection = this->particleSystem->GetEmitters()->at(0)->GetDirection();
+	ImGui::SliderFloat3("Direction", &ParticleEmitterDirection->m128_f32[0], -1.0f, 1.0f);
+	*ParticleEmitterDirection = XMVector3Normalize(*ParticleEmitterDirection);
+
+	ImGui::SliderFloat("Direction Randomness", this->particleSystem->GetEmitters()->at(0)->GetDirectionRandomnessPtr(), 0.0f, 1.0f);
+
+	ImGui::SliderFloat("Power", this->particleSystem->GetEmitters()->at(0)->GetPowerPtr(), 0.0f, 10.0f);
+	ImGui::SliderFloat("Power Randomness", this->particleSystem->GetEmitters()->at(0)->GetPowerRandomModifierPtr(), 0.0f, 1.0f);
+
+	ImGui::SliderFloat("Max Age", this->particleSystem->GetEmitters()->at(0)->GetMaxAgePtr(), 0.0f, 5.0f);
+	ImGui::SliderFloat("Max Age Randomness", this->particleSystem->GetEmitters()->at(0)->GetMaxAgeRandomModifierPtr(), 0.0f, 1.0f);
+
+	ImGui::SliderFloat("Spawn Delay", this->particleSystem->GetEmitters()->at(0)->GetSpawnDelayPtr(), 0.0f, 0.5f);
+	ImGui::SliderFloat("Spawn Delay Rand", this->particleSystem->GetEmitters()->at(0)->GetSpawnDelayRandomModifierPtr(), 0.0f, 1.0f);
+	
+	ImGui::End();
+
+
 	ImGui::Begin("Camera Settings");
 	//CAMERA TRACK CHECKBOX
 	bool followTrack = camera.GetFollowingObjectTrack();
@@ -1346,13 +1432,19 @@ void Graphics::Update(float deltaTime)
 	//UPDATE GAME OBJECTS
 	camera.Update(deltaTime);
 
+	// Update springs
+	for (int i = 0; i < springs.size(); ++i)
+	{
+		springs[i]->Update();
+	}
+
 	size_t numRenderableGameObjects = renderableGameObjects.size();
 	for (size_t i = 0; i < numRenderableGameObjects; ++i)
 	{
 		renderableGameObjects.at(i)->Update(deltaTime);
 	}
 
-	CheckObjectCollisions();
+	CheckObjectCollisions(deltaTime);
 
 	size_t numPointLights = pointLights.size();
 	for (size_t i = 0; i < numPointLights; ++i)
@@ -1366,22 +1458,85 @@ void Graphics::Update(float deltaTime)
 		spotLights.at(i)->Update(deltaTime);
 	}
 	
+	particleSystem->Update(deltaTime);
+
 	//UPDATE IMGUI
 	UpdateImGui();
 }
 
-void Graphics::CheckObjectCollisions()
+void Graphics::CheckObjectCollisions(float deltaTime)
 {
-	/*for (int i = 0; i < physicsGameObjects.size(); ++i)
+	for (int i = 0; i < physicsGameObjects.size(); ++i)
 	{
-		for (int j = i + 1; j < physicsGameObjects.size(); ++j)
+		if (!physicsGameObjects[i]->GetRigidBody()->IsStatic())
 		{
-			if (physicsGameObjects[i]->GetModel()->GetAxisAllignedBoundingBox().Instersects())
+			for (int j = i + 1; j < physicsGameObjects.size(); ++j)
 			{
+				if (physicsGameObjects[i]->GetWorldSpaceBoundingBox().Intersects(physicsGameObjects[j]->GetWorldSpaceBoundingBox()))
+				{
+					float velocityOne = std::max(XMVectorGetX(XMVector3Length(physicsGameObjects[i]->GetRigidBody()->GetVelocity())), 1.0f);
+					float velocityTwo = std::max(XMVectorGetX(XMVector3Length(physicsGameObjects[j]->GetRigidBody()->GetVelocity())), 1.0f);
 
+					float forceMagnitude = (physicsGameObjects[i]->GetMass() * velocityOne + physicsGameObjects[j]->GetMass() * velocityTwo) / deltaTime;
+					XMVECTOR force = XMVector3Normalize(physicsGameObjects[j]->GetTransform()->GetPositionVector() - physicsGameObjects[i]->GetTransform()->GetPositionVector()) * forceMagnitude * 0.15f; //remove force (coefficient of restitution)
+					physicsGameObjects[i]->GetRigidBody()->AddForce(-force);
+					physicsGameObjects[j]->GetRigidBody()->AddForce(force);
+				}
 			}
+
+			std::vector<XMFLOAT3>* vertices = physicsGameObjects[i]->GetModel()->GetVertices();
+			XMFLOAT3 objectPosition = physicsGameObjects[i]->GetTransform()->GetPositionFloat3();
+			for (int j = 0; j < vertices->size(); ++j)
+			{
+				XMFLOAT3 vertexPosition = vertices->at(j);
+				XMVECTOR rotatedPosition = XMVector3Transform(XMLoadFloat3(&vertexPosition), physicsGameObjects[i]->GetTransform()->GetRotationMatrix());
+				XMStoreFloat3(&vertexPosition, rotatedPosition);
+
+				float diff = objectPosition.y + vertexPosition.y + 2.0f;
+				if (diff < 0.0f)
+				{
+					float force = (XMVectorGetX(XMVector3Length(physicsGameObjects[i]->GetRigidBody()->GetVelocity())) * physicsGameObjects[i]->GetRigidBody()->GetMass()) / deltaTime;
+					physicsGameObjects[i]->GetTransform()->SetPosition(physicsGameObjects[i]->GetTransform()->GetPositionVector() + XMVectorSet(0.0f, -diff, 0.0f, 0.0f));
+					physicsGameObjects[i]->GetRigidBody()->AddForce(XMVectorSet(0.0f, force * 0.8f, 0.0f, 0.0f));//physicsGameObjects[i]->GetTransform()->GetPositionVector() + rotatedPosition, 
+					physicsGameObjects[i]->GetRigidBody()->AddTorque(rotatedPosition, XMVectorSet(0.0f, force * 0.002f, 0.0f, 0.0f));
+					break;
+				}
+			}
+
+			float upthrustMagnitude = (physicsGameObjects[i]->GetRigidBody()->GetMass() * 18.0f) / static_cast<float>(vertices->size());
+			for (int j = 0; j < vertices->size(); ++j)
+			{
+				XMFLOAT3 vertexPosition = vertices->at(j);
+				XMVECTOR rotatedPosition = XMVector3Transform(XMLoadFloat3(&vertexPosition), physicsGameObjects[i]->GetTransform()->GetRotationMatrix());
+				XMStoreFloat3(&vertexPosition, rotatedPosition);
+
+				float diff = objectPosition.y + vertexPosition.y - GetWaterHeightAt(objectPosition.x + vertexPosition.x, objectPosition.z + vertexPosition.z, true);
+				if (diff < 0.0f)
+				{
+					//Buoyancy forces
+					physicsGameObjects[i]->GetRigidBody()->AddForce(XMVectorSet(0.0f, upthrustMagnitude, 0.0f, 0.0f));
+					physicsGameObjects[i]->GetRigidBody()->AddTorque(rotatedPosition, XMVectorSet(0.0f, upthrustMagnitude * 0.0005f, 0.0f, 0.0f));
+
+					//Water drag forces
+					XMVECTOR waterDragForce = physicsGameObjects[i]->GetRigidBody()->GetMass() * -physicsGameObjects[i]->GetRigidBody()->GetVelocity() * 0.1f;
+					physicsGameObjects[i]->GetRigidBody()->AddForce(waterDragForce);
+				}
+			}
+
+			//float diff = objectPosition.y - GetWaterHeightAt(objectPosition.x, objectPosition.z, true);
+			//if (diff < 0.0f)
+			//{
+			//	if (diff < -0.5f)
+			//	{
+			//		diff = -0.5f;
+			//	}
+
+			//	float force = -diff * physicsGameObjects[i]->GetRigidBody()->GetMass() * 200.0f;
+			//	physicsGameObjects[i]->GetRigidBody()->AddForce(XMVectorSet(0.0f, force * 0.5f, 0.0f, 0.0f));//physicsGameObjects[i]->GetTransform()->GetPositionVector() + rotatedPosition, 
+			//	//physicsGameObjects[i]->GetRigidBody()->AddTorque(rotatedPosition, XMVectorSet(0.0f, force * 0.001f, 0.0f, 0.0f));
+			//}
 		}
-	}*/
+	}
 }
 
 void Graphics::AdjustMouseX(int xPos)
@@ -1731,12 +1886,16 @@ XMVECTOR Graphics::RayPlaneIntersect(XMVECTOR rayPoint, XMVECTOR rayDirection, X
 	return (diff + planePoint) + rayDirection * (-XMVector3Dot(diff, planeNormal) / XMVector3Dot(rayDirection, planeNormal));
 }
 
-float Graphics::GetWaterHeightAt(float posX, float posZ)
+float Graphics::GetWaterHeightAt(float posX, float posZ, bool exact)
 {
 	float gameTime = cb_vs_vertexShader.data.gameTime;
-	float value = 0.0f;// sin(posX * 1.5f + gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + gameTime * 0.0019f) * 0.05f;
+	float value = 0.0f;
 	value += sin(-posX * 0.4f + gameTime * 1.2f) * 0.15f + sin(posZ * 0.5f + gameTime * 1.3f) * 0.15f;
 	value += sin(posX * 0.2f + gameTime * 0.6f) * 0.5f + sin(-posZ * 0.22f + gameTime * 0.4f) * 0.45f;
+	if (exact)
+	{
+		value += sin(posX * 1.5f + gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + gameTime * 0.0019f) * 0.05f;
+	}
 	return value * this->cb_vs_vertexShader.data.waveAmplitude;
 }
 
@@ -1745,7 +1904,7 @@ void Graphics::FloatObject(GameObject* object)
 	XMFLOAT3 positionFloat = object->GetTransform()->GetPositionFloat3();
 	XMVECTOR position = XMVectorSet(0.0f, GetWaterHeightAt(positionFloat.x, positionFloat.z), 0.0f, 0.0f);
 
-	object->GetTransform()->SetPosition(XMFLOAT3(positionFloat.x, XMVectorGetY(position) - 3.5f, positionFloat.z));
+	object->GetTransform()->SetPosition(XMFLOAT3(positionFloat.x, XMVectorGetY(position) + 1.5f, positionFloat.z));
 
 	XMVECTOR objectFront = object->GetTransform()->GetFrontVector();
 	XMVECTOR objectRight = object->GetTransform()->GetRightVector();

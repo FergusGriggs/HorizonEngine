@@ -21,10 +21,11 @@ public:
 
 	void Update(float deltaTime) override;
 	void UpdateWorldSpaceBoundingBox();
+	BoundingOrientedBox GetWorldSpaceBoundingBox();
 
 private:
 	RigidBody rigidBody;
 
-	BoundingBox worldSpaceBoundingBox;
+	BoundingOrientedBox worldSpaceBoundingBox;
 };
 

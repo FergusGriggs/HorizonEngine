@@ -53,6 +53,7 @@ public:
 	void ApplyThrustForces(float deltaTime);
 
 	void AddThrust(XMVECTOR force, float duration);
+	void AddForce(XMVECTOR force);
 	virtual void Update(float deltaTime);
 
 	void ApplyGravity(float deltaTime);
@@ -61,8 +62,12 @@ public:
 	void ApplyDragLaminarFlow();
 
 	void SetTransformReference(Transform* transformReference);
+	Transform* GetTransformReference();
 
 	void CheckAbsoluteFloorHeight();
+
+	const XMVECTOR& GetVelocity();
+	void SetVelocity(const XMVECTOR& velocity);
 
 	ParticleModelType GetType();
 };

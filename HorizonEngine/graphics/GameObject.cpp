@@ -30,7 +30,7 @@ void GameObject::Update(float deltaTime)
 	}
 	if (isFollowingObject && objectToFollow != nullptr)
 	{
-		this->transform.SetPosition(XMVectorLerp(this->transform.GetPositionVector(), objectToFollow->transform.GetPositionVector() + XMVectorSet(0.0f, 2.0f, 0.0f, 0.0f), 0.0005f * deltaTime));
+		this->transform.SetPosition(XMVectorLerp(this->transform.GetPositionVector(), objectToFollow->transform.GetPositionVector() + XMVectorSet(0.0f, 2.0f, 0.0f, 0.0f), 0.5f * deltaTime));
 		this->transform.LookAtPos(objectToFollow->GetTransform()->GetPositionVector());
 	}
 }

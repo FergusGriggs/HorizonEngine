@@ -241,7 +241,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     float alpha = 1.0f; //1.0f - smoothstep(75.0f, 85.0f, distance(float3(0.0f, 0.0f, 0.0f), input.worldPos));
     if (fresnel)
     {
-        alpha = alpha * (1.0f - 0.25 * dot(normal, viewDirection));
+        alpha = alpha * (1.0f - 0.4f * dot(normal, viewDirection));
     }
     float4 finalColour;
     finalColour.rgb = cumulativeColour;

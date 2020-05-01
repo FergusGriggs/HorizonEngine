@@ -60,20 +60,33 @@ void PhysicsGameObject::Update(float deltaTime)
 
 void PhysicsGameObject::UpdateWorldSpaceBoundingBox()
 {
-	BoundingBox modelSpaceBoundingBox = this->model->GetBoundingBox();
+	/*BoundingBox modelSpaceBoundingBox = this->model->GetBoundingBox();
 
 	XMFLOAT3 corners[8];
 
 	modelSpaceBoundingBox.GetCorners(corners);
 
+	XMFLOAT3 position = this->transform.GetPositionFloat3();
+	XMMATRIX transform = this->transform.GetRotationMatrix() * XMMatrixTranslation(position.x, position.y, position.z);
+
 	for (int i = 0; i < 8; ++i)
 	{
 		XMVECTOR vectorCorner = XMLoadFloat3(&(corners[i]));
 
-		vectorCorner = XMVector3Transform(vectorCorner, this->transform.GetRotationMatrix());
+		vectorCorner = XMVector3Transform(vectorCorner, transform);
 
 		XMStoreFloat3(&(corners[i]), vectorCorner);
 	}
 
-	BoundingBox::CreateFromPoints(this->worldSpaceBoundingBox, 8, corners, sizeof(XMFLOAT3));
+	BoundingBox::CreateFromPoints(this->worldSpaceBoundingBox, 8, corners, sizeof(XMFLOAT3));*/
+
+	BoundingBox modelSpaceBoundingBox = this->model->GetBoundingBox();
+	worldSpaceBoundingBox.Extents = modelSpaceBoundingBox.Extents;
+	worldSpaceBoundingBox.Center = this->transform.GetPositionFloat3();
+	XMStoreFloat4(&worldSpaceBoundingBox.Orientation, this->transform.GetOrientation());
+}
+
+BoundingOrientedBox PhysicsGameObject::GetWorldSpaceBoundingBox()
+{
+	return this->worldSpaceBoundingBox;
 }

@@ -16,10 +16,10 @@ void ParticleModel::Update(float deltaTime)
 
 		// Collision
 		this->CheckAbsoluteFloorHeight();
-
-		// Reset net force
-		this->netForce = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 	}
+
+	// Reset net force
+	this->netForce = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 void ParticleModel::ApplyGravity(float deltaTime)
@@ -57,10 +57,10 @@ ParticleModel::ParticleModel()
 	this->acceleration = XMVectorZero();
 	this->netForce = XMVectorZero();
 	this->mass = 50.0f;
-	this->drag = 0.1f;
+	this->drag = 0.5f;
 	this->transformReference = nullptr;
 	this->isStatic = true;
-	this->absoluteFloorHeight = 1.0f;
+	this->absoluteFloorHeight = -2.0f;
 	this->type = ParticleModelType::BASE;
 }
 
@@ -113,7 +113,7 @@ void ParticleModel::ComputePosition(float deltaTime)
 {
 	XMVECTOR displacement = this->velocity * deltaTime - 0.5f * this->acceleration * pow(deltaTime, 2); // s = vt - 0.5at^2
 
-	displacement *= 4.0f; //account for scale differences
+	displacement *= 2.0f; //account for scale differences
 
 	this->transformReference->AdjustPosition(displacement);
 }
@@ -146,9 +146,19 @@ void ParticleModel::AddThrust(XMVECTOR force, float duration)
 	this->thrustForces.push_back(std::make_pair(force, duration));
 }
 
+void ParticleModel::AddForce(XMVECTOR force)
+{
+	this->netForce += force;
+}
+
 void ParticleModel::SetTransformReference(Transform* transformReference)
 {
 	this->transformReference = transformReference;
+}
+
+Transform* ParticleModel::GetTransformReference()
+{
+	return this->transformReference;
 }
 
 void ParticleModel::CheckAbsoluteFloorHeight()
@@ -157,8 +167,27 @@ void ParticleModel::CheckAbsoluteFloorHeight()
 	if (position.y < this->absoluteFloorHeight)
 	{
 		this->velocity = XMVectorSet(XMVectorGetX(this->velocity), -0.3f * XMVectorGetY(this->velocity), XMVectorGetZ(this->velocity), 0.0f);
-		this->transformReference->SetPosition(XMVectorSet(position.x, this->absoluteFloorHeight + this->absoluteFloorHeight - position.y, position.z, 1.0f));
+		this->transformReference->SetPosition(XMVectorSet(position.x, this->absoluteFloorHeight, position.z, 1.0f));
 	}
+
+	if (position.x < -30.0f || position.x > 30.0f)
+	{
+		this->velocity = XMVectorSet(-XMVectorGetX(this->velocity), XMVectorGetY(this->velocity), XMVectorGetZ(this->velocity), 0.0f);
+	}
+	if (position.z < -30.0f || position.z > 30.0f)
+	{
+		this->velocity = XMVectorSet(XMVectorGetX(this->velocity), XMVectorGetY(this->velocity), -XMVectorGetZ(this->velocity), 0.0f);
+	}
+}
+
+const XMVECTOR& ParticleModel::GetVelocity()
+{
+	return this->velocity;
+}
+
+void ParticleModel::SetVelocity(const XMVECTOR& velocity)
+{
+	this->velocity = velocity;
 }
 
 ParticleModelType ParticleModel::GetType()

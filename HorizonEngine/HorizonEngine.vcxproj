@@ -174,10 +174,12 @@
     <ClCompile Include="graphics\Camera.cpp" />
     <ClCompile Include="graphics\utility\AdapterReader.cpp" />
     <ClCompile Include="graphics\utility\ResourceManager.cpp" />
+    <ClCompile Include="physics\ParticleSystem.cpp" />
     <ClCompile Include="physics\ParticleModel.cpp" />
     <ClCompile Include="graphics\PhysicsGameObject.cpp" />
     <ClCompile Include="graphics\Transform.cpp" />
     <ClCompile Include="physics\RigidBody.cpp" />
+    <ClCompile Include="physics\Spring.cpp" />
     <ClCompile Include="utility\ErrorLogger.cpp" />
     <ClCompile Include="graphics\Graphics.cpp" />
     <ClCompile Include="graphics\imgui\imgui.cpp" />
@@ -209,10 +211,12 @@
     <ClInclude Include="graphics\utility\ObjectTrack.h" />
     <ClInclude Include="graphics\Colour.h" />
     <ClInclude Include="graphics\utility\ResourceManager.h" />
+    <ClInclude Include="physics\ParticleSystem.h" />
     <ClInclude Include="physics\ParticleModel.h" />
     <ClInclude Include="graphics\PhysicsGameObject.h" />
     <ClInclude Include="graphics\Transform.h" />
     <ClInclude Include="physics\RigidBody.h" />
+    <ClInclude Include="physics\Spring.h" />
     <ClInclude Include="utility\COMException.h" />
     <ClInclude Include="graphics\GameObject.h" />
     <ClInclude Include="graphics\Camera.h" />

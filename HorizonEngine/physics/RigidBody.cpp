@@ -9,7 +9,7 @@ RigidBody::RigidBody()
 	this->angularVelocity = XMVectorZero();
 	this->angularDrag = 1.0f;
 
-	this->ComputeBoxIntertiaTensor(1.0f, 5.0f, 1.0f);
+	this->ComputeBoxIntertiaTensor(1.0f, 1.0f, 1.0f);
 
 	this->type = ParticleModelType::RIGID_BODY;
 }
@@ -18,18 +18,34 @@ void RigidBody::Update(float deltaTime)
 {
 	ParticleModel::Update(deltaTime);
 
-	ComputeAngularAcceleration();
-	ComputeAngluarVelocity(deltaTime);
-	ApplyAngularDrag(deltaTime);
-	ComputeOrientation(deltaTime);
+	if (!isStatic)
+	{
+		ComputeAngularAcceleration();
+		ComputeAngluarVelocity(deltaTime);
+		ApplyAngularDrag(deltaTime);
+		ComputeOrientation(deltaTime);
 
-	this->netTorque = XMVectorZero();
+		this->netTorque = XMVectorZero();
+	}
 }
 
 void RigidBody::AddTorque(XMVECTOR relativePosition, XMVECTOR force)
 {
 	XMMATRIX inverseRotation = XMMatrixInverse(nullptr, this->transformReference->GetRotationMatrix());
 	this->netTorque += XMVector3Transform(XMVector3Cross(relativePosition, force), inverseRotation);
+}
+
+void RigidBody::AddForceSplit(XMVECTOR position, XMVECTOR force)
+{
+	XMVECTOR relativePosition = position - this->transformReference->GetPositionVector();
+
+	XMVECTOR toCentreOfMass = XMVector3Normalize(-relativePosition);
+	XMVECTOR forceDirection = XMVector3Normalize(force);
+
+	float dotProduct = std::max(XMVectorGetX(XMVector3Dot(toCentreOfMass, forceDirection)), 0.0f);
+
+	AddForce(force);// * dotProduct
+	AddTorque(relativePosition, force * (1.0f - dotProduct));
 }
 
 void RigidBody::ComputeAngularAcceleration()
