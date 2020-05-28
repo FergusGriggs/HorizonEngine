@@ -25,27 +25,30 @@ Mesh::Mesh(const Mesh& mesh)
 	this->transformMatrix = mesh.transformMatrix;
 }
 
-void Mesh::Draw()
+void Mesh::Draw(bool bindTextures)
 {
-	UINT offset = 0;
-
-	for (int i = 0; i < textures.size(); i++) {
-		switch (textures[i]->GetType())
-		{
-		case aiTextureType::aiTextureType_DIFFUSE:
-			this->deviceContext->PSSetShaderResources(0, 1, textures[i]->GetTextureResourceViewAddress());
-			break;
-		case aiTextureType::aiTextureType_SPECULAR:
-			this->deviceContext->PSSetShaderResources(1, 1, textures[i]->GetTextureResourceViewAddress());
-			break;
-		case aiTextureType::aiTextureType_HEIGHT:
-			this->deviceContext->PSSetShaderResources(2, 1, textures[i]->GetTextureResourceViewAddress());
-			break;
-		case aiTextureType::aiTextureType_DISPLACEMENT:
-			this->deviceContext->PSSetShaderResources(3, 1, textures[i]->GetTextureResourceViewAddress());
-			break;
+	if (bindTextures)
+	{
+		for (int i = 0; i < textures.size(); i++) {
+			switch (textures[i]->GetType())
+			{
+			case aiTextureType::aiTextureType_DIFFUSE:
+				this->deviceContext->PSSetShaderResources(0, 1, textures[i]->GetTextureResourceViewAddress());
+				break;
+			case aiTextureType::aiTextureType_SPECULAR:
+				this->deviceContext->PSSetShaderResources(1, 1, textures[i]->GetTextureResourceViewAddress());
+				break;
+			case aiTextureType::aiTextureType_HEIGHT:
+				this->deviceContext->PSSetShaderResources(2, 1, textures[i]->GetTextureResourceViewAddress());
+				break;
+			case aiTextureType::aiTextureType_DISPLACEMENT:
+				this->deviceContext->PSSetShaderResources(3, 1, textures[i]->GetTextureResourceViewAddress());
+				break;
+			}
 		}
 	}
+	
+	UINT offset = 0;
 
 	this->deviceContext->IASetVertexBuffers(0, 1, this->vertexBuffer.GetAddressOf(), this->vertexBuffer.StridePtr(), &offset);
 	this->deviceContext->IASetIndexBuffer(this->indexBuffer.Get(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);

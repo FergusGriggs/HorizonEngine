@@ -73,8 +73,8 @@ public:
 	void WriteFloat4(const XMVECTOR& float4, std::ofstream& stream);
 
 	bool LoadScene(const char* sceneName);
-	bool SaveScene(const char* sceneName);
-	bool SaveSceneTGP(const char* sceneName);
+	bool SaveScene();
+	bool SaveSceneTGP();
 	void UnloadScene();
 
 	void RemoveGameObject(std::string gameObjectLabel);
@@ -121,6 +121,14 @@ public:
 	ControllerManager* controllerManager;
 
 	ParticleSystem* particleSystem;
+
+	Texture* defaultDiffuseTexture;
+	Texture* defaultSpecularTexture;
+	Texture* defaultNormalTexture;
+
+	Texture* highlightDiffuseTexture;
+	Texture* highlightSpecularTexture;
+	Texture* highlightNormalTexture;
 
 private:
 	bool InitializeDirectX(HWND hwnd);
@@ -185,6 +193,7 @@ private:
 	bool useVSync = true;
 
 	bool sceneLoaded = false;
+	std::string sceneLoadedName;
 
 	int newObjectType;
 	bool newObjectMenuOpen = false;

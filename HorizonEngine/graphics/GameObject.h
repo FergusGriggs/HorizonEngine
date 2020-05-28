@@ -64,6 +64,7 @@ public:
 	//Identification
 	GameObjectType GetType();
 	std::string GetLabel();
+	std::string* GetLabelPtr();
 	void SetLabel(std::string newLabel);
 
 	std::vector<XMVECTOR>* GetRelativePositions();

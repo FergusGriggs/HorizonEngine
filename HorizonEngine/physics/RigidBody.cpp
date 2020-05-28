@@ -32,8 +32,12 @@ void RigidBody::Update(float deltaTime)
 void RigidBody::AddTorque(XMVECTOR relativePosition, XMVECTOR force)
 {
 	XMMATRIX inverseRotation = XMMatrixInverse(nullptr, this->transformReference->GetRotationMatrix());
-	this->netTorque += XMVector3Transform(XMVector3Cross(relativePosition, force), inverseRotation);
+	float magnitude = XMVectorGetX(XMVector3Length(force)) / XMVectorGetX(XMVector3Length(relativePosition));
+	this->netTorque += XMVector3Normalize(XMVector3Transform(XMVector3Cross(XMVector3Normalize(relativePosition), XMVector3Normalize(force)), inverseRotation)) * magnitude;
 }
+
+//XMMATRIX inverseRotation = XMMatrixInverse(nullptr, this->transformReference->GetRotationMatrix());
+//this->netTorque += XMVector3Transform(XMVector3Cross(relativePosition, force), inverseRotation);
 
 void RigidBody::AddForceSplit(XMVECTOR position, XMVECTOR force)
 {
@@ -120,4 +124,13 @@ void RigidBody::ComputeBoxIntertiaTensor(float sizeX, float sizeY, float sizeZ)
 	// Compute inverse inertia tensor
 	XMVECTOR determinant = XMMatrixDeterminant(this->inertiaTensor);
 	this->inverseInertiaTensor = XMMatrixInverse(&determinant, this->inertiaTensor);
+}
+
+XMVECTOR RigidBody::GetForceAtRelativePosition(XMVECTOR relativePosition)
+{
+	XMMATRIX inverseRotation = XMMatrixInverse(nullptr, this->transformReference->GetRotationMatrix());
+	XMVECTOR trueRelativePosition = XMVector3Transform(relativePosition, inverseRotation);
+	float magnitude = XMVectorGetX(XMVector3Length(relativePosition)) * XMVectorGetX(XMVector3Length(this->angularVelocity));
+	XMVECTOR forceLocal = XMVector3Normalize(XMVector3Cross(XMVector3Transform(this->angularVelocity, this->inertiaTensor), relativePosition)) * magnitude;
+	return XMVector3Transform(forceLocal, this->transformReference->GetRotationMatrix()) + this->GetMass() * this->velocity;
 }

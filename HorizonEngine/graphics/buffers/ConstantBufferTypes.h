@@ -75,8 +75,8 @@ struct CB_PS_pixelShader
 
 	//PACK_SEAM
 	CB_DirectionalLight directionalLight;
-	CB_PointLight pointLights[5];
-	CB_SpotLight spotLights[5];
+	CB_PointLight pointLights[10];
+	CB_SpotLight spotLights[20];
 
 	//PACK_SEAM
 	DirectX::XMFLOAT3 cameraPosition;

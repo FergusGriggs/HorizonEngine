@@ -59,6 +59,7 @@ public:
 
 	// Orientation get functions
 	const XMVECTOR& GetOrientation() const;
+	const XMFLOAT4& GetOrientationFloat4() const;
 	const XMMATRIX& GetRotationMatrix() const;
 
 	const XMVECTOR& GetFrontVector() const;

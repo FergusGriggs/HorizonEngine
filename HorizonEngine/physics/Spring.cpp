@@ -80,7 +80,7 @@ void Spring::Update()
 	XMVECTOR difference = springEnd->GetTransformReference()->GetPositionVector() - springStart->GetTransformReference()->GetPositionVector();
 	float forceMagnitude = this->springConstant * (XMVectorGetX(XMVector3Length(difference)) - this->restLength); //F = Kx
 
-	XMVECTOR force = XMVector3Normalize(difference) * forceMagnitude;
+	XMVECTOR force = XMVector3Normalize(difference) * forceMagnitude * 0.5f;
 
 	springStart->AddForce(force);
 	springEnd->AddForce(-force);

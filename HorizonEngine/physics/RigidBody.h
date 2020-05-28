@@ -32,5 +32,7 @@ public:
 	void ComputeSphereIntertiaTensor(float radius);
 	void ComputeShellIntertiaTensor(float radius);
 	void ComputeBoxIntertiaTensor(float sizeX, float sizeY, float sizeZ);
+
+	XMVECTOR GetForceAtRelativePosition(XMVECTOR relativePosition);
 };
 

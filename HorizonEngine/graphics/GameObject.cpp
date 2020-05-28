@@ -45,6 +45,11 @@ std::string GameObject::GetLabel()
 	return this->label;
 }
 
+std::string* GameObject::GetLabelPtr()
+{
+	return &this->label;
+}
+
 void GameObject::SetLabel(std::string newLabel)
 {
 	this->label = newLabel;

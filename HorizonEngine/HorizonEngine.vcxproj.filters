@@ -347,5 +347,6 @@
   <ItemGroup>
     <None Include="HorizonEngine.cd" />
     <None Include="HorizonEngine New.cd" />
+    <None Include="HorizonEnginePhysics.cd" />
   </ItemGroup>
 </Project>

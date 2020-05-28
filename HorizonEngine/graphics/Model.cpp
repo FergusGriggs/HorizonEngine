@@ -25,7 +25,7 @@ bool Model::Initialize(const std::string& filePath, ID3D11Device* device, ID3D11
 	return true;
 }
 
-void Model::Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader)
+void Model::Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader, bool bindTextures)
 {
 	this->deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexShader->GetAddressOf());
 
@@ -39,7 +39,7 @@ void Model::Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatr
 
 		cb_vs_vertexShader->MapToGPU();
 
-		meshes[i].Draw();
+		meshes[i].Draw(bindTextures);
 	}
 }
 
@@ -61,6 +61,52 @@ BoundingBox Model::GetBoundingBox()
 std::vector<XMFLOAT3>* Model::GetVertices()
 {
 	return &this->vertices;
+}
+
+bool Model::RayInersect(XMVECTOR rayOrigin, XMVECTOR rayDirection, float* rayDistance)
+{
+	for (int i = 0; i < this->indices.size(); i += 3)
+	{
+		// Load vertex positions
+		XMVECTOR vertex1 = XMLoadFloat3(&this->vertices[this->indices[i]]);
+		XMVECTOR vertex2 = XMLoadFloat3(&this->vertices[this->indices[i + 1]]);
+		XMVECTOR vertex3 = XMLoadFloat3(&this->vertices[this->indices[i + 2]]);
+
+		// Face normal
+		XMVECTOR faceNormal = XMVector3Normalize(XMVector3Cross(vertex2 - vertex1, vertex3 - vertex1));
+
+		
+		// Plane intersect point
+		XMVECTOR diff = rayOrigin - vertex1;
+		XMVECTOR planeIntersectPoint = (diff + vertex1) + rayDirection * (-XMVector3Dot(diff, faceNormal) / XMVector3Dot(rayDirection, faceNormal));
+
+		// Check if the ray could hit the face
+		if (XMVectorGetX(XMVector3Dot(planeIntersectPoint - rayOrigin, rayDirection)) >= 0.0)
+		{
+			// Work out barrycentric coordinates to check if point is in face
+			XMVECTOR v0 = vertex2 - vertex1;
+			XMVECTOR v1 = vertex3 - vertex1;
+			XMVECTOR v2 = planeIntersectPoint - vertex1;
+
+			float d00 = XMVectorGetX(XMVector3Dot(v0, v0));
+			float d01 = XMVectorGetX(XMVector3Dot(v0, v1));
+			float d11 = XMVectorGetX(XMVector3Dot(v1, v1));
+			float d20 = XMVectorGetX(XMVector3Dot(v2, v0));
+			float d21 = XMVectorGetX(XMVector3Dot(v2, v1));
+			float denom = d00 * d11 - d01 * d01;
+			float v = (d11 * d20 - d01 * d21) / denom;
+			float w = (d00 * d21 - d01 * d20) / denom;
+			float u = 1.0f - v - w;
+
+			if ((u >= 0.0f) && (v >= 0.0f) && (u + v <= 1.0f))
+			{
+				*rayDistance = XMVectorGetX(XMVector3Length(rayOrigin - planeIntersectPoint));
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 bool Model::LoadModel(const std::string& filePath)
@@ -148,8 +194,11 @@ Mesh Model::ProcessMesh(aiMesh* mesh, const aiScene* scene, const XMMATRIX& tran
 
 		for (UINT j = 0; j < face.mNumIndices; j++) {
 			indices.push_back(face.mIndices[j]);
+			this->indices.push_back(this->currentNumVerts + face.mIndices[j]);
 		}
 	}
+
+	this->currentNumVerts = this->vertices.size();
 
 	std::vector<Texture*> textures;
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];

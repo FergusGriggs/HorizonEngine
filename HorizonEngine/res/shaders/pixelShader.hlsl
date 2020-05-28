@@ -66,8 +66,8 @@ cbuffer constantBuffer : register(b0)
 
 	//PACK_SEAM
     DirectionalLight directionalLight;
-    PointLight pointLights[5];
-    SpotLight spotLights[5];
+    PointLight pointLights[10];
+    SpotLight spotLights[20];
 
 	//PACK_SEAM
     float3 cameraPosition;
@@ -229,12 +229,11 @@ float4 main(PS_INPUT input) : SV_TARGET
             float spotLightDistance = distance(spotLights[i].position, input.worldPos);
             float spotLightAttenuation = 1.0f / (spotLights[i].attenuationConstant + spotLights[i].attenuationLinear * spotLightDistance + spotLights[i].attenuationQuadratic * pow(spotLightDistance, 2.0f));
 
-            float theta = dot(toLight, normalize(-spotLights[i].direction));
-            float epsilon = spotLights[i].innerCutoff - spotLights[i].outerCutoff;
-            float intensity = clamp((theta - spotLights[i].outerCutoff) / epsilon, 0.0f, 1.0f);
+            float lightAngle = (acos(dot(-toLight, spotLights[i].direction)) * 180.0) / 3.141592f;
+            float lightCutoffAmount = 1.0 - smoothstep(spotLights[i].innerCutoff, spotLights[i].outerCutoff, lightAngle);
 
             //cumulativeColour += (ambient + diffuse + specular) * spotLightAttenuation;
-            cumulativeColour += (diffuse + specular) * spotLightAttenuation * intensity;
+            cumulativeColour += (diffuse + specular) * spotLightAttenuation * lightCutoffAmount;
         }
     }
 
