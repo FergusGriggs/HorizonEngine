@@ -644,253 +644,255 @@ bool Graphics::LoadScene(const char* sceneName)
 
 	if (sceneFile)
 	{
-		/*try
-		{*/
-			int numObjectTracks;
-			sceneFile >> numObjectTracks;
+		int numObjectTracks;
+		sceneFile >> numObjectTracks;
 
-			for (int i = 0; i < numObjectTracks; ++i)
+		for (int i = 0; i < numObjectTracks; ++i)
+		{
+			std::string trackName;
+			sceneFile >> trackName;
+			StringHelper::ReplaceChars(trackName, '|', ' ');
+
+			int numNodes;
+			sceneFile >> numNodes;
+
+			ObjectTrack* track = new ObjectTrack();
+
+			for (int j = 0; j < numNodes; ++j)
+			{
+				XMFLOAT3 nodePos = ReadFloat3(sceneFile);
+
+				XMFLOAT3 nodeLookAt = ReadFloat3(sceneFile);
+
+				track->AddTrackNode(ObjectTrackNode(nodePos, nodeLookAt));
+			}
+
+			track->GenerateMidPoints();
+
+			track->SetLabel(trackName);
+
+			this->objectTracks.insert(std::make_pair(trackName, track));
+		}
+
+		int numObjects;
+		sceneFile >> numObjects;
+
+		for (int i = 0; i < numObjects; ++i)
+		{
+			GameObject* gameObject;
+
+			int intObjectType;
+			sceneFile >> intObjectType;
+			GameObjectType objectType = static_cast<GameObjectType>(intObjectType);
+
+			std::string label;
+			sceneFile >> label;
+			StringHelper::ReplaceChars(label, '|', ' ');
+
+			switch (objectType)
+			{
+			case GameObjectType::RENDERABLE:
+			{
+				std::string fileName;
+				sceneFile >> fileName;
+				StringHelper::ReplaceChars(fileName, '|', ' ');
+				fileName = "res/models/" + fileName;
+
+				RenderableGameObject* renderableGameObject = new RenderableGameObject();
+				if (!renderableGameObject->Initialize(label, fileName, this->device.Get(), this->deviceContext.Get(), &resourceManager))
+				{
+					std::cout << "Failed to init renderable game object with label " << label << "\n";
+					return false;
+				}
+
+				gameObject = dynamic_cast<GameObject*>(renderableGameObject);
+				break;
+			}
+			case GameObjectType::LIGHT:
+			{
+				Light* directionalLight = new Light();
+
+				if (!directionalLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager))
+				{
+					std::cout << "Failed to init directional light with label " << label << "\n";
+					return false;
+				}
+
+				directionalLight->SetColour(ReadFloat3(sceneFile));
+				gameObject = dynamic_cast<GameObject*>(directionalLight);
+				break;
+			}
+			case GameObjectType::POINT_LIGHT:
+			{
+				PointLight* pointLight = new PointLight();
+
+				if (!pointLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager))
+				{
+					std::cout << "Failed to init point light with label " << label << "\n";
+					return false;
+				}
+
+				pointLight->SetColour(ReadFloat3(sceneFile));
+				gameObject = dynamic_cast<GameObject*>(pointLight);
+				break;
+			}
+			case GameObjectType::SPOT_LIGHT:
+			{
+				SpotLight* spotLight = new SpotLight();
+
+				if (!spotLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager))
+				{
+					std::cout << "Failed to init spot light with label " << label << "\n";
+					return false;
+				}
+
+				spotLight->SetColour(ReadFloat3(sceneFile));
+
+				float innerCutoff, outerCutoff;
+				sceneFile >> innerCutoff >> outerCutoff;
+				spotLight->SetInnerCutoff(innerCutoff);
+				spotLight->SetOuterCutoff(outerCutoff);
+
+				gameObject = dynamic_cast<GameObject*>(spotLight);
+				break;
+			}
+			case GameObjectType::PHYSICS:
+			{
+				PhysicsGameObject* physicsGameObject = new PhysicsGameObject();
+
+				std::string fileName;
+				sceneFile >> fileName;
+				StringHelper::ReplaceChars(fileName, '|', ' ');
+				fileName = "res/models/" + fileName;
+
+				if (!physicsGameObject->Initialize(label, fileName, this->device.Get(), this->deviceContext.Get(), &resourceManager))
+				{
+					std::cout << "Failed to init physics object with label " << label << "\n";
+					return false;
+				}
+
+				gameObject = dynamic_cast<GameObject*>(physicsGameObject);
+				break;
+			}
+			default:
+			{
+				gameObject = new GameObject();
+				break;
+			}
+			}
+
+			gameObject->GetTransform()->SetPosition(ReadFloat3(sceneFile));
+
+			int rotationType;
+			sceneFile >> rotationType;
+
+			switch (rotationType)
+			{
+			case 1:
+			{
+				XMFLOAT3 front = ReadFloat3(sceneFile);
+				XMFLOAT3 right = ReadFloat3(sceneFile);
+				XMFLOAT3 up = ReadFloat3(sceneFile);
+
+				// Outdated method
+
+				/*gameObject->GetTransform()->SetFrontVector(XMVectorSet(front.x, front.y, front.z, 0.0f));
+				gameObject->GetTransform()->SetRightVector(XMVectorSet(right.x, right.y, right.z, 0.0f));
+				gameObject->GetTransform()->SetUpVector(XMVectorSet(up.x, up.y, up.z, 0.0f));*/
+
+				break;
+			}
+					
+			case 2:
+				gameObject->GetTransform()->LookAtPos(ReadFloat3(sceneFile));
+				break;
+			case 3:
+			{
+				XMFLOAT4 orientation = ReadFloat4(sceneFile);
+				XMVECTOR orientationVector = XMLoadFloat4(&orientation);
+				gameObject->GetTransform()->SetOrientationQuaternion(orientationVector);
+
+				break;
+			}
+			}
+
+			bool hasTrack;
+			sceneFile >> hasTrack;
+
+			if (hasTrack)
 			{
 				std::string trackName;
 				sceneFile >> trackName;
-				StringHelper::ReplaceChars(trackName, '|', ' ');
 
-				int numNodes;
-				sceneFile >> numNodes;
+				gameObject->SetObjectTrack(objectTracks.at(trackName));
 
-				ObjectTrack* track = new ObjectTrack();
+				bool followingTrack;
+				sceneFile >> followingTrack;
 
-				for (int j = 0; j < numNodes; ++j)
-				{
-					XMFLOAT3 nodePos = ReadFloat3(sceneFile);
+				gameObject->SetFollowingObjectTrack(followingTrack);
 
-					XMFLOAT3 nodeLookAt = ReadFloat3(sceneFile);
+				float objectTrackDelta;
+				sceneFile >> objectTrackDelta;
 
-					track->AddTrackNode(ObjectTrackNode(nodePos, nodeLookAt));
-				}
-
-				track->GenerateMidPoints();
-
-				track->SetLabel(trackName);
-
-				this->objectTracks.insert(std::make_pair(trackName, track));
+				gameObject->SetObjectTrackDelta(objectTrackDelta);
 			}
 
-			int numObjects;
-			sceneFile >> numObjects;
+			int numRelativeCams;
+			sceneFile >> numRelativeCams;
 
-			for (int i = 0; i < numObjects; ++i)
+			for (int i = 0; i < numRelativeCams; ++i)
 			{
-				GameObject* gameObject;
-
-				int intObjectType;
-				sceneFile >> intObjectType;
-				GameObjectType objectType = static_cast<GameObjectType>(intObjectType);
-
-				std::string label;
-				sceneFile >> label;
-				StringHelper::ReplaceChars(label, '|', ' ');
-
-				switch (objectType)
-				{
-				case GameObjectType::RENDERABLE:
-				{
-					std::string fileName;
-					sceneFile >> fileName;
-					StringHelper::ReplaceChars(fileName, '|', ' ');
-					fileName = "res/models/" + fileName;
-
-					RenderableGameObject* renderableGameObject = new RenderableGameObject();
-					if (!renderableGameObject->Initialize(label, fileName, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-						return false;
-					}
-
-					gameObject = dynamic_cast<GameObject*>(renderableGameObject);
-					break;
-				}
-				case GameObjectType::LIGHT:
-				{
-					Light* directionalLight = new Light();
-
-					if (!directionalLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-						return false;
-					}
-
-					directionalLight->SetColour(ReadFloat3(sceneFile));
-					gameObject = dynamic_cast<GameObject*>(directionalLight);
-					break;
-				}
-				case GameObjectType::POINT_LIGHT:
-				{
-					PointLight* pointLight = new PointLight();
-
-					if (!pointLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-						return false;
-					}
-
-					pointLight->SetColour(ReadFloat3(sceneFile));
-					gameObject = dynamic_cast<GameObject*>(pointLight);
-					break;
-				}
-				case GameObjectType::SPOT_LIGHT:
-				{
-					SpotLight* spotLight = new SpotLight();
-
-					if (!spotLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-						return false;
-					}
-
-					spotLight->SetColour(ReadFloat3(sceneFile));
-
-					float innerCutoff, outerCutoff;
-					sceneFile >> innerCutoff >> outerCutoff;
-					spotLight->SetInnerCutoff(innerCutoff);
-					spotLight->SetOuterCutoff(outerCutoff);
-
-					gameObject = dynamic_cast<GameObject*>(spotLight);
-					break;
-				}
-				case GameObjectType::PHYSICS:
-				{
-					PhysicsGameObject* physicsGameObject = new PhysicsGameObject();
-
-					std::string fileName;
-					sceneFile >> fileName;
-					StringHelper::ReplaceChars(fileName, '|', ' ');
-					fileName = "res/models/" + fileName;
-
-					if (!physicsGameObject->Initialize(label, fileName, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-						return false;
-					}
-
-					gameObject = dynamic_cast<GameObject*>(physicsGameObject);
-					break;
-				}
-				default:
-				{
-					gameObject = new GameObject();
-					break;
-				}
-				}
-
-				gameObject->GetTransform()->SetPosition(ReadFloat3(sceneFile));
-
-				int rotationType;
-				sceneFile >> rotationType;
-
-				switch (rotationType)
-				{
-				case 1:
-				{
-					XMFLOAT3 front = ReadFloat3(sceneFile);
-					XMFLOAT3 right = ReadFloat3(sceneFile);
-					XMFLOAT3 up = ReadFloat3(sceneFile);
-
-					// Outdated method
-
-					/*gameObject->GetTransform()->SetFrontVector(XMVectorSet(front.x, front.y, front.z, 0.0f));
-					gameObject->GetTransform()->SetRightVector(XMVectorSet(right.x, right.y, right.z, 0.0f));
-					gameObject->GetTransform()->SetUpVector(XMVectorSet(up.x, up.y, up.z, 0.0f));*/
-
-					break;
-				}
-					
-				case 2:
-					gameObject->GetTransform()->LookAtPos(ReadFloat3(sceneFile));
-					break;
-				case 3:
-				{
-					XMFLOAT4 orientation = ReadFloat4(sceneFile);
-					XMVECTOR orientationVector = XMLoadFloat4(&orientation);
-					gameObject->GetTransform()->SetOrientationQuaternion(orientationVector);
-
-					break;
-				}
-				}
-
-				bool hasTrack;
-				sceneFile >> hasTrack;
-
-				if (hasTrack)
-				{
-					std::string trackName;
-					sceneFile >> trackName;
-
-					gameObject->SetObjectTrack(objectTracks.at(trackName));
-
-					bool followingTrack;
-					sceneFile >> followingTrack;
-
-					gameObject->SetFollowingObjectTrack(followingTrack);
-
-					float objectTrackDelta;
-					sceneFile >> objectTrackDelta;
-
-					gameObject->SetObjectTrackDelta(objectTrackDelta);
-				}
-
-				int numRelativeCams;
-				sceneFile >> numRelativeCams;
-
-				for (int i = 0; i < numRelativeCams; ++i)
-				{
-					XMFLOAT3 cameraRelativePosition = ReadFloat3(sceneFile);
-					gameObject->GetRelativePositions()->push_back(XMVectorSet(cameraRelativePosition.x, cameraRelativePosition.y, cameraRelativePosition.z, 0.0f));
-				}
-
-				bool hasController;
-				sceneFile >> hasController;
-
-				if (hasController)
-				{
-					int controllerTypeInt;
-					sceneFile >> controllerTypeInt;
-
-					float moveSpeed;
-					sceneFile >> moveSpeed;
-
-					ControllerType controllerType = static_cast<ControllerType>(controllerTypeInt);
-					controllerManager->AddController(gameObject, controllerType, moveSpeed);
-				}
-
-				bool floating;
-				sceneFile >> floating;
-
-				gameObject->SetFloating(floating);
-
-				gameObjectMap.insert({ gameObject->GetLabel(), gameObject });
-
-				switch (objectType)
-				{
-				case GameObjectType::PHYSICS:
-				{
-					physicsGameObjects.push_back(dynamic_cast<PhysicsGameObject*>(gameObject));
-					renderableGameObjects.push_back(dynamic_cast<RenderableGameObject*>(gameObject));
-					break;
-				}
-				case GameObjectType::RENDERABLE:
-				{
-					renderableGameObjects.push_back(dynamic_cast<RenderableGameObject*>(gameObject));
-					break;
-				}
-				case GameObjectType::POINT_LIGHT:
-				{
-					pointLights.push_back(dynamic_cast<PointLight*>(gameObject));
-					break;
-				}
-				case GameObjectType::SPOT_LIGHT:
-				{
-					spotLights.push_back(dynamic_cast<SpotLight*>(gameObject));
-					break;
-				}
-				}
+				XMFLOAT3 cameraRelativePosition = ReadFloat3(sceneFile);
+				gameObject->GetRelativePositions()->push_back(XMVectorSet(cameraRelativePosition.x, cameraRelativePosition.y, cameraRelativePosition.z, 0.0f));
 			}
-		/*}
-		catch (std::exception e)
-		{
-			ErrorLogger::Log("Failed to load scene");
-			return false;
-		}*/
+
+			bool hasController;
+			sceneFile >> hasController;
+
+			if (hasController)
+			{
+				int controllerTypeInt;
+				sceneFile >> controllerTypeInt;
+
+				float moveSpeed;
+				sceneFile >> moveSpeed;
+
+				ControllerType controllerType = static_cast<ControllerType>(controllerTypeInt);
+				controllerManager->AddController(gameObject, controllerType, moveSpeed);
+			}
+
+			bool floating;
+			sceneFile >> floating;
+
+			gameObject->SetFloating(floating);
+
+			gameObjectMap.insert({ gameObject->GetLabel(), gameObject });
+
+			switch (objectType)
+			{
+			case GameObjectType::PHYSICS:
+			{
+				physicsGameObjects.push_back(dynamic_cast<PhysicsGameObject*>(gameObject));
+				renderableGameObjects.push_back(dynamic_cast<RenderableGameObject*>(gameObject));
+				break;
+			}
+			case GameObjectType::RENDERABLE:
+			{
+				renderableGameObjects.push_back(dynamic_cast<RenderableGameObject*>(gameObject));
+				break;
+			}
+			case GameObjectType::POINT_LIGHT:
+			{
+				pointLights.push_back(dynamic_cast<PointLight*>(gameObject));
+				break;
+			}
+			case GameObjectType::SPOT_LIGHT:
+			{
+				spotLights.push_back(dynamic_cast<SpotLight*>(gameObject));
+				break;
+			}
+			}
+		}
 
 		sceneLoaded = true;
 
