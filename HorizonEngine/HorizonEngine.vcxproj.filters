@@ -72,246 +72,246 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RenderWindow.cpp">
+    <ClCompile Include="src\RenderWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Horizon.cpp">
+    <ClCompile Include="src\Horizon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WindowContainer.cpp">
+    <ClCompile Include="src\WindowContainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\Graphics.cpp">
+    <ClCompile Include="src\graphics\Graphics.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\Shader.cpp">
+    <ClCompile Include="src\graphics\Shader.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\Camera.cpp">
+    <ClCompile Include="src\graphics\Camera.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\imgui\imgui.cpp">
+    <ClCompile Include="src\graphics\imgui\imgui.cpp">
       <Filter>Source Files\Graphics\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\imgui\imgui_draw.cpp">
+    <ClCompile Include="src\graphics\imgui\imgui_draw.cpp">
       <Filter>Source Files\Graphics\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\imgui\imgui_widgets.cpp">
+    <ClCompile Include="src\graphics\imgui\imgui_widgets.cpp">
       <Filter>Source Files\Graphics\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\imgui\imgui_impl_dx11.cpp">
+    <ClCompile Include="src\graphics\imgui\imgui_impl_dx11.cpp">
       <Filter>Source Files\Graphics\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\imgui\imgui_impl_win32.cpp">
+    <ClCompile Include="src\graphics\imgui\imgui_impl_win32.cpp">
       <Filter>Source Files\Graphics\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\Model.cpp">
+    <ClCompile Include="src\graphics\Model.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\Mesh.cpp">
+    <ClCompile Include="src\graphics\Mesh.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\GameObject.cpp">
+    <ClCompile Include="src\graphics\GameObject.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\Colour.cpp">
+    <ClCompile Include="src\graphics\Colour.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\Texture.cpp">
+    <ClCompile Include="src\graphics\Texture.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\RenderableGameObject.cpp">
+    <ClCompile Include="src\graphics\RenderableGameObject.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="input\mouse\Mouse.cpp">
+    <ClCompile Include="src\input\mouse\Mouse.cpp">
       <Filter>Source Files\Input\Mouse</Filter>
     </ClCompile>
-    <ClCompile Include="input\mouse\MouseEvent.cpp">
+    <ClCompile Include="src\input\mouse\MouseEvent.cpp">
       <Filter>Source Files\Input\Mouse</Filter>
     </ClCompile>
-    <ClCompile Include="input\keyboard\Keyboard.cpp">
+    <ClCompile Include="src\input\keyboard\Keyboard.cpp">
       <Filter>Source Files\Input\Keyboard</Filter>
     </ClCompile>
-    <ClCompile Include="input\keyboard\KeyboardEvent.cpp">
+    <ClCompile Include="src\input\keyboard\KeyboardEvent.cpp">
       <Filter>Source Files\Input\Keyboard</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\utility\AdapterReader.cpp">
+    <ClCompile Include="src\graphics\utility\AdapterReader.cpp">
       <Filter>Source Files\Graphics\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\utility\ObjectTrack.cpp">
+    <ClCompile Include="src\graphics\utility\ObjectTrack.cpp">
       <Filter>Source Files\Graphics\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\lights\PointLight.cpp">
+    <ClCompile Include="src\graphics\lights\PointLight.cpp">
       <Filter>Source Files\Graphics\Lights</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\lights\SpotLight.cpp">
+    <ClCompile Include="src\graphics\lights\SpotLight.cpp">
       <Filter>Source Files\Graphics\Lights</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\lights\Light.cpp">
+    <ClCompile Include="src\graphics\lights\Light.cpp">
       <Filter>Source Files\Graphics\Lights</Filter>
     </ClCompile>
-    <ClCompile Include="utility\Timer.cpp">
+    <ClCompile Include="src\utility\Timer.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="utility\StringHelper.cpp">
+    <ClCompile Include="src\utility\StringHelper.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="utility\ErrorLogger.cpp">
+    <ClCompile Include="src\utility\ErrorLogger.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\utility\ResourceManager.cpp">
+    <ClCompile Include="src\graphics\utility\ResourceManager.cpp">
       <Filter>Source Files\Graphics\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\utility\Controller.cpp">
+    <ClCompile Include="src\graphics\utility\Controller.cpp">
       <Filter>Source Files\Graphics\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\PhysicsGameObject.cpp">
+    <ClCompile Include="src\graphics\PhysicsGameObject.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="physics\ParticleModel.cpp">
+    <ClCompile Include="src\physics\ParticleModel.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\Transform.cpp">
+    <ClCompile Include="src\graphics\Transform.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="physics\RigidBody.cpp">
+    <ClCompile Include="src\physics\RigidBody.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="RenderWindow.h">
+    <ClInclude Include="src\RenderWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Horizon.h">
+    <ClInclude Include="src\Horizon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WindowContainer.h">
+    <ClInclude Include="src\WindowContainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\Graphics.h">
+    <ClInclude Include="src\graphics\Graphics.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\Vertex.h">
+    <ClInclude Include="src\graphics\Vertex.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\Shader.h">
+    <ClInclude Include="src\graphics\Shader.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\Camera.h">
+    <ClInclude Include="src\graphics\Camera.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\imgui\imconfig.h">
+    <ClInclude Include="src\graphics\imgui\imconfig.h">
       <Filter>Header Files\Graphics\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\imgui\imgui.h">
+    <ClInclude Include="src\graphics\imgui\imgui.h">
       <Filter>Header Files\Graphics\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\imgui\imgui_internal.h">
+    <ClInclude Include="src\graphics\imgui\imgui_internal.h">
       <Filter>Header Files\Graphics\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\imgui\imstb_rectpack.h">
+    <ClInclude Include="src\graphics\imgui\imstb_rectpack.h">
       <Filter>Header Files\Graphics\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\imgui\imstb_textedit.h">
+    <ClInclude Include="src\graphics\imgui\imstb_textedit.h">
       <Filter>Header Files\Graphics\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\imgui\imstb_truetype.h">
+    <ClInclude Include="src\graphics\imgui\imstb_truetype.h">
       <Filter>Header Files\Graphics\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\imgui\imgui_impl_dx11.h">
+    <ClInclude Include="src\graphics\imgui\imgui_impl_dx11.h">
       <Filter>Header Files\Graphics\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\imgui\imgui_impl_win32.h">
+    <ClInclude Include="src\graphics\imgui\imgui_impl_win32.h">
       <Filter>Header Files\Graphics\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\Model.h">
+    <ClInclude Include="src\graphics\Model.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\Mesh.h">
+    <ClInclude Include="src\graphics\Mesh.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\GameObject.h">
+    <ClInclude Include="src\graphics\GameObject.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\Colour.h">
+    <ClInclude Include="src\graphics\Colour.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\Texture.h">
+    <ClInclude Include="src\graphics\Texture.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\RenderableGameObject.h">
+    <ClInclude Include="src\graphics\RenderableGameObject.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="input\mouse\Mouse.h">
+    <ClInclude Include="src\input\mouse\Mouse.h">
       <Filter>Header Files\Input\Mouse</Filter>
     </ClInclude>
-    <ClInclude Include="input\mouse\MouseEvent.h">
+    <ClInclude Include="src\input\mouse\MouseEvent.h">
       <Filter>Header Files\Input\Mouse</Filter>
     </ClInclude>
-    <ClInclude Include="input\keyboard\Keyboard.h">
+    <ClInclude Include="src\input\keyboard\Keyboard.h">
       <Filter>Header Files\Input\Keyboard</Filter>
     </ClInclude>
-    <ClInclude Include="input\keyboard\KeyboardEvent.h">
+    <ClInclude Include="src\input\keyboard\KeyboardEvent.h">
       <Filter>Header Files\Input\Keyboard</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\utility\AdapterReader.h">
+    <ClInclude Include="src\graphics\utility\AdapterReader.h">
       <Filter>Header Files\Graphics\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\buffers\IndexBuffer.h">
+    <ClInclude Include="src\graphics\buffers\IndexBuffer.h">
       <Filter>Header Files\Graphics\Buffers</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\buffers\VertexBuffer.h">
+    <ClInclude Include="src\graphics\buffers\VertexBuffer.h">
       <Filter>Header Files\Graphics\Buffers</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\buffers\ConstantBufferTypes.h">
+    <ClInclude Include="src\graphics\buffers\ConstantBufferTypes.h">
       <Filter>Header Files\Graphics\Buffers</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\buffers\ConstantBuffer.h">
+    <ClInclude Include="src\graphics\buffers\ConstantBuffer.h">
       <Filter>Header Files\Graphics\Buffers</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\utility\ObjectTrack.h">
+    <ClInclude Include="src\graphics\utility\ObjectTrack.h">
       <Filter>Header Files\Graphics\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\lights\PointLight.h">
+    <ClInclude Include="src\graphics\lights\PointLight.h">
       <Filter>Header Files\Graphics\Lights</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\lights\SpotLight.h">
+    <ClInclude Include="src\graphics\lights\SpotLight.h">
       <Filter>Header Files\Graphics\Lights</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\lights\Light.h">
+    <ClInclude Include="src\graphics\lights\Light.h">
       <Filter>Header Files\Graphics\Lights</Filter>
     </ClInclude>
-    <ClInclude Include="utility\Timer.h">
+    <ClInclude Include="src\utility\Timer.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="utility\StringHelper.h">
+    <ClInclude Include="src\utility\StringHelper.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="utility\COMException.h">
+    <ClInclude Include="src\utility\COMException.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="utility\ErrorLogger.h">
+    <ClInclude Include="src\utility\ErrorLogger.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\utility\ResourceManager.h">
+    <ClInclude Include="src\graphics\utility\ResourceManager.h">
       <Filter>Header Files\Graphics\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\utility\Controller.h">
+    <ClInclude Include="src\graphics\utility\Controller.h">
       <Filter>Header Files\Graphics\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\PhysicsGameObject.h">
+    <ClInclude Include="src\graphics\PhysicsGameObject.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="physics\ParticleModel.h">
+    <ClInclude Include="src\physics\ParticleModel.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\Transform.h">
+    <ClInclude Include="src\graphics\Transform.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="physics\RigidBody.h">
+    <ClInclude Include="src\physics\RigidBody.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
   </ItemGroup>
