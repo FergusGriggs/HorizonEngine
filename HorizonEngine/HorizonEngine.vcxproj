@@ -208,7 +208,9 @@
     <ClCompile Include="src\input\mouse\MouseEvent.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\physics\ParticleModel.cpp" />
+    <ClCompile Include="src\physics\ParticleSystem.cpp" />
     <ClCompile Include="src\physics\RigidBody.cpp" />
+    <ClCompile Include="src\physics\Spring.cpp" />
     <ClCompile Include="src\RenderWindow.cpp" />
     <ClCompile Include="src\utility\ErrorLogger.cpp" />
     <ClCompile Include="src\utility\StringHelper.cpp" />
@@ -282,7 +284,9 @@
     <ClInclude Include="src\input\mouse\Mouse.h" />
     <ClInclude Include="src\input\mouse\MouseEvent.h" />
     <ClInclude Include="src\physics\ParticleModel.h" />
+    <ClInclude Include="src\physics\ParticleSystem.h" />
     <ClInclude Include="src\physics\RigidBody.h" />
+    <ClInclude Include="src\physics\Spring.h" />
     <ClInclude Include="src\RenderWindow.h" />
     <ClInclude Include="src\utility\COMException.h" />
     <ClInclude Include="src\utility\ErrorLogger.h" />
