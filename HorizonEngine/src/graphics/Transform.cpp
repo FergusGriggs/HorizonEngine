@@ -135,6 +135,13 @@ const XMVECTOR& Transform::GetOrientation() const
 	return this->orientation;
 }
 
+const XMFLOAT4& Transform::GetOrientationFloat4() const
+{
+	XMFLOAT4 returnFloat4;
+	XMStoreFloat4(&returnFloat4, this->orientation);
+	return returnFloat4;
+}
+
 const XMMATRIX& Transform::GetRotationMatrix() const
 {
 	return this->rotationMatrix;

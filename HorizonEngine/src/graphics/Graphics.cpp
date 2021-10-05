@@ -110,7 +110,7 @@ bool Graphics::InitializeScene()
 
 		COM_ERROR_IF_FAILED(hr, "Failed to create 'cb_vs_vertexShader' constant buffer.");
 
-		cb_vs_vertexShader.data.waveAmplitude = 1.0f;
+		cb_vs_vertexShader.data.waveAmplitude = 3.5f;
 
 		hr = this->cb_ps_pixelShader.Initialize(this->device.Get(), this->deviceContext.Get());
 
@@ -135,6 +135,33 @@ bool Graphics::InitializeScene()
 			return false;
 		}
 
+		if (!this->particleMesh.Initialize("res/models/particle.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+			return false;
+		}
+
+		if (!this->springModel.Initialize("res/models/spring.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
+			return false;
+		}
+
+		std::string defaultDiffuseTextureFilePath = "res/textures/scales/diffuse.jpg";
+		std::string defaultSpecularTextureFilePath = "res/textures/scales/specular.jpg";
+		std::string defaultNormalTextureFilePath = "res/textures/scales/normal.jpg";
+
+		defaultDiffuseTexture = new Texture(this->device.Get(), defaultDiffuseTextureFilePath, aiTextureType::aiTextureType_DIFFUSE);
+		defaultSpecularTexture = new Texture(this->device.Get(), defaultSpecularTextureFilePath, aiTextureType::aiTextureType_DIFFUSE);
+		defaultNormalTexture = new Texture(this->device.Get(), defaultNormalTextureFilePath, aiTextureType::aiTextureType_DIFFUSE);
+
+		std::string highlightDiffuseTextureFilePath = "res/textures/engraved/diffuse.jpg";
+		std::string highlightSpecularTextureFilePath = "res/textures/engraved/specular.jpg";
+		std::string highlightNormalTextureFilePath = "res/textures/engraved/normal.jpg";
+
+		highlightDiffuseTexture = new Texture(this->device.Get(), highlightDiffuseTextureFilePath, aiTextureType::aiTextureType_DIFFUSE);
+		highlightSpecularTexture = new Texture(this->device.Get(), highlightSpecularTextureFilePath, aiTextureType::aiTextureType_DIFFUSE);
+		highlightNormalTexture = new Texture(this->device.Get(), highlightNormalTextureFilePath, aiTextureType::aiTextureType_DIFFUSE);
+
+		particleSystem = new ParticleSystem(&particleMesh);
+		particleSystem->AddEmitter(XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), 0.25f, 5.0f, 0.25f, 1.5f, 0.25f, 0.005f, 0.25f);
+
 		//SET TRANSLATE AXIS DEFAULT BOUNDS / EXTENTS
 		xAxisTranslateDefaultBounds = XMFLOAT3(0.45f, 0.05f, 0.05f);
 		yAxisTranslateDefaultBounds = XMFLOAT3(0.05f, 0.45f, 0.05f);
@@ -154,19 +181,30 @@ bool Graphics::InitializeScene()
 		if (!ocean.Initialize("Ocean", "res/models/ocean_smooth_large_2.obj", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
 			return false;
 		}
-		ocean.GetTransform()->SetPosition(0.0f, -4.0f, 0.0f);
+		ocean.GetTransform()->SetPosition(0.0f, 1.0f, 0.0f);
 
 		if (!directionalLight.Initialize("Directional Light", this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
 			return false;
 		}
 		directionalLight.GetTransform()->SetPosition(2.0f, 6.0f, 2.0f);
 		directionalLight.GetTransform()->LookAtPos(XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
-		directionalLight.SetColour(XMFLOAT3(0.456f, 0.369f, 0.322f));
+		directionalLight.SetColour(XMFLOAT3(0.9f, 0.85f, 0.8f));
 
-		if (!LoadScene("test.txt"))
+		if (!LoadScene("city.txt"))
 		{
 			return false;
 		}
+
+		//dynamic_cast<RenderableGameObject*>(gameObjectMap.at("floor1"))->SetScale(XMFLOAT3(5.0f, 1.0f, 5.0f));
+
+		//springs.push_back(new Spring(XMVectorSet(0.0f, 10.0f, 5.0f, 0.0f), physicsGameObjects.at(0)->GetRigidBody(), 5.0f, 150.0f));
+		//springs.push_back(new Spring(physicsGameObjects.at(3)->GetRigidBody(), physicsGameObjects.at(4)->GetRigidBody(), 10.0f, 150.0f));
+
+		//dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box1"))->GetRigidBody()->SetIsStatic(false);
+		//dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box2"))->GetRigidBody()->SetIsStatic(false);
+		//dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box3"))->GetRigidBody()->SetIsStatic(false);
+		//dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box4"))->GetRigidBody()->SetIsStatic(false);
+		//dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box5"))->GetRigidBody()->SetIsStatic(false);
 
 		camera.GetTransform()->SetPosition(0.0f, 10.0f, -7.0f);
 		camera.GetTransform()->LookAtPos(XMVectorSet(0.0f, 7.0f, 0.0f, 1.0f));
@@ -273,22 +311,74 @@ void Graphics::RenderFrame(float deltaTime)
 	this->deviceContext->PSSetShader(pixelShader.GetShader(), NULL, 0);
 
 	{
+		this->deviceContext->PSSetShaderResources(0, 1, defaultDiffuseTexture->GetTextureResourceViewAddress());
+		this->deviceContext->PSSetShaderResources(1, 1, defaultSpecularTexture->GetTextureResourceViewAddress());
+		this->deviceContext->PSSetShaderResources(2, 1, defaultNormalTexture->GetTextureResourceViewAddress());
+
 		//DRAW REGULAR GAME OBJECTS
 		size_t numRenderableGameObjects = renderableGameObjects.size();
 		for (size_t i = 0; i < numRenderableGameObjects; ++i)
 		{
 			RenderableGameObject* renderableGameObject = renderableGameObjects.at(i);
+
 			if (renderableGameObject->GetFloating())
 			{
 				FloatObject(renderableGameObject);
 			}
 
-			renderableGameObject->Draw(viewProjMat, &this->cb_vs_vertexShader);
+			if (renderableGameObject == this->selectedObject)
+			{
+				this->deviceContext->PSSetShaderResources(0, 1, highlightDiffuseTexture->GetTextureResourceViewAddress());
+				this->deviceContext->PSSetShaderResources(1, 1, highlightSpecularTexture->GetTextureResourceViewAddress());
+				this->deviceContext->PSSetShaderResources(2, 1, highlightNormalTexture->GetTextureResourceViewAddress());
+
+				renderableGameObject->Draw(viewProjMat, &this->cb_vs_vertexShader, false);
+
+				this->deviceContext->PSSetShaderResources(0, 1, defaultDiffuseTexture->GetTextureResourceViewAddress());
+				this->deviceContext->PSSetShaderResources(1, 1, defaultSpecularTexture->GetTextureResourceViewAddress());
+				this->deviceContext->PSSetShaderResources(2, 1, defaultNormalTexture->GetTextureResourceViewAddress());
+			}
+			else
+			{
+				renderableGameObject->Draw(viewProjMat, &this->cb_vs_vertexShader, false);
+			}
+		}
+
+		//Draw particles
+		//particleSystem->DrawParticles(viewProjMat, &this->cb_vs_vertexShader);
+
+
+		//Draw Springs
+		XMMATRIX springModelMatrix;
+		for (int i = 0; i < springs.size(); ++i)
+		{
+			XMVECTOR springStart = springs[i]->GetSpringStart()->GetTransformReference()->GetPositionVector();
+			XMVECTOR springEnd = springs[i]->GetSpringEnd()->GetTransformReference()->GetPositionVector();
+
+			float scale = XMVectorGetX(XMVector3Length(springEnd - springStart)) / 5.0f;
+
+			XMVECTOR front = XMVectorSetW(XMVector3Normalize(springEnd - springStart), 0.0f);
+			XMVECTOR up = XMVectorSetW(XMVector3Normalize(XMVector3Cross(front, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f))), 0.0f);
+			XMVECTOR right = XMVectorSetW(XMVector3Cross(front, up), 0.0f);
+
+			if (abs(XMVectorGetZ(front)) == 1.0f)
+			{
+				springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
+			}
+			else
+			{
+				springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMATRIX(up, right, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
+				//springModelMatrix = XMMatrixLookToLH(XMVectorZero(), front, up) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart)); //XMMatrixScaling(1.0f, scale, 1.0f) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart)) * 
+			}
+			
+			//springModelMatrix = XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
+
+			springModel.Draw(springModelMatrix, viewProjMat, &this->cb_vs_vertexShader);
 		}
 
 		//DRAW WATER
 
-		cb_ps_pixelShader.data.objectMaterial.shininess = 8.0f;
+		/*cb_ps_pixelShader.data.objectMaterial.shininess = 8.0f;
 		cb_ps_pixelShader.data.objectMaterial.specularity = 0.5f;
 		cb_ps_pixelShader.data.fresnel = 1;
 
@@ -297,11 +387,11 @@ void Graphics::RenderFrame(float deltaTime)
 		this->deviceContext->VSSetShader(waterVertexShader.GetShader(), NULL, 0);
 		this->deviceContext->PSSetShaderResources(4, 1, noiseTexture->GetTextureResourceViewAddress());
 
-		ocean.Draw(viewProjMat, &this->cb_vs_vertexShader);
+		ocean.Draw(viewProjMat, &this->cb_vs_vertexShader);*/
 
 		//DRAWCLOUDS
 
-		this->deviceContext->VSSetShader(vertexShader.GetShader(), NULL, 0);
+		/*this->deviceContext->VSSetShader(vertexShader.GetShader(), NULL, 0);
 
 		cb_ps_pixelShader.data.fresnel = 0;
 		cb_ps_pixelShader.data.objectMaterial.specularity = 1.0f;
@@ -315,7 +405,7 @@ void Graphics::RenderFrame(float deltaTime)
 
 		this->cb_ps_cloudsPixelShader.MapToGPU();
 
-		clouds.Draw(viewProjMat, &this->cb_vs_vertexShader);
+		clouds.Draw(viewProjMat, &this->cb_vs_vertexShader);*/
 	}
 	
 	{
@@ -365,15 +455,19 @@ void Graphics::RenderFrame(float deltaTime)
 	spriteFont->DrawString(spriteBatch.get(), StringHelper::StringToWide(fpsString).c_str(), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
 	
 	if (selectingGameObject) {
-		XMFLOAT2 screenNDC = camera.GetNDCFrom3DPos(selectedObject->GetTransform()->GetPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f));//XMFLOAT2(-0.5,0.5);
-		XMFLOAT2 screenPos = DirectX::XMFLOAT2((screenNDC.x * 0.5f + 0.5f) * windowWidth, (1.0f - (screenNDC.y * 0.5f + 0.5f)) * windowHeight);
-		XMVECTOR size = spriteFont->MeasureString(StringHelper::StringToWide(selectedObject->GetLabel()).c_str());
-		screenPos.x -= XMVectorGetX(size) * 0.5f;
-		screenPos.y -= XMVectorGetY(size) * 0.5f;
-		spriteFont->DrawString(spriteBatch.get(), StringHelper::StringToWide(selectedObject->GetLabel()).c_str(), screenPos, DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-		screenPos.y -= 0.5f;
-		screenPos.x -= 1.0f;
-		spriteFont->DrawString(spriteBatch.get(), StringHelper::StringToWide(selectedObject->GetLabel()).c_str(), screenPos, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+		// Stop text being drawn behind camera
+		if (XMVectorGetX(XMVector3Dot(selectedObject->GetTransform()->GetPositionVector() - this->camera.GetTransform()->GetPositionVector(), this->camera.GetTransform()->GetFrontVector())) >= 0.0f)
+		{
+			XMFLOAT2 screenNDC = camera.GetNDCFrom3DPos(selectedObject->GetTransform()->GetPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f));//XMFLOAT2(-0.5,0.5);
+			XMFLOAT2 screenPos = DirectX::XMFLOAT2((screenNDC.x * 0.5f + 0.5f) * windowWidth, (1.0f - (screenNDC.y * 0.5f + 0.5f)) * windowHeight);
+			XMVECTOR size = spriteFont->MeasureString(StringHelper::StringToWide(selectedObject->GetLabel()).c_str());
+			screenPos.x -= XMVectorGetX(size) * 0.5f;
+			screenPos.y -= XMVectorGetY(size) * 0.5f;
+			spriteFont->DrawString(spriteBatch.get(), StringHelper::StringToWide(selectedObject->GetLabel()).c_str(), screenPos, DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+			screenPos.y -= 0.5f;
+			screenPos.x -= 1.0f;
+			spriteFont->DrawString(spriteBatch.get(), StringHelper::StringToWide(selectedObject->GetLabel()).c_str(), screenPos, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+		}
 	}
 
 	spriteBatch->End();
@@ -541,6 +635,8 @@ bool Graphics::LoadScene(const char* sceneName)
 		UnloadScene();
 	}
 
+	sceneLoadedName = sceneName;
+
 	std::string sceneFilePath = "res/scenes/";
 	sceneFilePath += sceneName;
 
@@ -548,247 +644,255 @@ bool Graphics::LoadScene(const char* sceneName)
 
 	if (sceneFile)
 	{
-		/*try
-		{*/
-			int numObjectTracks;
-			sceneFile >> numObjectTracks;
+		int numObjectTracks;
+		sceneFile >> numObjectTracks;
 
-			for (int i = 0; i < numObjectTracks; ++i)
+		for (int i = 0; i < numObjectTracks; ++i)
+		{
+			std::string trackName;
+			sceneFile >> trackName;
+			StringHelper::ReplaceChars(trackName, '|', ' ');
+
+			int numNodes;
+			sceneFile >> numNodes;
+
+			ObjectTrack* track = new ObjectTrack();
+
+			for (int j = 0; j < numNodes; ++j)
+			{
+				XMFLOAT3 nodePos = ReadFloat3(sceneFile);
+
+				XMFLOAT3 nodeLookAt = ReadFloat3(sceneFile);
+
+				track->AddTrackNode(ObjectTrackNode(nodePos, nodeLookAt));
+			}
+
+			track->GenerateMidPoints();
+
+			track->SetLabel(trackName);
+
+			this->objectTracks.insert(std::make_pair(trackName, track));
+		}
+
+		int numObjects;
+		sceneFile >> numObjects;
+
+		for (int i = 0; i < numObjects; ++i)
+		{
+			GameObject* gameObject;
+
+			int intObjectType;
+			sceneFile >> intObjectType;
+			GameObjectType objectType = static_cast<GameObjectType>(intObjectType);
+
+			std::string label;
+			sceneFile >> label;
+			StringHelper::ReplaceChars(label, '|', ' ');
+
+			switch (objectType)
+			{
+			case GameObjectType::RENDERABLE:
+			{
+				std::string fileName;
+				sceneFile >> fileName;
+				StringHelper::ReplaceChars(fileName, '|', ' ');
+				fileName = "res/models/" + fileName;
+
+				RenderableGameObject* renderableGameObject = new RenderableGameObject();
+				if (!renderableGameObject->Initialize(label, fileName, this->device.Get(), this->deviceContext.Get(), &resourceManager))
+				{
+					std::cout << "Failed to init renderable game object with label " << label << "\n";
+					return false;
+				}
+
+				gameObject = dynamic_cast<GameObject*>(renderableGameObject);
+				break;
+			}
+			case GameObjectType::LIGHT:
+			{
+				Light* directionalLight = new Light();
+
+				if (!directionalLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager))
+				{
+					std::cout << "Failed to init directional light with label " << label << "\n";
+					return false;
+				}
+
+				directionalLight->SetColour(ReadFloat3(sceneFile));
+				gameObject = dynamic_cast<GameObject*>(directionalLight);
+				break;
+			}
+			case GameObjectType::POINT_LIGHT:
+			{
+				PointLight* pointLight = new PointLight();
+
+				if (!pointLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager))
+				{
+					std::cout << "Failed to init point light with label " << label << "\n";
+					return false;
+				}
+
+				pointLight->SetColour(ReadFloat3(sceneFile));
+				gameObject = dynamic_cast<GameObject*>(pointLight);
+				break;
+			}
+			case GameObjectType::SPOT_LIGHT:
+			{
+				SpotLight* spotLight = new SpotLight();
+
+				if (!spotLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager))
+				{
+					std::cout << "Failed to init spot light with label " << label << "\n";
+					return false;
+				}
+
+				spotLight->SetColour(ReadFloat3(sceneFile));
+
+				float innerCutoff, outerCutoff;
+				sceneFile >> innerCutoff >> outerCutoff;
+				spotLight->SetInnerCutoff(innerCutoff);
+				spotLight->SetOuterCutoff(outerCutoff);
+
+				gameObject = dynamic_cast<GameObject*>(spotLight);
+				break;
+			}
+			case GameObjectType::PHYSICS:
+			{
+				PhysicsGameObject* physicsGameObject = new PhysicsGameObject();
+
+				std::string fileName;
+				sceneFile >> fileName;
+				StringHelper::ReplaceChars(fileName, '|', ' ');
+				fileName = "res/models/" + fileName;
+
+				if (!physicsGameObject->Initialize(label, fileName, this->device.Get(), this->deviceContext.Get(), &resourceManager))
+				{
+					std::cout << "Failed to init physics object with label " << label << "\n";
+					return false;
+				}
+
+				gameObject = dynamic_cast<GameObject*>(physicsGameObject);
+				break;
+			}
+			default:
+			{
+				gameObject = new GameObject();
+				break;
+			}
+			}
+
+			gameObject->GetTransform()->SetPosition(ReadFloat3(sceneFile));
+
+			int rotationType;
+			sceneFile >> rotationType;
+
+			switch (rotationType)
+			{
+			case 1:
+			{
+				XMFLOAT3 front = ReadFloat3(sceneFile);
+				XMFLOAT3 right = ReadFloat3(sceneFile);
+				XMFLOAT3 up = ReadFloat3(sceneFile);
+
+				// Outdated method
+
+				/*gameObject->GetTransform()->SetFrontVector(XMVectorSet(front.x, front.y, front.z, 0.0f));
+				gameObject->GetTransform()->SetRightVector(XMVectorSet(right.x, right.y, right.z, 0.0f));
+				gameObject->GetTransform()->SetUpVector(XMVectorSet(up.x, up.y, up.z, 0.0f));*/
+
+				break;
+			}
+					
+			case 2:
+				gameObject->GetTransform()->LookAtPos(ReadFloat3(sceneFile));
+				break;
+			case 3:
+			{
+				XMFLOAT4 orientation = ReadFloat4(sceneFile);
+				XMVECTOR orientationVector = XMLoadFloat4(&orientation);
+				gameObject->GetTransform()->SetOrientationQuaternion(orientationVector);
+
+				break;
+			}
+			}
+
+			bool hasTrack;
+			sceneFile >> hasTrack;
+
+			if (hasTrack)
 			{
 				std::string trackName;
 				sceneFile >> trackName;
-				StringHelper::ReplaceChars(trackName, '|', ' ');
 
-				int numNodes;
-				sceneFile >> numNodes;
+				gameObject->SetObjectTrack(objectTracks.at(trackName));
 
-				ObjectTrack* track = new ObjectTrack();
+				bool followingTrack;
+				sceneFile >> followingTrack;
 
-				for (int j = 0; j < numNodes; ++j)
-				{
-					XMFLOAT3 nodePos = ReadFloat3(sceneFile);
+				gameObject->SetFollowingObjectTrack(followingTrack);
 
-					XMFLOAT3 nodeLookAt = ReadFloat3(sceneFile);
+				float objectTrackDelta;
+				sceneFile >> objectTrackDelta;
 
-					track->AddTrackNode(ObjectTrackNode(nodePos, nodeLookAt));
-				}
-
-				track->GenerateMidPoints();
-
-				track->SetLabel(trackName);
-
-				this->objectTracks.insert(std::make_pair(trackName, track));
+				gameObject->SetObjectTrackDelta(objectTrackDelta);
 			}
 
-			int numObjects;
-			sceneFile >> numObjects;
+			int numRelativeCams;
+			sceneFile >> numRelativeCams;
 
-			for (int i = 0; i < numObjects; ++i)
+			for (int i = 0; i < numRelativeCams; ++i)
 			{
-				GameObject* gameObject;
-
-				int intObjectType;
-				sceneFile >> intObjectType;
-				GameObjectType objectType = static_cast<GameObjectType>(intObjectType);
-
-				std::string label;
-				sceneFile >> label;
-				StringHelper::ReplaceChars(label, '|', ' ');
-
-				switch (objectType)
-				{
-				case GameObjectType::RENDERABLE:
-				{
-					std::string fileName;
-					sceneFile >> fileName;
-					StringHelper::ReplaceChars(fileName, '|', ' ');
-					fileName = "res/models/" + fileName;
-
-					RenderableGameObject* renderableGameObject = new RenderableGameObject();
-					if (!renderableGameObject->Initialize(label, fileName, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-						return false;
-					}
-
-					gameObject = dynamic_cast<GameObject*>(renderableGameObject);
-					break;
-				}
-				case GameObjectType::LIGHT:
-				{
-					Light* directionalLight = new Light();
-
-					if (!directionalLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-						return false;
-					}
-
-					directionalLight->SetColour(ReadFloat3(sceneFile));
-					gameObject = dynamic_cast<GameObject*>(directionalLight);
-					break;
-				}
-				case GameObjectType::POINT_LIGHT:
-				{
-					PointLight* pointLight = new PointLight();
-
-					if (!pointLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-						return false;
-					}
-
-					pointLight->SetColour(ReadFloat3(sceneFile));
-					gameObject = dynamic_cast<GameObject*>(pointLight);
-					break;
-				}
-				case GameObjectType::SPOT_LIGHT:
-				{
-					SpotLight* spotLight = new SpotLight();
-
-					if (!spotLight->Initialize(label, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-						return false;
-					}
-
-					spotLight->SetColour(ReadFloat3(sceneFile));
-					gameObject = dynamic_cast<GameObject*>(spotLight);
-					break;
-				}
-				case GameObjectType::PHYSICS:
-				{
-					PhysicsGameObject* physicsGameObject = new PhysicsGameObject();
-
-					std::string fileName;
-					sceneFile >> fileName;
-					StringHelper::ReplaceChars(fileName, '|', ' ');
-					fileName = "res/models/" + fileName;
-
-					if (!physicsGameObject->Initialize(label, fileName, this->device.Get(), this->deviceContext.Get(), &resourceManager)) {
-						return false;
-					}
-
-					gameObject = dynamic_cast<GameObject*>(physicsGameObject);
-					break;
-				}
-				default:
-				{
-					gameObject = new GameObject();
-					break;
-				}
-				}
-
-				gameObject->GetTransform()->SetPosition(ReadFloat3(sceneFile));
-
-				int rotationType;
-				sceneFile >> rotationType;
-
-				switch (rotationType)
-				{
-				case 1:
-				{
-					XMFLOAT3 front = ReadFloat3(sceneFile);
-					XMFLOAT3 right = ReadFloat3(sceneFile);
-					XMFLOAT3 up = ReadFloat3(sceneFile);
-
-					// Outdated method
-
-					/*gameObject->GetTransform()->SetFrontVector(XMVectorSet(front.x, front.y, front.z, 0.0f));
-					gameObject->GetTransform()->SetRightVector(XMVectorSet(right.x, right.y, right.z, 0.0f));
-					gameObject->GetTransform()->SetUpVector(XMVectorSet(up.x, up.y, up.z, 0.0f));*/
-
-					break;
-				}
-					
-				case 2:
-					gameObject->GetTransform()->LookAtPos(ReadFloat3(sceneFile));
-					break;
-				case 3:
-				{
-					XMFLOAT4 orientation = ReadFloat4(sceneFile);
-					XMVECTOR orientationVector = XMLoadFloat4(&orientation);
-					gameObject->GetTransform()->SetOrientationQuaternion(orientationVector);
-
-					break;
-				}
-				}
-
-				bool hasTrack;
-				sceneFile >> hasTrack;
-
-				if (hasTrack)
-				{
-					std::string trackName;
-					sceneFile >> trackName;
-
-					gameObject->SetObjectTrack(objectTracks.at(trackName));
-
-					bool followingTrack;
-					sceneFile >> followingTrack;
-
-					gameObject->SetFollowingObjectTrack(followingTrack);
-
-					float objectTrackDelta;
-					sceneFile >> objectTrackDelta;
-
-					gameObject->SetObjectTrackDelta(objectTrackDelta);
-				}
-
-				int numRelativeCams;
-				sceneFile >> numRelativeCams;
-
-				for (int i = 0; i < numRelativeCams; ++i)
-				{
-					XMFLOAT3 cameraRelativePosition = ReadFloat3(sceneFile);
-					gameObject->GetRelativePositions()->push_back(XMVectorSet(cameraRelativePosition.x, cameraRelativePosition.y, cameraRelativePosition.z, 0.0f));
-				}
-
-				bool hasController;
-				sceneFile >> hasController;
-
-				if (hasController)
-				{
-					int controllerTypeInt;
-					sceneFile >> controllerTypeInt;
-
-					float moveSpeed;
-					sceneFile >> moveSpeed;
-
-					ControllerType controllerType = static_cast<ControllerType>(controllerTypeInt);
-					controllerManager->AddController(gameObject, controllerType, moveSpeed);
-				}
-
-				bool floating;
-				sceneFile >> floating;
-
-				gameObject->SetFloating(floating);
-
-				gameObjectMap.insert({ gameObject->GetLabel(), gameObject });
-
-				switch (objectType)
-				{
-				case GameObjectType::PHYSICS:
-				{
-					physicsGameObjects.push_back(dynamic_cast<PhysicsGameObject*>(gameObject));
-					renderableGameObjects.push_back(dynamic_cast<RenderableGameObject*>(gameObject));
-					break;
-				}
-				case GameObjectType::RENDERABLE:
-				{
-					renderableGameObjects.push_back(dynamic_cast<RenderableGameObject*>(gameObject));
-					break;
-				}
-				case GameObjectType::POINT_LIGHT:
-				{
-					pointLights.push_back(dynamic_cast<PointLight*>(gameObject));
-					break;
-				}
-				case GameObjectType::SPOT_LIGHT:
-				{
-					spotLights.push_back(dynamic_cast<SpotLight*>(gameObject));
-					break;
-				}
-				}
+				XMFLOAT3 cameraRelativePosition = ReadFloat3(sceneFile);
+				gameObject->GetRelativePositions()->push_back(XMVectorSet(cameraRelativePosition.x, cameraRelativePosition.y, cameraRelativePosition.z, 0.0f));
 			}
-		/*}
-		catch (std::exception e)
-		{
-			ErrorLogger::Log("Failed to load scene");
-			return false;
-		}*/
+
+			bool hasController;
+			sceneFile >> hasController;
+
+			if (hasController)
+			{
+				int controllerTypeInt;
+				sceneFile >> controllerTypeInt;
+
+				float moveSpeed;
+				sceneFile >> moveSpeed;
+
+				ControllerType controllerType = static_cast<ControllerType>(controllerTypeInt);
+				controllerManager->AddController(gameObject, controllerType, moveSpeed);
+			}
+
+			bool floating;
+			sceneFile >> floating;
+
+			gameObject->SetFloating(floating);
+
+			gameObjectMap.insert({ gameObject->GetLabel(), gameObject });
+
+			switch (objectType)
+			{
+			case GameObjectType::PHYSICS:
+			{
+				physicsGameObjects.push_back(dynamic_cast<PhysicsGameObject*>(gameObject));
+				renderableGameObjects.push_back(dynamic_cast<RenderableGameObject*>(gameObject));
+				break;
+			}
+			case GameObjectType::RENDERABLE:
+			{
+				renderableGameObjects.push_back(dynamic_cast<RenderableGameObject*>(gameObject));
+				break;
+			}
+			case GameObjectType::POINT_LIGHT:
+			{
+				pointLights.push_back(dynamic_cast<PointLight*>(gameObject));
+				break;
+			}
+			case GameObjectType::SPOT_LIGHT:
+			{
+				spotLights.push_back(dynamic_cast<SpotLight*>(gameObject));
+				break;
+			}
+			}
+		}
 
 		sceneLoaded = true;
 
@@ -798,10 +902,10 @@ bool Graphics::LoadScene(const char* sceneName)
 	return false;
 }
 
-bool Graphics::SaveScene(const char* sceneName)
+bool Graphics::SaveScene()
 {
 	std::string sceneFilePath = "res/scenes/";
-	sceneFilePath += sceneName;
+	sceneFilePath += sceneLoadedName;
 
 	std::ofstream sceneFile(sceneFilePath.c_str());
 
@@ -872,6 +976,7 @@ bool Graphics::SaveScene(const char* sceneName)
 				{
 					SpotLight* spotLight = dynamic_cast<SpotLight*>(objectMapIterator->second);
 					WriteFloat3(spotLight->GetColour(), sceneFile);
+					sceneFile << spotLight->GetInnerCutoff() << " " << spotLight->GetOuterCutoff() << " ";
 					break;
 				}
 				}
@@ -931,12 +1036,45 @@ bool Graphics::SaveScene(const char* sceneName)
 	return false;
 }
 
-bool Graphics::SaveSceneTGP(const char* sceneName)
+bool Graphics::SaveSceneTGP()
 {
 	std::string sceneFilePath = "res/scenes/";
-	sceneFilePath += sceneName;
+	sceneFilePath = sceneFilePath + "tgp_" + this->sceneLoadedName;
 
 	std::ofstream sceneFile(sceneFilePath.c_str());
+
+	if (sceneFile)
+	{
+		for (int i = 0; i < this->renderableGameObjects.size(); ++i)
+		{
+			std::string path = this->renderableGameObjects.at(i)->GetModel()->GetPath();
+			StringHelper::RemoveDirectoriesFromStart(path, 4);
+			
+			XMFLOAT3 position = this->renderableGameObjects.at(i)->GetTransform()->GetPositionFloat3();
+			XMFLOAT4 orientation = this->renderableGameObjects.at(i)->GetTransform()->GetOrientationFloat4();
+
+			sceneFile << "n " << path.substr(0, path.length() - 5) << "\np " << position.x << " " << position.y << " " << position.z << "\no " << orientation.x << " " << orientation.y << " " << orientation.z << " " << orientation.w << "\n";
+		}
+
+		for (int i = 0; i < this->pointLights.size(); ++i)
+		{
+			XMFLOAT3 position = this->pointLights.at(i)->GetTransform()->GetPositionFloat3();
+			XMFLOAT4 orientation = this->pointLights.at(i)->GetTransform()->GetOrientationFloat4();
+			XMFLOAT3 colour = this->pointLights.at(i)->GetColour();
+			sceneFile << "n point\n" << colour.x << " " << colour.y << " " << colour.z << "\np " << position.x << " " << position.y << " " << position.z << "\no " << orientation.x << " " << orientation.y << " " << orientation.z << " " << orientation.w << "\n";
+		}
+
+		for (int i = 0; i < this->spotLights.size(); ++i)
+		{
+			XMFLOAT3 position = this->spotLights.at(i)->GetTransform()->GetPositionFloat3();
+			XMFLOAT4 orientation = this->spotLights.at(i)->GetTransform()->GetOrientationFloat4();
+			XMFLOAT3 colour = this->spotLights.at(i)->GetColour();
+			sceneFile << "n spot\n" << colour.x << " " << colour.y << " " << colour.z << " " << this->spotLights.at(i)->GetInnerCutoff() << " " << this->spotLights.at(i)->GetOuterCutoff() << "\np " << position.x << " " << position.y << " " << position.z << "\no " << orientation.x << " " << orientation.y << " " << orientation.z << " " << orientation.w << "\n";
+		}
+
+		sceneFile << "e";
+		sceneFile.close();
+	}
 
 	return true;
 }
@@ -958,11 +1096,12 @@ void Graphics::UnloadScene()
 	while (objectMapIterator != this->gameObjectMap.end())
 	{
 		RemoveGameObject(objectMapIterator->first);
-		++objectMapIterator;
+		objectMapIterator = this->gameObjectMap.begin();
 	}
 
 	this->gameObjectMap.clear();
 	this->renderableGameObjects.clear();
+	this->physicsGameObjects.clear();
 	this->pointLights.clear();
 	this->spotLights.clear();
 
@@ -998,7 +1137,45 @@ void Graphics::RemoveGameObject(std::string gameObjectLabel)
 			}
 		}
 		
+		// Remove from renderables
+		for (int i = 0; i < this->renderableGameObjects.size(); ++i)
+		{
+			if (iterator->second == this->renderableGameObjects.at(i))
+			{
+				this->renderableGameObjects.erase(this->renderableGameObjects.begin() + i);
+			}
+		}
+
+		// Remove from physics
+		for (int i = 0; i < this->physicsGameObjects.size(); ++i)
+		{
+			if (iterator->second == this->physicsGameObjects.at(i))
+			{
+				this->physicsGameObjects.erase(this->physicsGameObjects.begin() + i);
+			}
+		}
+
+		// Remove from spot lights
+		for (int i = 0; i < this->spotLights.size(); ++i)
+		{
+			if (iterator->second == this->spotLights.at(i))
+			{
+				this->spotLights.erase(this->spotLights.begin() + i);
+			}
+		}
+
+		// Remove from point lights
+		for (int i = 0; i < this->pointLights.size(); ++i)
+		{
+			if (iterator->second == this->pointLights.at(i))
+			{
+				this->pointLights.erase(this->pointLights.begin() + i);
+			}
+		}
+
 		delete iterator->second;
+
+		gameObjectMap.erase(iterator->first);
 	}
 }
 
@@ -1027,6 +1204,7 @@ void Graphics::UpdateImGui()
 	if (selectingGameObject) {
 		ImGui::Begin("Game Object Settings"); //TITLE
 		ImGui::Text(("Label: " + selectedObject->GetLabel()).c_str()); //OBJECT LABEL
+		ImGui::InputText("Object Label", &selectedObject->GetLabelPtr()->at(0), 20);
 		XMFLOAT3 pos = selectedObject->GetTransform()->GetPositionFloat3();
 		ImGui::Text(("X: " + std::to_string(pos.x) + "Y: " + std::to_string(pos.y) + "Z: " + std::to_string(pos.z)).c_str()); //POSITION
 		if (selectedObject->GetObjectTrack() != nullptr) { //FOLLOW TRACK CHECKBOX
@@ -1108,8 +1286,8 @@ void Graphics::UpdateImGui()
 				ImGui::SliderFloat("Att. Lin.", pointLightObj->GetAttenuationLinearPtr(), 0.0f, 0.2f);
 				ImGui::SliderFloat("Att. Quad.", pointLightObj->GetAttenuationQuadraticPtr(), 0.0f, 0.05f);
 
-				ImGui::SliderFloat("Inn. Cut.", pointLightObj->GetInnerCutoffPtr(), 0.0f, 1.0f);
-				ImGui::SliderFloat("Out. Cut.", pointLightObj->GetOuterCutoffPtr(), 0.0f, 1.0f);
+				ImGui::SliderFloat("Inn. Cut.", pointLightObj->GetInnerCutoffPtr(), 0.0f, 90.0f);
+				ImGui::SliderFloat("Out. Cut.", pointLightObj->GetOuterCutoffPtr(), 0.0f, 90.0f);
 			}
 		}
 
@@ -1142,13 +1320,29 @@ void Graphics::UpdateImGui()
 			ImGui::Checkbox("Static", object->GetRigidBody()->IsStaticPtr());
 			if (ImGui::Button("Apply Upwards Thrust"))
 			{
-				object->GetRigidBody()->AddThrust(XMVectorSet(0.0f, 1000.0f, 0.0f, 0.0f), 1.0f);
+				object->GetRigidBody()->AddThrust(XMVectorSet(0.0f, 850.0f, 0.0f, 0.0f), 0.5f);
+			}
+			if (ImGui::Button("Apply Forward Thrust"))
+			{
+				object->GetRigidBody()->AddThrust(XMVector3Normalize(object->GetTransform()->GetPositionVector() - this->camera.GetTransform()->GetPositionVector()) * 800.0f, 0.5f);
 			}
 			if (ImGui::Button("Apply Torque"))
 			{
 				XMVECTOR worldPos = (object->GetTransform()->GetPositionVector() + camera.GetTransform()->GetPositionVector()) * 0.5f;
 				object->GetRigidBody()->AddTorque(worldPos - object->GetTransform()->GetPositionVector(), XMVectorSet(0.0f, 100.0f, 0.0f, 0.0f));
 			}
+			if (ImGui::Button("Apply Split Force"))
+			{
+				XMVECTOR worldPos = camera.GetTransform()->GetPositionVector();
+				object->GetRigidBody()->AddForceSplit(worldPos, camera.GetTransform()->GetFrontVector() * 10000.0f);
+			}
+		}
+
+		if (ImGui::Button("Delete Object"))
+		{
+			RemoveGameObject(selectedObject->GetLabel());
+			selectedObject = nullptr;
+			selectingGameObject = false;
 		}
 
 		if (ImGui::Button("Close")) {
@@ -1231,22 +1425,45 @@ void Graphics::UpdateImGui()
 	
 	if (ImGui::Button("Save Scene"))
 	{
-		SaveScene("test.txt");
+		SaveScene();
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Save Scene TGP"))
+	if (ImGui::Button("Export Scene"))
 	{
-		SaveScene("test.txt");
+		SaveSceneTGP();
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Load test.txt"))
+	if (ImGui::Button("Load city.txt"))
 	{
-		LoadScene("test.txt");
+		LoadScene("city.txt");
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Unload Scene"))
 	{
 		UnloadScene();
+	}
+	static char label[20] = "";
+	static char path[50] = "city/wall/frames/left/r.obj";
+	ImGui::InputText("New Object Label", &label[0], 20);
+	ImGui::InputText("New Object Path", &path[0], 50);
+
+	if (ImGui::Button("Spawn Object"))
+	{
+		std::string labelChosen = label;
+		if (labelChosen != "" && this->gameObjectMap.find(labelChosen) == this->gameObjectMap.end())
+		{
+			RenderableGameObject* newObject = new RenderableGameObject();
+			std::string pathstr = path;
+			newObject->Initialize(label, "res/models/environment/meshes/" + pathstr, this->device.Get(), this->deviceContext.Get(), &this->resourceManager);
+
+			newObject->GetTransform()->SetPosition(this->camera.GetTransform()->GetPositionVector() + this->camera.GetTransform()->GetFrontVector() * 5.0f);
+
+			this->renderableGameObjects.push_back(newObject);
+			this->gameObjectMap.insert(std::make_pair(newObject->GetLabel(), newObject));
+
+			this->selectedObject = newObject;
+			this->selectingGameObject = true;
+		}
 	}
 
 	//DIRECTIONAL LIGHT COLOUR
@@ -1280,6 +1497,29 @@ void Graphics::UpdateImGui()
 	ImGui::SliderFloat("Wave Amplitude", &this->cb_vs_vertexShader.data.waveAmplitude, 0.0f, 5.0f);
 
 	ImGui::End();
+
+
+	ImGui::Begin("Particle System Settings");
+
+	ImGui::SliderFloat3("Position", &this->particleSystem->GetEmitters()->at(0)->GetPosition()->m128_f32[0], -10.0f, 10.0f);
+
+	XMVECTOR* ParticleEmitterDirection = this->particleSystem->GetEmitters()->at(0)->GetDirection();
+	ImGui::SliderFloat3("Direction", &ParticleEmitterDirection->m128_f32[0], -1.0f, 1.0f);
+	*ParticleEmitterDirection = XMVector3Normalize(*ParticleEmitterDirection);
+
+	ImGui::SliderFloat("Direction Randomness", this->particleSystem->GetEmitters()->at(0)->GetDirectionRandomnessPtr(), 0.0f, 1.0f);
+
+	ImGui::SliderFloat("Power", this->particleSystem->GetEmitters()->at(0)->GetPowerPtr(), 0.0f, 10.0f);
+	ImGui::SliderFloat("Power Randomness", this->particleSystem->GetEmitters()->at(0)->GetPowerRandomModifierPtr(), 0.0f, 1.0f);
+
+	ImGui::SliderFloat("Max Age", this->particleSystem->GetEmitters()->at(0)->GetMaxAgePtr(), 0.0f, 5.0f);
+	ImGui::SliderFloat("Max Age Randomness", this->particleSystem->GetEmitters()->at(0)->GetMaxAgeRandomModifierPtr(), 0.0f, 1.0f);
+
+	ImGui::SliderFloat("Spawn Delay", this->particleSystem->GetEmitters()->at(0)->GetSpawnDelayPtr(), 0.0f, 0.5f);
+	ImGui::SliderFloat("Spawn Delay Rand", this->particleSystem->GetEmitters()->at(0)->GetSpawnDelayRandomModifierPtr(), 0.0f, 1.0f);
+	
+	ImGui::End();
+
 
 	ImGui::Begin("Camera Settings");
 	//CAMERA TRACK CHECKBOX
@@ -1346,13 +1586,19 @@ void Graphics::Update(float deltaTime)
 	//UPDATE GAME OBJECTS
 	camera.Update(deltaTime);
 
+	// Update springs
+	for (int i = 0; i < springs.size(); ++i)
+	{
+		springs[i]->Update();
+	}
+
 	size_t numRenderableGameObjects = renderableGameObjects.size();
 	for (size_t i = 0; i < numRenderableGameObjects; ++i)
 	{
 		renderableGameObjects.at(i)->Update(deltaTime);
 	}
 
-	CheckObjectCollisions();
+	CheckObjectCollisions(deltaTime);
 
 	size_t numPointLights = pointLights.size();
 	for (size_t i = 0; i < numPointLights; ++i)
@@ -1366,22 +1612,92 @@ void Graphics::Update(float deltaTime)
 		spotLights.at(i)->Update(deltaTime);
 	}
 	
+	//particleSystem->Update(deltaTime);
+
 	//UPDATE IMGUI
 	UpdateImGui();
 }
 
-void Graphics::CheckObjectCollisions()
+void Graphics::CheckObjectCollisions(float deltaTime)
 {
-	/*for (int i = 0; i < physicsGameObjects.size(); ++i)
+	for (int i = 0; i < physicsGameObjects.size(); ++i)
 	{
-		for (int j = i + 1; j < physicsGameObjects.size(); ++j)
+		if (!physicsGameObjects[i]->GetRigidBody()->IsStatic())
 		{
-			if (physicsGameObjects[i]->GetModel()->GetAxisAllignedBoundingBox().Instersects())
+			for (int j = i + 1; j < physicsGameObjects.size(); ++j)
 			{
+				if (physicsGameObjects[i]->GetWorldSpaceBoundingBox().Intersects(physicsGameObjects[j]->GetWorldSpaceBoundingBox()))
+				{
+					float velocityOne = std::max(XMVectorGetX(XMVector3Length(physicsGameObjects[i]->GetRigidBody()->GetVelocity())), 1.0f);
+					float velocityTwo = std::max(XMVectorGetX(XMVector3Length(physicsGameObjects[j]->GetRigidBody()->GetVelocity())), 1.0f);
 
+					float forceMagnitude = (physicsGameObjects[i]->GetMass() * velocityOne + physicsGameObjects[j]->GetMass() * velocityTwo) / deltaTime;
+					XMVECTOR force = XMVector3Normalize(physicsGameObjects[j]->GetTransform()->GetPositionVector() - physicsGameObjects[i]->GetTransform()->GetPositionVector()) * forceMagnitude * 0.15f; //remove force (coefficient of restitution)
+					physicsGameObjects[i]->GetRigidBody()->AddForce(-force);
+					physicsGameObjects[j]->GetRigidBody()->AddForce(force);
+
+					/*XMVECTOR relativeOne = 0.5f * (physicsGameObjects[j]->GetTransform()->GetPositionVector() - physicsGameObjects[i]->GetTransform()->GetPositionVector());
+					XMVECTOR forceOne = physicsGameObjects[i]->GetRigidBody()->GetForceAtRelativePosition(relativeOne);
+
+					XMVECTOR relativeTwo = 0.5f * (physicsGameObjects[i]->GetTransform()->GetPositionVector() - physicsGameObjects[j]->GetTransform()->GetPositionVector());
+					XMVECTOR forceTwo = physicsGameObjects[j]->GetRigidBody()->GetForceAtRelativePosition(relativeTwo);
+
+					physicsGameObjects[i]->GetRigidBody()->AddForce(-force);
+					physicsGameObjects[j]->GetRigidBody()->AddForce(force);
+
+					physicsGameObjects[i]->GetRigidBody()->AddTorque(relativeOne, (forceTwo * 0.5f - forceOne * 0.5f) * 0.005f);
+					physicsGameObjects[j]->GetRigidBody()->AddTorque(relativeTwo, (forceOne * 0.5f - forceTwo * 0.5f) * 0.005f);*/
+				}
+			}
+
+			std::vector<XMFLOAT3>* vertices = physicsGameObjects[i]->GetModel()->GetVertices();
+			XMFLOAT3 objectPosition = physicsGameObjects[i]->GetTransform()->GetPositionFloat3();
+			for (int j = 0; j < vertices->size(); ++j)
+			{
+				XMFLOAT3 vertexPosition = vertices->at(j);
+				XMVECTOR rotatedPosition = XMVector3Transform(XMLoadFloat3(&vertexPosition), physicsGameObjects[i]->GetTransform()->GetRotationMatrix());
+				XMStoreFloat3(&vertexPosition, rotatedPosition);
+
+				float diff = objectPosition.y + vertexPosition.y + 2.0f;
+				if (diff < 0.0f)
+				{
+					physicsGameObjects[i]->GetTransform()->SetPosition(physicsGameObjects[i]->GetTransform()->GetPositionVector() + XMVectorSet(0.0f, -diff, 0.0f, 0.0f));
+					objectPosition = physicsGameObjects[i]->GetTransform()->GetPositionFloat3();
+
+					float force = (XMVectorGetX(XMVector3Length(physicsGameObjects[i]->GetRigidBody()->GetVelocity())) * physicsGameObjects[i]->GetRigidBody()->GetMass()) / deltaTime;
+					//float force = XMVectorGetY(physicsGameObjects[i]->GetRigidBody()->GetForceAtRelativePosition(rotatedPosition));
+					physicsGameObjects[i]->GetRigidBody()->AddForce(XMVectorSet(0.0f, force * 0.8f, 0.0f, 0.0f));
+					physicsGameObjects[i]->GetRigidBody()->AddTorque(rotatedPosition, XMVectorSet(0.0f, force * 0.005f, 0.0f, 0.0f));
+					//float dot = XMVectorGetX(XMVector3Dot(XMVector3Normalize(force), XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f)));
+					//if (dot > 0.0f)
+					//{
+					//	physicsGameObjects[i]->GetRigidBody()->AddForce(force * dot);//physicsGameObjects[i]->GetTransform()->GetPositionVector() + rotatedPosition, 
+					//	//physicsGameObjects[i]->GetRigidBody()->AddTorque(rotatedPosition, -force * 0.005f);
+					//}
+				}
+			}
+
+			float upthrustMagnitude = (physicsGameObjects[i]->GetRigidBody()->GetMass() * 18.0f) / static_cast<float>(vertices->size());
+			for (int j = 0; j < vertices->size(); ++j)
+			{
+				XMFLOAT3 vertexPosition = vertices->at(j);
+				XMVECTOR rotatedPosition = XMVector3Transform(XMLoadFloat3(&vertexPosition), physicsGameObjects[i]->GetTransform()->GetRotationMatrix());
+				XMStoreFloat3(&vertexPosition, rotatedPosition);
+
+				float diff = objectPosition.y + vertexPosition.y - GetWaterHeightAt(objectPosition.x + vertexPosition.x, objectPosition.z + vertexPosition.z, true);
+				if (diff < 0.0f)
+				{
+					//Buoyancy forces
+					physicsGameObjects[i]->GetRigidBody()->AddForce(XMVectorSet(0.0f, upthrustMagnitude, 0.0f, 0.0f));
+					physicsGameObjects[i]->GetRigidBody()->AddTorque(rotatedPosition, XMVectorSet(0.0f, upthrustMagnitude * 0.001f, 0.0f, 0.0f));
+
+					//Water drag forces
+					XMVECTOR waterDragForce = physicsGameObjects[i]->GetRigidBody()->GetMass() * -physicsGameObjects[i]->GetRigidBody()->GetVelocity() * 0.1f;
+					physicsGameObjects[i]->GetRigidBody()->AddForce(waterDragForce);
+				}
 			}
 		}
-	}*/
+	}
 }
 
 void Graphics::AdjustMouseX(int xPos)
@@ -1575,18 +1891,19 @@ void Graphics::CheckSelectingObject()
 		//CLAMP SCALE
 		if (objectHitRadius < 0.75f) objectHitRadius = 0.75f;
 
+		float camdist = XMVectorGetX(XMVector3Length(this->selectedObject->GetTransform()->GetPositionVector() - this->camera.GetTransform()->GetPositionVector()));
+		objectHitRadius *= camdist * 0.5f;
+
 		//TRANSLATE
 		if (this->axisEditState == AxisEditState::EDIT_TRANSLATE) {
-			objectHitRadius *= 2.0f;
-
 			//UPDATE D3D COLLISION OBJECTS
 			this->xAxisTranslateBoudingBox.Extents = XMFLOAT3(xAxisTranslateDefaultBounds.x * objectHitRadius, xAxisTranslateDefaultBounds.y * objectHitRadius, xAxisTranslateDefaultBounds.z * objectHitRadius);
 			this->yAxisTranslateBoudingBox.Extents = XMFLOAT3(yAxisTranslateDefaultBounds.x * objectHitRadius, yAxisTranslateDefaultBounds.y * objectHitRadius, yAxisTranslateDefaultBounds.z * objectHitRadius);
 			this->zAxisTranslateBoudingBox.Extents = XMFLOAT3(zAxisTranslateDefaultBounds.x * objectHitRadius, zAxisTranslateDefaultBounds.y * objectHitRadius, zAxisTranslateDefaultBounds.z * objectHitRadius);
 
-			this->xAxisTranslateBoudingBox.Center = XMFLOAT3(objectPos.x + 0.6f, objectPos.y, objectPos.z);
-			this->yAxisTranslateBoudingBox.Center = XMFLOAT3(objectPos.x, objectPos.y + 0.6f, objectPos.z);
-			this->zAxisTranslateBoudingBox.Center = XMFLOAT3(objectPos.x, objectPos.y, objectPos.z + 0.6f);
+			this->xAxisTranslateBoudingBox.Center = XMFLOAT3(objectPos.x + objectHitRadius * 0.6f, objectPos.y, objectPos.z);
+			this->yAxisTranslateBoudingBox.Center = XMFLOAT3(objectPos.x, objectPos.y + objectHitRadius * 0.6f, objectPos.z);
+			this->zAxisTranslateBoudingBox.Center = XMFLOAT3(objectPos.x, objectPos.y, objectPos.z + objectHitRadius * 0.6f);
 
 			//CHECK IF AN AXIS IS CLICKED ON
 			if (this->xAxisTranslateBoudingBox.Intersects(camera.GetTransform()->GetPositionVector(), camera.GetMouseToWorldVectorDirection(), distance)) {
@@ -1616,9 +1933,8 @@ void Graphics::CheckSelectingObject()
 		}
 		//ROTATE
 		else if (this->axisEditState == AxisEditState::EDIT_ROTATE) {
-
 			XMMATRIX modelRotationMatrix = selectedObject->GetTransform()->GetRotationMatrix();
-
+			objectHitRadius *= 0.5f;
 			{
 				//GET TRANSFORMED AXIS VECTOR (PLANE NORMAL)
 				XMVECTOR planeNormal = XMVector3Normalize(XMVector4Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), modelRotationMatrix));
@@ -1707,11 +2023,14 @@ void Graphics::DrawAxisForObject(GameObject* gameObject, const XMMATRIX& viewPro
 	//CLAMP SCALE
 	if (scale < 0.75f) scale = 0.75f;
 
+	float distance = XMVectorGetX(XMVector3Length(this->selectedObject->GetTransform()->GetPositionVector() - this->camera.GetTransform()->GetPositionVector()));
+	scale *= distance * 0.5;
+
 	if (this->axisEditState == AxisEditState::EDIT_TRANSLATE) {
 		this->axisTranslateModel.Draw(XMMatrixScaling(scale, scale, scale) * translationMatrix, viewProjection, &cb_vs_vertexShader);
 	}
 	else if (this->axisEditState == AxisEditState::EDIT_ROTATE) { //Multiply by rotation matrix when rotating
-		this->axisRotateModel.Draw(XMMatrixScaling(scale, scale, scale) * this->selectedObject->GetTransform()->GetRotationMatrix() * translationMatrix, viewProjection, &cb_vs_vertexShader);
+		this->axisRotateModel.Draw(XMMatrixScaling(scale * 0.5f, scale * 0.5f, scale * 0.5f) * this->selectedObject->GetTransform()->GetRotationMatrix() * translationMatrix, viewProjection, &cb_vs_vertexShader);
 	}
 }
 
@@ -1731,12 +2050,16 @@ XMVECTOR Graphics::RayPlaneIntersect(XMVECTOR rayPoint, XMVECTOR rayDirection, X
 	return (diff + planePoint) + rayDirection * (-XMVector3Dot(diff, planeNormal) / XMVector3Dot(rayDirection, planeNormal));
 }
 
-float Graphics::GetWaterHeightAt(float posX, float posZ)
+float Graphics::GetWaterHeightAt(float posX, float posZ, bool exact)
 {
 	float gameTime = cb_vs_vertexShader.data.gameTime;
-	float value = 0.0f;// sin(posX * 1.5f + gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + gameTime * 0.0019f) * 0.05f;
+	float value = 0.0f;
 	value += sin(-posX * 0.4f + gameTime * 1.2f) * 0.15f + sin(posZ * 0.5f + gameTime * 1.3f) * 0.15f;
 	value += sin(posX * 0.2f + gameTime * 0.6f) * 0.5f + sin(-posZ * 0.22f + gameTime * 0.4f) * 0.45f;
+	if (exact)
+	{
+		value += sin(posX * 1.5f + gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + gameTime * 0.0019f) * 0.05f;
+	}
 	return value * this->cb_vs_vertexShader.data.waveAmplitude;
 }
 
@@ -1745,7 +2068,7 @@ void Graphics::FloatObject(GameObject* object)
 	XMFLOAT3 positionFloat = object->GetTransform()->GetPositionFloat3();
 	XMVECTOR position = XMVectorSet(0.0f, GetWaterHeightAt(positionFloat.x, positionFloat.z), 0.0f, 0.0f);
 
-	object->GetTransform()->SetPosition(XMFLOAT3(positionFloat.x, XMVectorGetY(position) - 3.5f, positionFloat.z));
+	object->GetTransform()->SetPosition(XMFLOAT3(positionFloat.x, XMVectorGetY(position) + 1.5f, positionFloat.z));
 
 	XMVECTOR objectFront = object->GetTransform()->GetFrontVector();
 	XMVECTOR objectRight = object->GetTransform()->GetRightVector();

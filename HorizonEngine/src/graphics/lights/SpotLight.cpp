@@ -8,7 +8,9 @@ SpotLight::SpotLight() {
 }
 
 void SpotLight::UpdateShaderVariables(ConstantBuffer<CB_PS_pixelShader>& cb_ps_pixelShader, int lightIndex) {
-	cb_ps_pixelShader.data.spotLights[lightIndex].colour = this->colour;
+	//NORMALIZE
+	XMVECTOR colour = XMVector3Normalize(XMLoadFloat3(&this->colour)) * 5.0f;
+	XMStoreFloat3(&cb_ps_pixelShader.data.spotLights[lightIndex].colour, colour);
 
 	cb_ps_pixelShader.data.spotLights[lightIndex].attenuationConstant = this->attenuationConstant;
 	cb_ps_pixelShader.data.spotLights[lightIndex].attenuationLinear = this->attenuationLinear;
@@ -44,4 +46,24 @@ float* SpotLight::GetInnerCutoffPtr()
 float* SpotLight::GetOuterCutoffPtr()
 {
 	return &outerCutoff;
+}
+
+float SpotLight::GetInnerCutoff()
+{
+	return this->innerCutoff;
+}
+
+float SpotLight::GetOuterCutoff()
+{
+	return this->outerCutoff;
+}
+
+void SpotLight::SetInnerCutoff(float innerCutoff)
+{
+	this->innerCutoff = innerCutoff;
+}
+
+void SpotLight::SetOuterCutoff(float outerCutoff)
+{
+	this->outerCutoff = outerCutoff;
 }

@@ -24,15 +24,15 @@ bool RenderableGameObject::Initialize(std::string label, const std::string& file
 	return true;
 }
 
-void RenderableGameObject::Draw(const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader)
+void RenderableGameObject::Draw(const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader, bool bindTextures)
 {
 	XMFLOAT3 objectPosition = this->transform.GetPositionFloat3();
 
 	if (this->type == GameObjectType::RENDERABLE) {
-		model->Draw(XMMatrixScaling(this->scale.x, this->scale.y, this->scale.z) * this->transform.GetRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z) , viewProjectionMatrix, cb_vs_vertexShader);
+		model->Draw(XMMatrixScaling(this->scale.x, this->scale.y, this->scale.z) * this->transform.GetRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z) , viewProjectionMatrix, cb_vs_vertexShader, bindTextures);
 	}
 	else {
-		model->Draw(this->transform.GetRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z) , viewProjectionMatrix, cb_vs_vertexShader);
+		model->Draw(this->transform.GetRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z) , viewProjectionMatrix, cb_vs_vertexShader, bindTextures);
 	}
 }
 
@@ -49,13 +49,20 @@ float RenderableGameObject::GetRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR ray
 
 	BoundingOrientedBox orientedObjectBoundingBox = BoundingOrientedBox(objectBoundingBox.Center, objectBoundingBox.Extents, orientationFloat4);
 	
-	float distance;
-	orientedObjectBoundingBox.Intersects(rayOrigin, rayDirection, distance);
-	if (distance > 0.0f)
+	float rayDistance;
+	if (orientedObjectBoundingBox.Intersects(rayOrigin, rayDirection, rayDistance));
 	{
-		// Do face check
-		return distance;
+		XMMATRIX inverseRotationMatrix = XMMatrixInverse(nullptr, this->GetTransform()->GetRotationMatrix());
+
+		XMVECTOR rayOriginLocalSpace = XMVector3Transform(rayOrigin - this->GetTransform()->GetPositionVector(), inverseRotationMatrix);
+		XMVECTOR rayDirectionLocalSpace = XMVector3Transform(rayDirection, inverseRotationMatrix);
+
+		if (this->GetModel()->RayInersect(rayOriginLocalSpace, rayDirectionLocalSpace, &rayDistance))
+		{
+			return rayDistance;
+		}
 	}
+	
 	return FLT_MAX;
 }
 

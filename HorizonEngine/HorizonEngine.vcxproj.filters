@@ -180,6 +180,12 @@
     <ClCompile Include="src\physics\RigidBody.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="physics\ParticleSystem.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="physics\Spring.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\RenderWindow.h">
@@ -314,6 +320,12 @@
     <ClInclude Include="src\physics\RigidBody.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
+    <ClInclude Include="physics\ParticleSystem.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\Spring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="res\shaders\pixelShader.hlsl">
@@ -335,5 +347,6 @@
   <ItemGroup>
     <None Include="HorizonEngine.cd" />
     <None Include="HorizonEngine New.cd" />
+    <None Include="HorizonEnginePhysics.cd" />
   </ItemGroup>
 </Project>

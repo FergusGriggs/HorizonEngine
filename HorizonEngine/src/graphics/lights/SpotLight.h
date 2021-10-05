@@ -18,6 +18,12 @@ public:
 	float* GetInnerCutoffPtr();
 	float* GetOuterCutoffPtr();
 
+	float GetInnerCutoff();
+	float GetOuterCutoff();
+
+	void SetInnerCutoff(float innerCutoff);
+	void SetOuterCutoff(float outerCutoff);
+
 	/*float attenuationConstant = 1.0f;
 	float attenuationLinear = 0.045f;
 	float attenuationQuadratic = 0.0075f;
@@ -29,7 +35,7 @@ public:
 	float attenuationLinear = 0.044f;
 	float attenuationQuadratic = 0.0015f;
 
-	float innerCutoff = 1.0f;
-	float outerCutoff = 0.923f;
+	float innerCutoff = 45.0f;
+	float outerCutoff = 35.0f;
 };
 

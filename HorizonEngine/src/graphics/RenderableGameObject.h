@@ -11,7 +11,7 @@ class RenderableGameObject : public GameObject
 public:
 	RenderableGameObject();
 	bool Initialize(std::string label, const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ResourceManager* resourceManager);
-	void Draw(const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader);
+	void Draw(const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader, bool bindTextures = true);
 
 	float GetRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection);
 

@@ -15,6 +15,8 @@
 #include "lights/PointLight.h"
 #include "utility/ResourceManager.h"
 #include "utility/Controller.h"
+#include "../physics/ParticleSystem.h"
+#include "../physics/Spring.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_win32.h"
@@ -51,7 +53,7 @@ public:
 	bool Initialize(HWND hwnd, int width, int height, ControllerManager* controllerManager);
 	void RenderFrame(float deltaTime);
 	void Update(float deltaTime);
-	void CheckObjectCollisions();
+	void CheckObjectCollisions(float deltaTime);
 
 	void AdjustMouseX(int xPos);
 	void AdjustMouseY(int yPos);
@@ -71,8 +73,8 @@ public:
 	void WriteFloat4(const XMVECTOR& float4, std::ofstream& stream);
 
 	bool LoadScene(const char* sceneName);
-	bool SaveScene(const char* sceneName);
-	bool SaveSceneTGP(const char* sceneName);
+	bool SaveScene();
+	bool SaveSceneTGP();
 	void UnloadScene();
 
 	void RemoveGameObject(std::string gameObjectLabel);
@@ -100,8 +102,12 @@ public:
 	std::vector<PointLight*> pointLights;
 	std::vector<SpotLight*> spotLights;
 
+	std::vector<Spring*> springs;
+
 	Model axisTranslateModel;
 	Model axisRotateModel;
+	Model particleMesh;
+	Model springModel;
 
 	XMFLOAT3 xAxisTranslateDefaultBounds;
 	XMFLOAT3 yAxisTranslateDefaultBounds;
@@ -114,12 +120,22 @@ public:
 	ResourceManager resourceManager;
 	ControllerManager* controllerManager;
 
+	ParticleSystem* particleSystem;
+
+	Texture* defaultDiffuseTexture;
+	Texture* defaultSpecularTexture;
+	Texture* defaultNormalTexture;
+
+	Texture* highlightDiffuseTexture;
+	Texture* highlightSpecularTexture;
+	Texture* highlightNormalTexture;
+
 private:
 	bool InitializeDirectX(HWND hwnd);
 	bool InitializeShaders();
 	bool InitializeScene();
 	void FloatObject(GameObject* object);
-	float GetWaterHeightAt(float posX, float posZ);
+	float GetWaterHeightAt(float posX, float posZ, bool exact = false);
 
 	Microsoft::WRL::ComPtr<ID3D11Device> device;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
@@ -177,6 +193,7 @@ private:
 	bool useVSync = true;
 
 	bool sceneLoaded = false;
+	std::string sceneLoadedName;
 
 	int newObjectType;
 	bool newObjectMenuOpen = false;

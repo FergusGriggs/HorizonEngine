@@ -16,12 +16,13 @@ class Model
 {
 public:
 	bool Initialize(const std::string & filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext, ResourceManager* resourceManager);
-	void Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader);
+	void Draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader, bool bindTextures = true);
 	float GetHitRadius();
 	std::string GetPath();
 
 	BoundingBox GetBoundingBox();
 	std::vector<XMFLOAT3>* GetVertices();
+	bool RayInersect(XMVECTOR rayOrigin, XMVECTOR rayDirection, float* rayDistance);
 
 private:
 	bool LoadModel(const std::string& filePath);
@@ -44,7 +45,10 @@ private:
 	float modelHitRadius = 0.5f;
 
 	BoundingBox boundingBox;
+
 	std::vector<XMFLOAT3> vertices;
+	int currentNumVerts = 0;
+	std::vector<DWORD> indices;
 };
 
 #include "utility/ResourceManager.h";

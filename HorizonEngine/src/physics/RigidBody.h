@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ParticleModel.h"
+#include <algorithm>
 
 class RigidBody : public ParticleModel
 {
@@ -20,6 +21,8 @@ public:
 	void Update(float deltaTime) override;
 
 	void AddTorque(XMVECTOR relativePosition, XMVECTOR force);
+	void AddForceSplit(XMVECTOR position, XMVECTOR force);
+
 	void ComputeAngularAcceleration();
 	void ComputeAngluarVelocity(float deltaTime);
 	void ComputeOrientation(float deltaTime);
@@ -29,5 +32,7 @@ public:
 	void ComputeSphereIntertiaTensor(float radius);
 	void ComputeShellIntertiaTensor(float radius);
 	void ComputeBoxIntertiaTensor(float sizeX, float sizeY, float sizeZ);
+
+	XMVECTOR GetForceAtRelativePosition(XMVECTOR relativePosition);
 };
 
