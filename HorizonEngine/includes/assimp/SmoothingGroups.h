@@ -60,9 +60,9 @@ struct FaceWithSmoothingGroup
     {
         // in debug builds set all indices to a common magic value
 #ifdef ASSIMP_BUILD_DEBUG
-        this->mIndices[0] = 0xffffffff;
-        this->mIndices[1] = 0xffffffff;
-        this->mIndices[2] = 0xffffffff;
+        mIndices[0] = 0xffffffff;
+        mIndices[1] = 0xffffffff;
+        mIndices[2] = 0xffffffff;
 #endif
     }
 

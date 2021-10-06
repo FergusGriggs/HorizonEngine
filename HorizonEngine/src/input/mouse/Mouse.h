@@ -1,41 +1,46 @@
 #pragma once
 
-#include "MouseEvent.h"
+#include "mouse_event.h"
 
 #include <queue>
 
-class Mouse
+namespace hrzn::input
 {
-public:
-	Mouse();
+	class Mouse
+	{
+	public:
+		Mouse();
 
-	void OnLeftPressed(int x, int y);
-	void OnLeftReleased(int x, int y);
-	void OnRightPressed(int x, int y);
-	void OnRightReleased(int x, int y);
-	void OnMiddlePressed(int x, int y);
-	void OnMiddleReleased(int x, int y);
-	void OnScrollUp(int x, int y);
-	void OnScrollDown(int x, int y);
-	void OnMouseMove(int x, int y);
-	void OnMouseMoveRaw(int x, int y);
+		void onLeftPressed(int x, int y);
+		void onLeftReleased(int x, int y);
 
-	bool IsLeftDown();
-	bool IsRightDown();
-	bool IsMiddleDown();
+		void onRightPressed(int x, int y);
+		void onRightReleased(int x, int y);
 
-	int GetPosX();
-	int GetPosY();
-	MousePos GetPos();
+		void onMiddlePressed(int x, int y);
+		void onMiddleReleased(int x, int y);
 
-	bool EventBufferIsEmpty();
-	MouseEvent ReadEvent();
+		void onScrollUp(int x, int y);
+		void onScrollDown(int x, int y);
 
-private:
-	std::queue<MouseEvent> eventBuffer;
-	bool leftIsDown = false;
-	bool rightIsDown = false;
-	bool middleIsDown = false;
-	MousePos pos;
-};
+		void onMouseMove(int x, int y);
+		void onMouseMoveRaw(int x, int y);
 
+		bool isLeftDown() const;
+		bool isRightDown() const;
+		bool isMiddleDown() const;
+
+		const MousePos& getPos() const;
+
+		bool isEventBufferEmpty() const;
+		MouseEvent readEvent();
+
+	private:
+		std::queue<MouseEvent> m_eventBuffer;
+		MousePos               m_pos;
+
+		bool m_leftIsDown;
+		bool m_rightIsDown;
+		bool m_middleIsDown;
+	};
+}

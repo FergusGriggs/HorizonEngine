@@ -5,26 +5,30 @@
 
 #include <Audio.h>
 
-#include "WindowContainer.h"
-#include "utility/Timer.h"
-#include "graphics/utility/Controller.h"
+#include "window_container.h"
+#include "utils/timer.h"
+#include "entities/utility/game_object_controller.h"
 
-class Horizon : WindowContainer
+namespace hrzn
 {
-public:
-	Horizon();
-	Horizon(const Horizon&);
-	bool Initialize(HINSTANCE hInstance, std::string windowTitle, std::string windowClass, int width, int height);
-	bool ProcessMessages();
-	void Update();
-	void RenderFrame();
+	class Horizon : WindowContainer
+	{
+	public:
+		Horizon();
+		Horizon(const Horizon&);
 
-private:
-	Timer timer;
-	float deltaTime;
-	AudioEngine* audioEngine;
-	SoundEffect* soundEffect;
+		bool initialize(HINSTANCE hInstance, std::string windowTitle, std::string windowClass, int width, int height);
+		bool processMessages();
+		void update();
+		void renderFrame();
 
-	ControllerManager* controllerManager;
-};
+	private:
+		utils::Timer m_timer;
+		float        m_deltaTime;
 
+		AudioEngine* m_audioEngine;
+		SoundEffect* m_soundEffect;
+
+		entity::ControllerManager m_controllerManager;
+	};
+}

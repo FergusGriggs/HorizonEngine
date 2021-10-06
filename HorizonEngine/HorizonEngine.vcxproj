@@ -98,6 +98,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\HorizonEngine\includes;%(AdditionalLibraryDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -115,6 +116,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\HorizonEngine\includes;%(AdditionalLibraryDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -134,6 +136,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\HorizonEngine\includes;%(AdditionalLibraryDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -155,6 +158,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\HorizonEngine\includes;%(AdditionalLibraryDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -167,94 +171,57 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="graphics\utility\Controller.cpp" />
-    <ClCompile Include="graphics\utility\ObjectTrack.cpp" />
-    <ClCompile Include="graphics\Colour.cpp" />
-    <ClCompile Include="graphics\GameObject.cpp" />
-    <ClCompile Include="graphics\Camera.cpp" />
-    <ClCompile Include="graphics\utility\AdapterReader.cpp" />
-    <ClCompile Include="graphics\utility\ResourceManager.cpp" />
-    <ClCompile Include="physics\ParticleModel.cpp" />
-    <ClCompile Include="graphics\PhysicsGameObject.cpp" />
-    <ClCompile Include="graphics\Transform.cpp" />
-    <ClCompile Include="physics\RigidBody.cpp" />
-    <ClCompile Include="src\graphics\Camera.cpp" />
-    <ClCompile Include="src\graphics\Colour.cpp" />
-    <ClCompile Include="src\graphics\GameObject.cpp" />
-    <ClCompile Include="src\graphics\Graphics.cpp" />
+    <ClCompile Include="src\entities\camera_game_object.cpp" />
+    <ClCompile Include="src\entities\physics\particle_system\particle_system_emitter.cpp" />
+    <ClCompile Include="src\entities\physics\particle_system\particle_system_particle.cpp" />
+    <ClCompile Include="src\graphics\data\colour.cpp" />
+    <ClCompile Include="src\entities\game_object.cpp" />
+    <ClCompile Include="src\graphics\graphics_handler.cpp" />
     <ClCompile Include="src\graphics\imgui\imgui.cpp" />
     <ClCompile Include="src\graphics\imgui\imgui_draw.cpp" />
     <ClCompile Include="src\graphics\imgui\imgui_impl_dx11.cpp" />
     <ClCompile Include="src\graphics\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="src\graphics\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="src\graphics\lights\Light.cpp" />
-    <ClCompile Include="src\graphics\lights\PointLight.cpp" />
-    <ClCompile Include="src\graphics\lights\SpotLight.cpp" />
-    <ClCompile Include="src\graphics\Mesh.cpp" />
-    <ClCompile Include="src\graphics\Model.cpp" />
-    <ClCompile Include="src\graphics\PhysicsGameObject.cpp" />
-    <ClCompile Include="src\graphics\RenderableGameObject.cpp" />
-    <ClCompile Include="src\graphics\Shader.cpp" />
-    <ClCompile Include="src\graphics\Texture.cpp" />
-    <ClCompile Include="src\graphics\Transform.cpp" />
-    <ClCompile Include="src\graphics\utility\AdapterReader.cpp" />
-    <ClCompile Include="src\graphics\utility\Controller.cpp" />
-    <ClCompile Include="src\graphics\utility\ObjectTrack.cpp" />
-    <ClCompile Include="src\graphics\utility\ResourceManager.cpp" />
-    <ClCompile Include="src\Horizon.cpp" />
-    <ClCompile Include="src\input\keyboard\Keyboard.cpp" />
-    <ClCompile Include="src\input\keyboard\KeyboardEvent.cpp" />
-    <ClCompile Include="src\input\mouse\Mouse.cpp" />
-    <ClCompile Include="src\input\mouse\MouseEvent.cpp" />
+    <ClCompile Include="src\entities\lights\light_game_object.cpp" />
+    <ClCompile Include="src\entities\lights\point_light_game_object.cpp" />
+    <ClCompile Include="src\entities\lights\spot_light_game_object.cpp" />
+    <ClCompile Include="src\graphics\data\mesh.cpp" />
+    <ClCompile Include="src\graphics\data\model.cpp" />
+    <ClCompile Include="src\entities\physics\physics_game_object.cpp" />
+    <ClCompile Include="src\entities\renderable_game_object.cpp" />
+    <ClCompile Include="src\graphics\shaders\shader.cpp" />
+    <ClCompile Include="src\graphics\data\texture.cpp" />
+    <ClCompile Include="src\entities\transform.cpp" />
+    <ClCompile Include="src\utils\adapter_reader.cpp" />
+    <ClCompile Include="src\entities\utility\game_object_controller.cpp" />
+    <ClCompile Include="src\entities\utility\game_object_track.cpp" />
+    <ClCompile Include="src\graphics\data\resource_manager.cpp" />
+    <ClCompile Include="src\horizon.cpp" />
+    <ClCompile Include="src\input\keyboard\keyboard.cpp" />
+    <ClCompile Include="src\input\keyboard\keyboard_event.cpp" />
+    <ClCompile Include="src\input\mouse\mouse.cpp" />
+    <ClCompile Include="src\input\mouse\mouse_event.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\physics\ParticleModel.cpp" />
-    <ClCompile Include="src\physics\ParticleSystem.cpp" />
-    <ClCompile Include="src\physics\RigidBody.cpp" />
-    <ClCompile Include="src\physics\Spring.cpp" />
-    <ClCompile Include="src\RenderWindow.cpp" />
-    <ClCompile Include="src\utility\ErrorLogger.cpp" />
-    <ClCompile Include="src\utility\StringHelper.cpp" />
-    <ClCompile Include="src\utility\Timer.cpp" />
-    <ClCompile Include="src\WindowContainer.cpp" />
-    <ClCompile Include="utility\ErrorLogger.cpp" />
-    <ClCompile Include="graphics\Graphics.cpp" />
-    <ClCompile Include="graphics\imgui\imgui.cpp" />
-    <ClCompile Include="graphics\imgui\imgui_draw.cpp" />
-    <ClCompile Include="graphics\imgui\imgui_impl_dx11.cpp" />
-    <ClCompile Include="graphics\imgui\imgui_impl_win32.cpp" />
-    <ClCompile Include="graphics\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="graphics\Texture.cpp" />
-    <ClCompile Include="input\keyboard\Keyboard.cpp" />
-    <ClCompile Include="input\keyboard\KeyboardEvent.cpp" />
-    <ClCompile Include="graphics\lights\Light.cpp" />
-    <ClCompile Include="graphics\Model.cpp" />
-    <ClCompile Include="graphics\Mesh.cpp" />
-    <ClCompile Include="input\mouse\Mouse.cpp" />
-    <ClCompile Include="input\mouse\MouseEvent.cpp" />
-    <ClCompile Include="graphics\RenderableGameObject.cpp" />
-    <ClCompile Include="graphics\lights\PointLight.cpp" />
-    <ClCompile Include="graphics\Shader.cpp" />
-    <ClCompile Include="graphics\lights\SpotLight.cpp" />
-    <ClCompile Include="utility\StringHelper.cpp" />
-    <ClCompile Include="utility\Timer.cpp" />
+    <ClCompile Include="src\entities\physics\particle_model.cpp" />
+    <ClCompile Include="src\entities\physics\particle_system\particle_system.cpp" />
+    <ClCompile Include="src\entities\physics\rigid_body.cpp" />
+    <ClCompile Include="src\entities\physics\spring.cpp" />
+    <ClCompile Include="src\render_window.cpp" />
+    <ClCompile Include="src\utils\error_logger.cpp" />
+    <ClCompile Include="src\utils\timer.cpp" />
+    <ClCompile Include="src\window_container.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="graphics\utility\Controller.h" />
-    <ClInclude Include="graphics\utility\ObjectTrack.h" />
-    <ClInclude Include="graphics\Colour.h" />
-    <ClInclude Include="graphics\utility\ResourceManager.h" />
-    <ClInclude Include="physics\ParticleModel.h" />
-    <ClInclude Include="graphics\PhysicsGameObject.h" />
-    <ClInclude Include="graphics\Transform.h" />
-    <ClInclude Include="physics\RigidBody.h" />
-    <ClInclude Include="src\graphics\buffers\ConstantBuffer.h" />
-    <ClInclude Include="src\graphics\buffers\ConstantBufferTypes.h" />
-    <ClInclude Include="src\graphics\buffers\IndexBuffer.h" />
-    <ClInclude Include="src\graphics\buffers\VertexBuffer.h" />
-    <ClInclude Include="src\graphics\Camera.h" />
-    <ClInclude Include="src\graphics\Colour.h" />
-    <ClInclude Include="src\graphics\GameObject.h" />
-    <ClInclude Include="src\graphics\Graphics.h" />
+    <ClInclude Include="src\entities\physics\particle_system\particle_system_emitter.h" />
+    <ClInclude Include="src\entities\physics\particle_system\particle_system_particle.h" />
+    <ClInclude Include="src\graphics\buffers\constant_buffer.h" />
+    <ClInclude Include="src\graphics\buffers\constant_buffer_types.h" />
+    <ClInclude Include="src\graphics\buffers\index_buffer.h" />
+    <ClInclude Include="src\graphics\buffers\vertex_buffer.h" />
+    <ClInclude Include="src\entities\camera_game_object.h" />
+    <ClInclude Include="src\graphics\data\colour.h" />
+    <ClInclude Include="src\entities\game_object.h" />
+    <ClInclude Include="src\graphics\graphics_handler.h" />
     <ClInclude Include="src\graphics\imgui\imconfig.h" />
     <ClInclude Include="src\graphics\imgui\imgui.h" />
     <ClInclude Include="src\graphics\imgui\imgui_impl_dx11.h" />
@@ -263,69 +230,36 @@
     <ClInclude Include="src\graphics\imgui\imstb_rectpack.h" />
     <ClInclude Include="src\graphics\imgui\imstb_textedit.h" />
     <ClInclude Include="src\graphics\imgui\imstb_truetype.h" />
-    <ClInclude Include="src\graphics\lights\Light.h" />
-    <ClInclude Include="src\graphics\lights\PointLight.h" />
-    <ClInclude Include="src\graphics\lights\SpotLight.h" />
-    <ClInclude Include="src\graphics\Mesh.h" />
-    <ClInclude Include="src\graphics\Model.h" />
-    <ClInclude Include="src\graphics\PhysicsGameObject.h" />
-    <ClInclude Include="src\graphics\RenderableGameObject.h" />
-    <ClInclude Include="src\graphics\Shader.h" />
-    <ClInclude Include="src\graphics\Texture.h" />
-    <ClInclude Include="src\graphics\Transform.h" />
-    <ClInclude Include="src\graphics\utility\AdapterReader.h" />
-    <ClInclude Include="src\graphics\utility\Controller.h" />
-    <ClInclude Include="src\graphics\utility\ObjectTrack.h" />
-    <ClInclude Include="src\graphics\utility\ResourceManager.h" />
-    <ClInclude Include="src\graphics\Vertex.h" />
-    <ClInclude Include="src\Horizon.h" />
-    <ClInclude Include="src\input\keyboard\Keyboard.h" />
-    <ClInclude Include="src\input\keyboard\KeyboardEvent.h" />
-    <ClInclude Include="src\input\mouse\Mouse.h" />
-    <ClInclude Include="src\input\mouse\MouseEvent.h" />
-    <ClInclude Include="src\physics\ParticleModel.h" />
-    <ClInclude Include="src\physics\ParticleSystem.h" />
-    <ClInclude Include="src\physics\RigidBody.h" />
-    <ClInclude Include="src\physics\Spring.h" />
-    <ClInclude Include="src\RenderWindow.h" />
-    <ClInclude Include="src\utility\COMException.h" />
-    <ClInclude Include="src\utility\ErrorLogger.h" />
-    <ClInclude Include="src\utility\StringHelper.h" />
-    <ClInclude Include="src\utility\Timer.h" />
-    <ClInclude Include="src\WindowContainer.h" />
-    <ClInclude Include="utility\COMException.h" />
-    <ClInclude Include="graphics\GameObject.h" />
-    <ClInclude Include="graphics\Camera.h" />
-    <ClInclude Include="graphics\utility\AdapterReader.h" />
-    <ClInclude Include="utility\ErrorLogger.h" />
-    <ClInclude Include="graphics\buffers\ConstantBuffer.h" />
-    <ClInclude Include="graphics\buffers\ConstantBufferTypes.h" />
-    <ClInclude Include="graphics\Graphics.h" />
-    <ClInclude Include="graphics\imgui\imconfig.h" />
-    <ClInclude Include="graphics\imgui\imgui.h" />
-    <ClInclude Include="graphics\imgui\imgui_impl_dx11.h" />
-    <ClInclude Include="graphics\imgui\imgui_impl_win32.h" />
-    <ClInclude Include="graphics\imgui\imgui_internal.h" />
-    <ClInclude Include="graphics\imgui\imstb_rectpack.h" />
-    <ClInclude Include="graphics\imgui\imstb_textedit.h" />
-    <ClInclude Include="graphics\imgui\imstb_truetype.h" />
-    <ClInclude Include="graphics\Texture.h" />
-    <ClInclude Include="graphics\buffers\IndexBuffer.h" />
-    <ClInclude Include="input\keyboard\Keyboard.h" />
-    <ClInclude Include="input\keyboard\KeyboardEvent.h" />
-    <ClInclude Include="graphics\Model.h" />
-    <ClInclude Include="graphics\Mesh.h" />
-    <ClInclude Include="graphics\lights\Light.h" />
-    <ClInclude Include="input\mouse\Mouse.h" />
-    <ClInclude Include="input\mouse\MouseEvent.h" />
-    <ClInclude Include="graphics\RenderableGameObject.h" />
-    <ClInclude Include="graphics\lights\PointLight.h" />
-    <ClInclude Include="graphics\Shader.h" />
-    <ClInclude Include="graphics\lights\SpotLight.h" />
-    <ClInclude Include="utility\StringHelper.h" />
-    <ClInclude Include="graphics\Vertex.h" />
-    <ClInclude Include="graphics\buffers\VertexBuffer.h" />
-    <ClInclude Include="utility\Timer.h" />
+    <ClInclude Include="src\entities\lights\light_game_object.h" />
+    <ClInclude Include="src\entities\lights\point_light_game_object.h" />
+    <ClInclude Include="src\entities\lights\spot_light_game_object.h" />
+    <ClInclude Include="src\graphics\data\mesh.h" />
+    <ClInclude Include="src\graphics\data\model.h" />
+    <ClInclude Include="src\entities\physics\physics_game_object.h" />
+    <ClInclude Include="src\entities\renderable_game_object.h" />
+    <ClInclude Include="src\graphics\shaders\shader.h" />
+    <ClInclude Include="src\graphics\data\texture.h" />
+    <ClInclude Include="src\entities\transform.h" />
+    <ClInclude Include="src\utils\adapter_reader.h" />
+    <ClInclude Include="src\entities\utility\game_object_controller.h" />
+    <ClInclude Include="src\entities\utility\game_object_track.h" />
+    <ClInclude Include="src\graphics\data\resource_manager.h" />
+    <ClInclude Include="src\graphics\data\vertex.h" />
+    <ClInclude Include="src\horizon.h" />
+    <ClInclude Include="src\input\keyboard\keyboard.h" />
+    <ClInclude Include="src\input\keyboard\keyboard_event.h" />
+    <ClInclude Include="src\input\mouse\mouse.h" />
+    <ClInclude Include="src\input\mouse\mouse_event.h" />
+    <ClInclude Include="src\entities\physics\particle_model.h" />
+    <ClInclude Include="src\entities\physics\particle_system\particle_system.h" />
+    <ClInclude Include="src\entities\physics\rigid_body.h" />
+    <ClInclude Include="src\entities\physics\spring.h" />
+    <ClInclude Include="src\render_window.h" />
+    <ClInclude Include="src\utils\com_exception.h" />
+    <ClInclude Include="src\utils\error_logger.h" />
+    <ClInclude Include="src\utils\string_helpers.h" />
+    <ClInclude Include="src\utils\timer.h" />
+    <ClInclude Include="src\window_container.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="res\shaders\cloudsPixelShader.hlsl">

@@ -180,7 +180,7 @@ struct aiFace
         if (mIndices == o.mIndices)return true;
         else if (mIndices && mNumIndices == o.mNumIndices)
         {
-            for (unsigned int i = 0;i < this->mNumIndices;++i)
+            for (unsigned int i = 0;i < mNumIndices;++i)
                 if (mIndices[i] != o.mIndices[i])return false;
             return true;
         }

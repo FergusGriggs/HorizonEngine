@@ -1,92 +1,111 @@
 #include "Mouse.h"
 
-Mouse::Mouse() {
+namespace hrzn::input
+{
+	Mouse::Mouse() :
+		m_eventBuffer(),
+		m_pos({ 0, 0 }),
 
-}
-
-void Mouse::OnLeftPressed(int x, int y) {
-	this->leftIsDown = true;
-	this->eventBuffer.push(MouseEvent(MouseEvent::EventType::LEFT_PRESS, x, y));
-}
-
-void Mouse::OnLeftReleased(int x, int y) {
-	this->leftIsDown = false;
-	this->eventBuffer.push(MouseEvent(MouseEvent::EventType::LEFT_RELEASE, x, y));
-}
-
-void Mouse::OnRightPressed(int x, int y) {
-	this->rightIsDown = true;
-	this->eventBuffer.push(MouseEvent(MouseEvent::EventType::RIGHT_PRESS, x, y));
-}
-
-void Mouse::OnRightReleased(int x, int y) {
-	this->rightIsDown = false;
-	this->eventBuffer.push(MouseEvent(MouseEvent::EventType::RIGHT_RELEASE, x, y));
-}
-
-void Mouse::OnMiddlePressed(int x, int y) {
-	this->middleIsDown = true;
-	this->eventBuffer.push(MouseEvent(MouseEvent::EventType::MIDDLE_PRESS, x, y));
-}
-
-void Mouse::OnMiddleReleased(int x, int y) {
-	this->middleIsDown = false;
-	this->eventBuffer.push(MouseEvent(MouseEvent::EventType::MIDDLE_RELEASE, x, y));
-}
-
-void Mouse::OnScrollUp(int x, int y) {
-	this->eventBuffer.push(MouseEvent(MouseEvent::EventType::SCROLL_UP, x, y));
-}
-
-void Mouse::OnScrollDown(int x, int y) {
-	this->eventBuffer.push(MouseEvent(MouseEvent::EventType::SCROLL_DOWN, x, y));
-}
-
-void Mouse::OnMouseMove(int x, int y) {
-	this->pos.x = x;
-	this->pos.y = y;
-	this->eventBuffer.push(MouseEvent(MouseEvent::EventType::MOVE, x, y));
-}
-
-void Mouse::OnMouseMoveRaw(int x, int y) {
-	this->eventBuffer.push(MouseEvent(MouseEvent::EventType::RAW_MOVE, x, y));
-}
-
-bool Mouse::IsLeftDown() {
-	return leftIsDown;
-}
-
-bool Mouse::IsRightDown() {
-	return rightIsDown;
-}
-
-bool Mouse::IsMiddleDown() {
-	return middleIsDown;
-}
-
-int Mouse::GetPosX() {
-	return this->pos.x;
-}
-
-int Mouse::GetPosY() {
-	return this->pos.y;
-}
-
-MousePos Mouse::GetPos() {
-	return this->pos;
-}
-
-bool Mouse::EventBufferIsEmpty() {
-	return this->eventBuffer.empty();
-}
-
-MouseEvent Mouse::ReadEvent() {
-	if (this->eventBuffer.empty()) {
-		return MouseEvent();
+		m_leftIsDown(false),
+		m_rightIsDown(false),
+		m_middleIsDown(false)
+	{
 	}
-	else {
-		MouseEvent mouseEvent = this->eventBuffer.front();
-		this->eventBuffer.pop();
-		return mouseEvent;
+
+	void Mouse::onLeftPressed(int x, int y)
+	{
+		m_leftIsDown = true;
+		m_eventBuffer.push(MouseEvent(MouseEvent::EventType::eLeftPress, x, y));
+	}
+
+	void Mouse::onLeftReleased(int x, int y)
+	{
+		m_leftIsDown = false;
+		m_eventBuffer.push(MouseEvent(MouseEvent::EventType::eLeftRelease, x, y));
+	}
+
+	void Mouse::onRightPressed(int x, int y)
+	{
+		m_rightIsDown = true;
+		m_eventBuffer.push(MouseEvent(MouseEvent::EventType::eRightPress, x, y));
+	}
+
+	void Mouse::onRightReleased(int x, int y)
+	{
+		m_rightIsDown = false;
+		m_eventBuffer.push(MouseEvent(MouseEvent::EventType::eRightRelease, x, y));
+	}
+
+	void Mouse::onMiddlePressed(int x, int y)
+	{
+		m_middleIsDown = true;
+		m_eventBuffer.push(MouseEvent(MouseEvent::EventType::eMiddlePress, x, y));
+	}
+
+	void Mouse::onMiddleReleased(int x, int y)
+	{
+		m_middleIsDown = false;
+		m_eventBuffer.push(MouseEvent(MouseEvent::EventType::eMiddleRelease, x, y));
+	}
+
+	void Mouse::onScrollUp(int x, int y)
+	{
+		m_eventBuffer.push(MouseEvent(MouseEvent::EventType::eScrollUp, x, y));
+	}
+
+	void Mouse::onScrollDown(int x, int y)
+	{
+		m_eventBuffer.push(MouseEvent(MouseEvent::EventType::eScrollDown, x, y));
+	}
+
+	void Mouse::onMouseMove(int x, int y)
+	{
+		m_pos.x = x;
+		m_pos.y = y;
+		m_eventBuffer.push(MouseEvent(MouseEvent::EventType::eMove, x, y));
+	}
+
+	void Mouse::onMouseMoveRaw(int x, int y)
+	{
+		m_eventBuffer.push(MouseEvent(MouseEvent::EventType::eRawMove, x, y));
+	}
+
+	bool Mouse::isLeftDown() const
+	{
+		return m_leftIsDown;
+	}
+
+	bool Mouse::isRightDown() const
+	{
+		return m_rightIsDown;
+	}
+
+	bool Mouse::isMiddleDown() const
+	{
+		return m_middleIsDown;
+	}
+
+	const MousePos& Mouse::getPos() const
+	{
+		return m_pos;
+	}
+
+	bool Mouse::isEventBufferEmpty() const
+	{
+		return m_eventBuffer.empty();
+	}
+
+	MouseEvent Mouse::readEvent()
+	{
+		if (m_eventBuffer.empty())
+		{
+			return MouseEvent();
+		}
+		else
+		{
+			MouseEvent mouseEvent = m_eventBuffer.front();
+			m_eventBuffer.pop();
+			return mouseEvent;
+		}
 	}
 }

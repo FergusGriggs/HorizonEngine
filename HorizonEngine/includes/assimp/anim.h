@@ -87,10 +87,10 @@ struct aiVectorKey
 
     // Comparison operators. For use with std::find();
     bool operator == (const aiVectorKey& o) const {
-        return o.mValue == this->mValue;
+        return o.mValue == mValue;
     }
     bool operator != (const aiVectorKey& o) const {
-        return o.mValue != this->mValue;
+        return o.mValue != mValue;
     }
 
     // Relational operators. For use with std::sort();
@@ -131,10 +131,10 @@ struct aiQuatKey
 
     // Comparison operators. For use with std::find();
     bool operator == (const aiQuatKey& o) const {
-        return o.mValue == this->mValue;
+        return o.mValue == mValue;
     }
     bool operator != (const aiQuatKey& o) const {
-        return o.mValue != this->mValue;
+        return o.mValue != mValue;
     }
 
     // Relational operators. For use with std::sort();
@@ -178,10 +178,10 @@ struct aiMeshKey
 
     // Comparison operators. For use with std::find();
     bool operator == (const aiMeshKey& o) const {
-        return o.mValue == this->mValue;
+        return o.mValue == mValue;
     }
     bool operator != (const aiMeshKey& o) const {
-        return o.mValue != this->mValue;
+        return o.mValue != mValue;
     }
 
     // Relational operators. For use with std::sort();

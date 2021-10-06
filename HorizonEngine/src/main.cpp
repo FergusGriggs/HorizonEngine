@@ -1,7 +1,8 @@
-//main.cpp
+
 //Application entry point, creates and runs instance of Horizon class
 
-#include "Horizon.h"
+#include "horizon.h"
+
 #include <iostream>
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -11,15 +12,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
-	if (FAILED(hr)) {
-		ErrorLogger::Log(hr, "Failed to co-initialize.");
+	if (FAILED(hr))
+	{
+		hrzn::utils::ErrorLogger::log(hr, "Failed to co-initialize.");
 	}
 
-	Horizon engine = Horizon();
-	if (engine.Initialize(hInstance, "HorizonEngine", "windowClass", 1728, 972)) {
-		while (engine.ProcessMessages()) {
-			engine.Update();
-			engine.RenderFrame();
+	hrzn::Horizon engine = hrzn::Horizon();
+	if (engine.initialize(hInstance, "HorizonEngine", "windowClass", 1728, 972))
+	{
+		while (engine.processMessages())
+		{
+			engine.update();
+			engine.renderFrame();
 		}
 	
 	}

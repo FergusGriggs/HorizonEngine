@@ -111,8 +111,8 @@ namespace DirectX
             XM_CONSTEXPR Vector2(float ix, float iy) : XMFLOAT2(ix, iy) {}
             explicit Vector2(_In_reads_(2) const float *pArray) : XMFLOAT2(pArray) {}
             Vector2(FXMVECTOR V) { XMStoreFloat2(this, V); }
-            Vector2(const XMFLOAT2& V) { this->x = V.x; this->y = V.y; }
-            explicit Vector2(const XMVECTORF32& F) { this->x = F.f[0]; this->y = F.f[1]; }
+            Vector2(const XMFLOAT2& V) { x = V.x; y = V.y; }
+            explicit Vector2(const XMVECTORF32& F) { x = F.f[0]; y = F.f[1]; }
 
             Vector2(const Vector2&) = default;
             Vector2& operator=(const Vector2&) = default;
@@ -223,8 +223,8 @@ namespace DirectX
             XM_CONSTEXPR Vector3(float ix, float iy, float iz) : XMFLOAT3(ix, iy, iz) {}
             explicit Vector3(_In_reads_(3) const float *pArray) : XMFLOAT3(pArray) {}
             Vector3(FXMVECTOR V) { XMStoreFloat3(this, V); }
-            Vector3(const XMFLOAT3& V) { this->x = V.x; this->y = V.y; this->z = V.z; }
-            explicit Vector3(const XMVECTORF32& F) { this->x = F.f[0]; this->y = F.f[1]; this->z = F.f[2]; }
+            Vector3(const XMFLOAT3& V) { x = V.x; y = V.y; z = V.z; }
+            explicit Vector3(const XMVECTORF32& F) { x = F.f[0]; y = F.f[1]; z = F.f[2]; }
 
             Vector3(const Vector3&) = default;
             Vector3& operator=(const Vector3&) = default;
@@ -342,8 +342,8 @@ namespace DirectX
             XM_CONSTEXPR Vector4(float ix, float iy, float iz, float iw) : XMFLOAT4(ix, iy, iz, iw) {}
             explicit Vector4(_In_reads_(4) const float *pArray) : XMFLOAT4(pArray) {}
             Vector4(FXMVECTOR V) { XMStoreFloat4(this, V); }
-            Vector4(const XMFLOAT4& V) { this->x = V.x; this->y = V.y; this->z = V.z; this->w = V.w; }
-            explicit Vector4(const XMVECTORF32& F) { this->x = F.f[0]; this->y = F.f[1]; this->z = F.f[2]; this->w = F.f[3]; }
+            Vector4(const XMFLOAT4& V) { x = V.x; y = V.y; z = V.z; w = V.w; }
+            explicit Vector4(const XMVECTORF32& F) { x = F.f[0]; y = F.f[1]; z = F.f[2]; w = F.f[3]; }
 
             Vector4(const Vector4&) = default;
             Vector4& operator=(const Vector4&) = default;
@@ -610,8 +610,8 @@ namespace DirectX
             explicit Plane(const Vector4& v) : XMFLOAT4(v.x, v.y, v.z, v.w) {}
             explicit Plane(_In_reads_(4) const float *pArray) : XMFLOAT4(pArray) {}
             Plane(FXMVECTOR V) { XMStoreFloat4(this, V); }
-            Plane(const XMFLOAT4& p) { this->x = p.x; this->y = p.y; this->z = p.z; this->w = p.w; }
-            explicit Plane(const XMVECTORF32& F) { this->x = F.f[0]; this->y = F.f[1]; this->z = F.f[2]; this->w = F.f[3]; }
+            Plane(const XMFLOAT4& p) { x = p.x; y = p.y; z = p.z; w = p.w; }
+            explicit Plane(const XMVECTORF32& F) { x = F.f[0]; y = F.f[1]; z = F.f[2]; w = F.f[3]; }
 
             Plane(const Plane&) = default;
             Plane& operator=(const Plane&) = default;
@@ -662,8 +662,8 @@ namespace DirectX
             explicit Quaternion(const Vector4& v) : XMFLOAT4(v.x, v.y, v.z, v.w) {}
             explicit Quaternion(_In_reads_(4) const float *pArray) : XMFLOAT4(pArray) {}
             Quaternion(FXMVECTOR V) { XMStoreFloat4(this, V); }
-            Quaternion(const XMFLOAT4& q) { this->x = q.x; this->y = q.y; this->z = q.z; this->w = q.w; }
-            explicit Quaternion(const XMVECTORF32& F) { this->x = F.f[0]; this->y = F.f[1]; this->z = F.f[2]; this->w = F.f[3]; }
+            Quaternion(const XMFLOAT4& q) { x = q.x; y = q.y; z = q.z; w = q.w; }
+            explicit Quaternion(const XMVECTORF32& F) { x = F.f[0]; y = F.f[1]; z = F.f[2]; w = F.f[3]; }
 
             Quaternion(const Quaternion&) = default;
             Quaternion& operator=(const Quaternion&) = default;
@@ -740,8 +740,8 @@ namespace DirectX
             explicit Color(const Vector4& clr) : XMFLOAT4(clr.x, clr.y, clr.z, clr.w) {}
             explicit Color(_In_reads_(4) const float *pArray) : XMFLOAT4(pArray) {}
             Color(FXMVECTOR V) { XMStoreFloat4(this, V); }
-            Color(const XMFLOAT4& c) { this->x = c.x; this->y = c.y; this->z = c.z; this->w = c.w; }
-            explicit Color(const XMVECTORF32& F) { this->x = F.f[0]; this->y = F.f[1]; this->z = F.f[2]; this->w = F.f[3]; }
+            Color(const XMFLOAT4& c) { x = c.x; y = c.y; z = c.z; w = c.w; }
+            explicit Color(const XMVECTORF32& F) { x = F.f[0]; y = F.f[1]; z = F.f[2]; w = F.f[3]; }
 
             explicit Color(const DirectX::PackedVector::XMCOLOR& Packed);
                 // BGRA Direct3D 9 D3DCOLOR packed color
