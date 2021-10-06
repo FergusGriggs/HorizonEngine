@@ -35,6 +35,6 @@ namespace hrzn::gfx
 
 		DirectX::XMMATRIX     m_transformMatrix;
 
-		ID3D11DeviceContext* m_deviceContext;
+		ID3D11DeviceContext*  m_deviceContext;
 	};
 }

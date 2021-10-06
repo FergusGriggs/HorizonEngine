@@ -111,7 +111,8 @@ namespace hrzn::entity
 		m_floating = floating;
 	}
 
-	void GameObject::setObjectTrack(GameObjectTrack* objectTrack) {
+	void GameObject::setObjectTrack(GameObjectTrack* objectTrack)
+	{
 		m_objectTrack = objectTrack;
 	}
 
@@ -160,7 +161,8 @@ namespace hrzn::entity
 		m_controller = controller;
 	}
 
-	GameObjectTrack* GameObject::getObjectTrack() {
+	GameObjectTrack* GameObject::getObjectTrack()
+	{
 		return m_objectTrack;
 	}
 }

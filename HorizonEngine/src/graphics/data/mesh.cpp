@@ -18,7 +18,7 @@ namespace hrzn::gfx
 		HRESULT hr = m_vertexBuffer.Initialize(device, vertices.data(), vertices.size());
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize vertex buffer for mesh.");
 
-		hr = m_indexBuffer.Initialize(device, indices.data(), indices.size());
+		hr = m_indexBuffer.initialize(device, indices.data(), indices.size());
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize index buffer for mesh.");
 	}
 
@@ -35,7 +35,8 @@ namespace hrzn::gfx
 	{
 		if (bindTextures)
 		{
-			for (int i = 0; i < m_textures.size(); i++) {
+			for (int i = 0; i < m_textures.size(); i++)
+			{
 				switch (m_textures[i]->getType())
 				{
 				case aiTextureType::aiTextureType_DIFFUSE:
@@ -57,8 +58,8 @@ namespace hrzn::gfx
 		UINT offset = 0;
 
 		m_deviceContext->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.StridePtr(), &offset);
-		m_deviceContext->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
-		m_deviceContext->DrawIndexed(m_indexBuffer.IndexCount(), 0, 0);
+		m_deviceContext->IASetIndexBuffer(m_indexBuffer.get(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
+		m_deviceContext->DrawIndexed(m_indexBuffer.indexCount(), 0, 0);
 	}
 
 	const DirectX::XMMATRIX& Mesh::getTransformMatrix()

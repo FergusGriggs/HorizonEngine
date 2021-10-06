@@ -65,7 +65,8 @@ namespace hrzn
 			else
 			{
 				const bool wasPressed = lParam & 0x40000000;
-				if (!wasPressed) {
+				if (!wasPressed)
+				{
 					m_keyboard.onKeyPressed(keyCode);
 				}
 			}

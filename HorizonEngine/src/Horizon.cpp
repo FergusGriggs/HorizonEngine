@@ -1,7 +1,7 @@
 
 //Function implementations for the Horizon class
 
-#include "Horizon.h"
+#include "horizon.h"
 
 namespace hrzn
 {

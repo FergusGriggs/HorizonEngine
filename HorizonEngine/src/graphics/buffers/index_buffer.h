@@ -17,24 +17,25 @@ namespace hrzn::gfx
 		{
 		};
 
-		ID3D11Buffer* Get() const
+		ID3D11Buffer* get() const
 		{
 			return m_buffer.Get();
 		}
 
-		ID3D11Buffer* const* GetAddressOf() const
+		ID3D11Buffer* const* getAddressOf() const
 		{
 			return m_buffer.GetAddressOf();
 		}
 
-		UINT IndexCount() const
+		UINT indexCount() const
 		{
 			return m_indexCount;
 		}
 
-		HRESULT Initialize(ID3D11Device* device, DWORD* data, UINT indexCount)
+		HRESULT initialize(ID3D11Device* device, DWORD* data, UINT indexCount)
 		{
-			if (m_buffer.Get() != nullptr) {
+			if (m_buffer.Get() != nullptr)
+			{
 				m_buffer.Reset();
 			}
 

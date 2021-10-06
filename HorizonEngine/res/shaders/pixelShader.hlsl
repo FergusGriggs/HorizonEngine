@@ -159,7 +159,8 @@ float4 main(PS_INPUT input) : SV_TARGET
     
     float3 normal;
 
-    if (useNormalMapping) {
+    if (useNormalMapping)
+        {
         float3 normalColour = normalTexture.Sample(samplerState, input.texCoord);
         normal = normalize(normalColour * 2.0f - 1.0f);
         //normal = normalize(mul(float3(normal.x, -normal.y, normal.z), input.TBNMatrix)); //float3(0.0f, 0.5f, 0.5f)

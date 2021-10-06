@@ -460,7 +460,7 @@ namespace hrzn::gfx
 		//UPDATE FPS TIMER
 		m_fpsCounter++;
 
-		if (m_fpsTimer.getDeltaTime())
+		if (m_fpsTimer.getMicrosecondsElapsed() > 1000000)
 		{
 			m_fpsString = "FPS: " + std::to_string(m_fpsCounter);
 			m_fpsCounter = 0;
@@ -504,7 +504,8 @@ namespace hrzn::gfx
 	void GraphicsHandler::updateSelectedObject()
 	{
 		//CHECK MOUSE IS ON SCREEN
-		if (m_mouseNDCX > -1.0f && m_mouseNDCX < 1.0f && m_mouseNDCY > -1.0f && m_mouseNDCY < 1.0f) {
+		if (m_mouseNDCX > -1.0f && m_mouseNDCX < 1.0f && m_mouseNDCY > -1.0f && m_mouseNDCY < 1.0f)
+		{
 			//TRANSLATING
 			if (m_axisEditState == AxisEditState::eEditTranslate)
 			{

@@ -138,7 +138,8 @@ namespace hrzn::gfx
 
 		const aiScene* pScene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
 
-		if (pScene == nullptr) {
+		if (pScene == nullptr)
+		{
 			return false;
 		}
 
@@ -151,9 +152,11 @@ namespace hrzn::gfx
 		return true;
 	}
 
-	void Model::loadModelMetaData(const std::string& filePath) {
+	void Model::loadModelMetaData(const std::string& filePath)
+	{
 		std::fstream metaDataFile(filePath);
-		if (metaDataFile) {
+		if (metaDataFile)
+		{
 			metaDataFile >> m_modelHitRadius;
 			metaDataFile.close();
 		}
@@ -163,12 +166,14 @@ namespace hrzn::gfx
 	{
 		XMMATRIX nodeTransformationMatrix = XMMatrixTranspose(XMMATRIX(&node->mTransformation.a1)) * parentTransformMatrix;
 
-		for (UINT i = 0; i < node->mNumMeshes; i++) {
+		for (UINT i = 0; i < node->mNumMeshes; i++)
+		{
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			m_meshes.push_back(processMesh(mesh, scene, nodeTransformationMatrix));
 		}
 
-		for (UINT i = 0; i < node->mNumChildren; i++) {
+		for (UINT i = 0; i < node->mNumChildren; i++)
+		{
 			processNode(node->mChildren[i], scene, nodeTransformationMatrix);
 		}
 	}
@@ -178,7 +183,8 @@ namespace hrzn::gfx
 		std::vector<Vertex> meshVertices;
 		std::vector<DWORD> indices;
 
-		for (UINT i = 0; i < mesh->mNumVertices; i++) {
+		for (UINT i = 0; i < mesh->mNumVertices; i++)
+		{
 
 			Vertex vertex;
 
@@ -190,7 +196,8 @@ namespace hrzn::gfx
 			vertex.m_normal.y = mesh->mNormals[i].y;
 			vertex.m_normal.z = mesh->mNormals[i].z;
 
-			if (mesh->mTextureCoords[0]) {
+			if (mesh->mTextureCoords[0])
+			{
 				vertex.m_tangent.x = mesh->mTangents[i].x;
 				vertex.m_tangent.y = mesh->mTangents[i].y;
 				vertex.m_tangent.z = mesh->mTangents[i].z;
@@ -208,14 +215,15 @@ namespace hrzn::gfx
 			m_vertices.push_back(vertex.m_pos);
 		}
 
-
-		for (UINT i = 0; i < mesh->mNumFaces; i++) {
+		for (UINT i = 0; i < mesh->mNumFaces; i++)
+		{
 
 			aiFace face = mesh->mFaces[i];
 
-			for (UINT j = 0; j < face.mNumIndices; j++) {
+			for (UINT j = 0; j < face.mNumIndices; j++)
+			{
 				indices.push_back(face.mIndices[j]);
-				indices.push_back(m_currentNumVerts + face.mIndices[j]);
+				m_indices.push_back(m_currentNumVerts + face.mIndices[j]);
 			}
 		}
 
@@ -256,8 +264,10 @@ namespace hrzn::gfx
 		pMaterial->GetTexture(textureType, index, &path);
 		std::string texturePath = path.C_Str();
 
-		if (texturePath[0] == '*') {
-			if (pScene->mTextures[0]->mHeight == 0) {
+		if (texturePath[0] == '*')
+		{
+			if (pScene->mTextures[0]->mHeight == 0)
+			{
 				return TextureStorageType::eEmbeddedIndexCompressed;
 			}
 			else {
@@ -265,8 +275,10 @@ namespace hrzn::gfx
 				return TextureStorageType::eEmbeddedIndexNonCompressed;
 			}
 		}
-		if (auto pTex = pScene->GetEmbeddedTexture(texturePath.c_str())) {
-			if (pTex->mHeight == 0) {
+		if (auto pTex = pScene->GetEmbeddedTexture(texturePath.c_str()))
+		{
+			if (pTex->mHeight == 0)
+			{
 				return TextureStorageType::eEmbeddedCompressed;
 			}
 			else {
@@ -274,7 +286,8 @@ namespace hrzn::gfx
 				return TextureStorageType::eEmbeddedNonCompressed;
 			}
 		}
-		if (texturePath.find('.') != std::string::npos) {
+		if (texturePath.find('.') != std::string::npos)
+		{
 			return TextureStorageType::eDisk;
 		}
 
@@ -298,7 +311,8 @@ namespace hrzn::gfx
 			{
 				pMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColour);
 
-				if (aiColour.IsBlack()) {
+				if (aiColour.IsBlack())
+				{
 					materialTextures.push_back(ResourceManager::it().getColourTexturePtr("UNLOADED_DIFFUSE", colours::sc_unloadedTextureColour, textureType));
 					return materialTextures;
 				}
@@ -322,13 +336,15 @@ namespace hrzn::gfx
 			}
 		}
 		else {
-			for (UINT i = 0; i < textureCount; i++) {
+			for (UINT i = 0; i < textureCount; i++)
+			{
 				aiString path;
 				pMaterial->GetTexture(textureType, i, &path);
 
 				TextureStorageType storageType = determineTextureStorageType(pScene, pMaterial, i, textureType);
 
-				switch (storageType) {
+				switch (storageType)
+				{
 				case TextureStorageType::eDisk:
 				{
 					std::string fileName = m_directory + "/" + path.C_Str();

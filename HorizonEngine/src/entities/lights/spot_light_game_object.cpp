@@ -14,7 +14,8 @@ namespace hrzn::entity
 		m_type = GameObjectType::eSpotLight;
 	}
 
-	void SpotLightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::CB_PS_pixelShader>& cb_ps_pixelShader, int lightIndex) {
+	void SpotLightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::CB_PS_pixelShader>& cb_ps_pixelShader, int lightIndex)
+	{
 		//NORMALIZE
 		XMVECTOR colour = XMLoadFloat3(&m_colour);
 		XMStoreFloat3(&cb_ps_pixelShader.m_data.m_spotLights[lightIndex].m_colour, colour);

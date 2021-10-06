@@ -99,8 +99,8 @@ namespace hrzn
 
 	LRESULT CALLBACK HandleMsgRedirect(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		switch (uMsg) {
-
+		switch (uMsg)
+		{
 		case WM_CLOSE:
 			DestroyWindow(hwnd);
 			return 0;

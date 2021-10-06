@@ -28,7 +28,8 @@ namespace hrzn::entity
 	void GameObjectTrack::generateMidPoints()
 	{
 		m_midPoints.clear();
-		for (int i = 0; i < m_trackNodes.size() - 1; i++) {
+		for (int i = 0; i < m_trackNodes.size() - 1; i++)
+		{
 			XMFLOAT3 position = lerpFloat3(m_trackNodes[i].m_position, m_trackNodes[i + 1].m_position, 0.5f);
 			XMFLOAT3 lookPoint = lerpFloat3(m_trackNodes[i].m_lookPoint, m_trackNodes[i + 1].m_lookPoint, 0.5f);
 			m_midPoints.push_back(ObjectTrackNode(position, lookPoint));
