@@ -46,19 +46,19 @@ namespace hrzn::gfx
 		return true;
 	}
 
-	void Model::draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader, bool bindTextures)
+	void Model::draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<VertexShaderCB>* vertexShaderCB, bool bindTextures)
 	{
-		m_deviceContext->VSSetConstantBuffers(0, 1, cb_vs_vertexShader->GetAddressOf());
+		m_deviceContext->VSSetConstantBuffers(0, 1, vertexShaderCB->getAddressOf());
 
 		for (int i = 0; i < m_meshes.size(); i++)
 		{
-			cb_vs_vertexShader->m_data.m_modelViewProjectionMatrix = m_meshes[i].getTransformMatrix() * modelMatrix * viewProjectionMatrix;
-			//cb_vs_vertexShader->data.modelViewProjectionMatrix = XMMatrixTranspose(cb_vs_vertexShader->data.modelViewProjectionMatrix);
+			vertexShaderCB->m_data.m_modelViewProjectionMatrix = m_meshes[i].getTransformMatrix() * modelMatrix * viewProjectionMatrix;
+			//vertexShaderCB->data.modelViewProjectionMatrix = XMMatrixTranspose(vertexShaderCB->data.modelViewProjectionMatrix);
 
-			cb_vs_vertexShader->m_data.m_modelMatrix = m_meshes[i].getTransformMatrix() * modelMatrix;
-			//cb_vs_vertexShader->data.modelMatrix = XMMatrixTranspose(cb_vs_vertexShader->data.modelMatrix);
+			vertexShaderCB->m_data.m_modelMatrix = m_meshes[i].getTransformMatrix() * modelMatrix;
+			//vertexShaderCB->data.modelMatrix = XMMatrixTranspose(vertexShaderCB->data.modelMatrix);
 
-			cb_vs_vertexShader->MapToGPU();
+			vertexShaderCB->mapToGPU();
 
 			m_meshes[i].draw(bindTextures);
 		}

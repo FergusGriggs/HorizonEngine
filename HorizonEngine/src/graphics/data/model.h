@@ -19,7 +19,7 @@ namespace hrzn::gfx
 		Model();
 
 		bool        initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
-		void        draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<CB_VS_vertexShader>* cb_vs_vertexShader, bool bindTextures = true);
+		void        draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<VertexShaderCB>* vertexShaderCB, bool bindTextures = true);
 
 		std::string            getPath();
 		std::vector<XMFLOAT3>* getVertices();

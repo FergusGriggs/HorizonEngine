@@ -22,7 +22,7 @@ namespace hrzn::entity::physics
 		}
 	}
 
-	void ParticleSystem::drawParticles(XMMATRIX viewProjectionMatrix, gfx::ConstantBuffer<gfx::CB_VS_vertexShader>* cb_vs_vertexShader)
+	void ParticleSystem::drawParticles(XMMATRIX viewProjectionMatrix, gfx::ConstantBuffer<gfx::VertexShaderCB>* vertexShaderCB)
 	{
 		XMMATRIX modelMatrix;
 		XMFLOAT3 particlePosition;
@@ -46,7 +46,7 @@ namespace hrzn::entity::physics
 
 				XMStoreFloat3(&particlePosition, m_particles[i].getTransform().getPositionVector());
 				modelMatrix = XMMatrixScaling(particleScale, particleScale, particleScale) * XMMatrixTranslation(particlePosition.x, particlePosition.y, particlePosition.z);
-				m_particleMesh->draw(modelMatrix, viewProjectionMatrix, cb_vs_vertexShader);
+				m_particleMesh->draw(modelMatrix, viewProjectionMatrix, vertexShaderCB);
 			}
 		}
 	}

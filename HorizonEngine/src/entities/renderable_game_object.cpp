@@ -29,7 +29,7 @@ namespace hrzn::entity
 		return true;
 	}
 
-	void RenderableGameObject::draw(const XMMATRIX& viewProjectionMatrix, gfx::ConstantBuffer<gfx::CB_VS_vertexShader>* cb_vs_vertexShader, bool bindTextures)
+	void RenderableGameObject::draw(const XMMATRIX& viewProjectionMatrix, gfx::ConstantBuffer<gfx::VertexShaderCB>* cb_vs_vertexShader, bool bindTextures)
 	{
 		XMFLOAT3 objectPosition = m_transform.getPositionFloat3();
 

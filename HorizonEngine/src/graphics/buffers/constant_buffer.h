@@ -25,17 +25,17 @@ namespace hrzn::gfx
 		{
 		}
 
-		ID3D11Buffer* Get() const
+		ID3D11Buffer* get() const
 		{
 			return m_buffer.Get();
 		}
 
-		ID3D11Buffer* const* GetAddressOf() const
+		ID3D11Buffer* const* getAddressOf() const
 		{
 			return m_buffer.GetAddressOf();
 		}
 
-		HRESULT Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+		HRESULT initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 		{
 			if (m_buffer.Get() != nullptr)
 			{
@@ -57,7 +57,7 @@ namespace hrzn::gfx
 			return device->CreateBuffer(&constantBufferDesc, 0, m_buffer.GetAddressOf());
 		}
 
-		bool MapToGPU()
+		bool mapToGPU()
 		{
 			D3D11_MAPPED_SUBRESOURCE mappedResource;
 			HRESULT hr = m_deviceContext->Map(m_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -79,7 +79,7 @@ namespace hrzn::gfx
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_buffer;
-		ID3D11DeviceContext* m_deviceContext;
+		ID3D11DeviceContext*                 m_deviceContext;
 
 	};
 }

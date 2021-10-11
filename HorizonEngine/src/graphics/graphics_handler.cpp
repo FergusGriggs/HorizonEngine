@@ -48,7 +48,6 @@ namespace hrzn::gfx
 
 	bool GraphicsHandler::initializeShaders()
 	{
-
 		std::wstring shaderFolder = L"";
 	#pragma region DetermineShaderPath
 		//if (IsDebuggerPresent() == TRUE)
@@ -62,14 +61,14 @@ namespace hrzn::gfx
 	#else //Release Mode
 	#ifdef _WIN64 //x64
 			//shaderFolder = L"../x64/Release/";
-		shaderFolder = L"res/shaders/";
+		shaderFolder = L"res/shaders/compiled/";
 	#else  //x86 (Win32)
 			shaderFolder = L"../Release/";
 	#endif
 	#endif
 		//}
 
-		//CREATE VERTEX SHADER INPUT LAYOUT
+		//Create vertex shader input layout
 		D3D11_INPUT_ELEMENT_DESC layout[] =
 		{
 			{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -81,7 +80,7 @@ namespace hrzn::gfx
 
 		UINT numElements = ARRAYSIZE(layout);
 
-		//INITIALIZE VERTEX SHADERS
+		//Initialise vertex shaders
 		if (!m_vertexShader.initialize(m_device, shaderFolder + L"vertexShader.cso", layout, numElements))
 		{
 			return false;
@@ -92,7 +91,7 @@ namespace hrzn::gfx
 			return false;
 		}
 
-		//INITIALIZE PIXEL SHADERS
+		//Initialise pixel shaders
 		if (!m_pixelShader.initialize(m_device, shaderFolder + L"pixelShader.cso"))
 		{
 			return false;
@@ -103,10 +102,26 @@ namespace hrzn::gfx
 			return false;
 		}
 
+		if (!m_atmosphericPixelShader.initialize(m_device, shaderFolder + L"atmosphericPixelShader.cso"))
+		{
+			return false;
+		}
+
 		if (!m_cloudsPixelShader.initialize(m_device, shaderFolder + L"cloudsPixelShader.cso"))
 		{
 			return false;
 		}
+
+		// Initialise compute shaders
+		if (!m_noiseTextureComputeShader.initialize(m_device, shaderFolder + L"noiseTextureComputeShader.cso"))
+		{
+			return false;
+		}
+
+		// Initialise global shader vars
+		HRESULT hr = m_noiseTextureComputeShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+		COM_ERROR_IF_FAILED(hr, "Failed to create 'noiseTextureComputeShader' constant buffer.");
+		create3DNoiseTexture();
 	}
 
 	bool GraphicsHandler::initializeScene()
@@ -114,25 +129,38 @@ namespace hrzn::gfx
 		try
 		{
 			//CREATE CONSTANT BUFFERS
-			HRESULT hr = m_cb_vs_vertexShader.Initialize(m_device.Get(), m_deviceContext.Get());
+			HRESULT hr = m_vertexShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'cb_vs_vertexShader' constant buffer.");
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'vertexShader' constant buffer.");
+			m_vertexShaderCB.m_data.m_waveAmplitude = 3.5f;
 
-			m_cb_vs_vertexShader.m_data.m_waveAmplitude = 3.5f;
+			hr = m_pixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'pixelShader' constant buffer.");
+			m_pixelShaderCB.m_data.m_useNormalMapping = true;
 
-			hr = m_cb_ps_pixelShader.Initialize(m_device.Get(), m_deviceContext.Get());
+			hr = m_noLightPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'noLightPixelShader' constant buffer.");
 
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'cb_ps_pixelShader' constant buffer.");
+			hr = m_atmosphericPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'noLightPixelShader' constant buffer.");
+			XMStoreFloat3(&m_atmosphericPixelShaderCB.m_data.m_sunDirection, XMVector3Normalize(XMVectorSet(0.8f, 0.5f, 0.4f, 1.0f)));
+			m_atmosphericPixelShaderCB.m_data.m_sunSize = 75.0f;
+			m_atmosphericPixelShaderCB.m_data.m_density = 0.65f;
+			m_atmosphericPixelShaderCB.m_data.m_multiScatterPhase = 0.4f;
+			m_atmosphericPixelShaderCB.m_data.m_anisotropicIntensity = 1.0f;
+			m_atmosphericPixelShaderCB.m_data.m_zenithOffset = -0.075f;
 
-			hr = m_cb_ps_noLightPixelShader.Initialize(m_device.Get(), m_deviceContext.Get());
-
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'cb_ps_noLightPixelShader' constant buffer.");
-
-			hr = m_cb_ps_cloudsPixelShader.Initialize(m_device.Get(), m_deviceContext.Get());
-
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'cb_ps_cloudsPixelShader' constant buffer.");
-
-			m_cb_ps_pixelShader.m_data.m_useNormalMapping = true;
+			hr = m_cloudsPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'cloudsPixelShader' constant buffer.");
+			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionThroughClouds = 0.03f;
+			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionTowardsSun = 0.4f;
+			m_cloudsPixelShaderCB.m_data.m_phaseFactor = 0.17f;
+			m_cloudsPixelShaderCB.m_data.m_darknessThreshold = 0.07f;
+			m_cloudsPixelShaderCB.m_data.m_cloudCoverage = 1.0f;
+			m_cloudsPixelShaderCB.m_data.m_cloudSpeed = 0.25f;
+			m_cloudsPixelShaderCB.m_data.m_numSteps = 7;
+			m_cloudsPixelShaderCB.m_data.m_stepSize = 35.0f;
+			m_cloudsPixelShaderCB.m_data.m_cloudHeight = 200.0f;
 
 			//LOAD AXIS MODELS
 			if (!m_axisTranslateModel.initialize("res/models/axis/translate2.obj", m_device.Get(), m_deviceContext.Get()))
@@ -179,8 +207,6 @@ namespace hrzn::gfx
 			m_yAxisTranslateDefaultBounds = XMFLOAT3(0.05f, 0.45f, 0.05f);
 			m_zAxisTranslateDefaultBounds = XMFLOAT3(0.05f, 0.05f, 0.45f);
 
-			m_noiseTexture = ResourceManager::it().getTexturePtr("res/textures/noiseTexture.png");
-		
 			if (!m_skybox.initialize("Skybox", "res/models/skyboxes/ocean.obj", m_device.Get(), m_deviceContext.Get()))
 			{
 				return false;
@@ -190,7 +216,8 @@ namespace hrzn::gfx
 			{
 				return false;
 			}
-			m_clouds.getTransform().setPosition(0.0f, 35.0f, 0.0f);
+			m_clouds.getTransform().setPosition(0.0f, 500.0f, 0.0f);
+			m_clouds.setScale(XMFLOAT3(50.0f, 50.0f, 50.0f));
 
 			if (!m_ocean.initialize("Ocean", "res/models/ocean_smooth_large_2.obj", m_device.Get(), m_deviceContext.Get()))
 			{
@@ -241,33 +268,33 @@ namespace hrzn::gfx
 		m_camera.updateView();
 
 		//Directional light shader variables
-		m_directionalLight.updateShaderVariables(m_cb_ps_pixelShader);
+		m_directionalLight.updateShaderVariables(m_pixelShaderCB);
 
 		//Point light shader variables
 		size_t numPointLights = m_pointLights.size();
 		for (size_t i = 0; i < numPointLights; ++i)
 		{
-			m_pointLights.at(i)->updateShaderVariables(m_cb_ps_pixelShader, i);
+			m_pointLights.at(i)->updateShaderVariables(m_pixelShaderCB, i);
 		}
 	
 		//Spot light shader variables
 		size_t numSpotLights = m_spotLights.size();
 		for (size_t i = 0; i < numSpotLights; ++i)
 		{
-			m_spotLights.at(i)->updateShaderVariables(m_cb_ps_pixelShader, i);
+			m_spotLights.at(i)->updateShaderVariables(m_pixelShaderCB, i);
 		}
 
 		//General shader variables
-		m_cb_ps_pixelShader.m_data.m_numPointLights = numPointLights;
-		m_cb_ps_pixelShader.m_data.m_numSpotLights = numSpotLights;
+		m_pixelShaderCB.m_data.m_numPointLights = numPointLights;
+		m_pixelShaderCB.m_data.m_numSpotLights = numSpotLights;
 
-		m_cb_ps_pixelShader.m_data.m_cameraPosition = m_camera.getTransform().getPositionFloat3();
+		m_pixelShaderCB.m_data.m_cameraPosition = m_camera.getTransform().getPositionFloat3();
 
-		m_cb_ps_pixelShader.m_data.m_objectMaterial.m_shininess = 4.0f;
-		m_cb_ps_pixelShader.m_data.m_objectMaterial.m_specularity = 0.75f;
+		m_pixelShaderCB.m_data.m_objectMaterial.m_shininess = 4.0f;
+		m_pixelShaderCB.m_data.m_objectMaterial.m_specularity = 0.75f;
 
-		m_cb_ps_pixelShader.MapToGPU();
-		m_deviceContext->PSSetConstantBuffers(0, 1, m_cb_ps_pixelShader.GetAddressOf());
+		m_pixelShaderCB.mapToGPU();
+		m_deviceContext->PSSetConstantBuffers(0, 1, m_pixelShaderCB.getAddressOf());
 
 		//CLEAR RENDER TARGET VIEW AND DEPTH STENCIL VIEW
 		float backgroundColour[] = { 0.62f * m_directionalLight.m_colour.x, 0.90 * m_directionalLight.m_colour.y, 1.0f * m_directionalLight.m_colour.z, 1.0f };
@@ -302,28 +329,58 @@ namespace hrzn::gfx
 	
 		UINT offset = 0;
 
-		m_cb_vs_vertexShader.m_data.m_gameTime += deltaTime;
+		m_vertexShaderCB.m_data.m_gameTime += deltaTime;
 
 		XMMATRIX viewProjMat = m_camera.getViewMatrix() * m_camera.getProjectionMatrix();
 
 		{
 			//DRAW SKYBOX
 
-			m_deviceContext->PSSetShader(m_noLightPixelShader.getShader(), NULL, 0);
-			m_deviceContext->PSSetConstantBuffers(0, 1, m_cb_ps_noLightPixelShader.GetAddressOf());
+			m_deviceContext->PSSetShader(m_atmosphericPixelShader.getShader(), NULL, 0);
+			m_deviceContext->PSSetConstantBuffers(0, 1, m_atmosphericPixelShaderCB.getAddressOf());
 
-			m_cb_ps_noLightPixelShader.m_data.m_justColour = 1;
-			m_cb_ps_noLightPixelShader.MapToGPU();
+			m_atmosphericPixelShaderCB.m_data.m_cameraPosition = m_camera.getTransform().getPositionFloat3();
+
+			if (m_dayNightCycle)
+			{
+				m_dayProgress += deltaTime * 0.0166666; // 1 day = 60 seconds
+				m_gameTime += deltaTime;
+
+				m_cloudsPixelShaderCB.m_data.m_gameTime = m_gameTime;
+			}
+
+			if (m_dayProgress > 1.0f) m_dayProgress -= 1.0f;
+
+			float dayOrNight = 0.0f;
+			float zeroToOneDayOrNight = modf(m_dayProgress * 2.0f, &dayOrNight);
+			float split = 1.0f - abs(zeroToOneDayOrNight - 0.5f) * 2.0f;
+
+			float t = fmaxf(0.0f, fminf(1.0f, (split - 0.25f) / (0.1f - 0.25f)));
+			float densityMod = t * t * (3.0f - 2.0f * t);
+
+			if (dayOrNight == 0.0f)
+			{
+				m_atmosphericPixelShaderCB.m_data.m_density = 0.14f + densityMod * (0.65f - 0.142f);
+			}
+
+			XMVECTOR sunDirection = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), XMMatrixRotationAxis(XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f), m_dayProgress * sc_2PI));
+			m_directionalLight.getTransform().setPosition(sunDirection);
+			m_directionalLight.getTransform().lookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+
+			XMStoreFloat3(&m_sunDirection, sunDirection);
+
+			m_atmosphericPixelShaderCB.m_data.m_sunDirection = m_sunDirection;
+			
+
+			m_atmosphericPixelShaderCB.mapToGPU();
 
 			m_skybox.getTransform().setPosition(m_camera.getTransform().getPositionFloat3());
-			m_skybox.draw(viewProjMat, &m_cb_vs_vertexShader);
-
-			m_cb_ps_noLightPixelShader.m_data.m_justColour = 0;
+			m_skybox.draw(viewProjMat, &m_vertexShaderCB);
 
 			m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		}
 
-		m_deviceContext->PSSetConstantBuffers(0, 1, m_cb_ps_pixelShader.GetAddressOf());
+		m_deviceContext->PSSetConstantBuffers(0, 1, m_pixelShaderCB.getAddressOf());
 		m_deviceContext->PSSetShader(m_pixelShader.getShader(), NULL, 0);
 
 		{
@@ -348,7 +405,7 @@ namespace hrzn::gfx
 					m_deviceContext->PSSetShaderResources(1, 1, m_highlightSpecularTexture->getTextureResourceViewAddress());
 					m_deviceContext->PSSetShaderResources(2, 1, m_highlightNormalTexture->getTextureResourceViewAddress());
 
-					renderableGameObject->draw(viewProjMat, &m_cb_vs_vertexShader, false);
+					renderableGameObject->draw(viewProjMat, &m_vertexShaderCB, false);
 
 					m_deviceContext->PSSetShaderResources(0, 1, m_defaultDiffuseTexture->getTextureResourceViewAddress());
 					m_deviceContext->PSSetShaderResources(1, 1, m_defaultSpecularTexture->getTextureResourceViewAddress());
@@ -356,7 +413,7 @@ namespace hrzn::gfx
 				}
 				else
 				{
-					renderableGameObject->draw(viewProjMat, &m_cb_vs_vertexShader, false);
+					renderableGameObject->draw(viewProjMat, &m_vertexShaderCB);
 				}
 			}
 
@@ -389,70 +446,72 @@ namespace hrzn::gfx
 			
 				//springModelMatrix = XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
 
-				m_springModel.draw(springModelMatrix, viewProjMat, &m_cb_vs_vertexShader);
+				m_springModel.draw(springModelMatrix, viewProjMat, &m_vertexShaderCB);
 			}
 
 			//DRAW WATER
 
-			/*cb_ps_pixelShader.data.objectMaterial.shininess = 8.0f;
-			cb_ps_pixelShader.data.objectMaterial.specularity = 0.5f;
-			cb_ps_pixelShader.data.fresnel = 1;
+			m_pixelShaderCB.m_data.m_objectMaterial.m_shininess = 8.0f;
+			m_pixelShaderCB.m_data.m_objectMaterial.m_specularity = 0.5f;
+			m_pixelShaderCB.m_data.m_fresnel = 1;
 
-			cb_ps_pixelShader.MapToGPU();
+			m_pixelShaderCB.mapToGPU();
 		
-			deviceContext->VSSetShader(waterVertexShader.GetShader(), NULL, 0);
-			deviceContext->PSSetShaderResources(4, 1, noiseTexture->GetTextureResourceViewAddress());
+			m_deviceContext->VSSetShader(m_waterVertexShader.getShader(), NULL, 0);
+			m_ocean.draw(viewProjMat, &m_vertexShaderCB);
 
-			ocean.Draw(viewProjMat, &cb_vs_vertexShader);*/
+			m_pixelShaderCB.m_data.m_fresnel = 0;
+			m_pixelShaderCB.m_data.m_objectMaterial.m_specularity = 1.0f;
 
 			//DRAWCLOUDS
 
-			/*deviceContext->VSSetShader(vertexShader.GetShader(), NULL, 0);
+			m_deviceContext->VSSetShader(m_vertexShader.getShader(), NULL, 0);
+			m_deviceContext->PSSetShader(m_cloudsPixelShader.getShader(), NULL, 0);
 
-			cb_ps_pixelShader.data.fresnel = 0;
-			cb_ps_pixelShader.data.objectMaterial.specularity = 1.0f;
+			m_deviceContext->PSSetConstantBuffers(0, 1, m_cloudsPixelShaderCB.getAddressOf());
+			m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
 
-			deviceContext->PSSetShader(cloudsPixelShader.GetShader(), NULL, 0);
+			XMFLOAT3 cameraPosFloat = m_camera.getTransform().getPositionFloat3();
+			m_cloudsPixelShaderCB.m_data.m_cameraPosition = cameraPosFloat;
 
-			deviceContext->PSSetConstantBuffers(0, 1, cb_ps_cloudsPixelShader.GetAddressOf());
+			XMStoreFloat3(&m_cloudsPixelShaderCB.m_data.m_lightDirection, m_directionalLight.getTransform().getFrontVector());
 
-			cb_ps_cloudsPixelShader.data.cameraPosition = camera.GetTransform()->GetPositionFloat3();
-			XMStoreFloat3(&cb_ps_cloudsPixelShader.data.lightDirection, directionalLight.GetTransform()->GetFrontVector());
+			m_cloudsPixelShaderCB.mapToGPU();
 
-			cb_ps_cloudsPixelShader.MapToGPU();
+			m_clouds.getTransform().setPosition(cameraPosFloat.x, m_clouds.getTransform().getPositionFloat3().y, cameraPosFloat.z);
 
-			clouds.Draw(viewProjMat, &cb_vs_vertexShader);*/
+			m_clouds.draw(viewProjMat, &m_vertexShaderCB, false);
 		}
 	
 		{
 			//DRAW NO LIGHT OBJECTS
 			m_deviceContext->PSSetShader(m_noLightPixelShader.getShader(), NULL, 0);
 
-			m_deviceContext->PSSetConstantBuffers(0, 1, m_cb_ps_noLightPixelShader.GetAddressOf());
+			m_deviceContext->PSSetConstantBuffers(0, 1, m_noLightPixelShaderCB.getAddressOf());
 
 			for (size_t i = 0; i < numPointLights; ++i)
 			{
 				entity::PointLightGameObject* pointLight = m_pointLights.at(i);
-				m_cb_ps_noLightPixelShader.m_data.m_colour = pointLight->m_colour;
-				m_cb_ps_noLightPixelShader.MapToGPU();
-				pointLight->draw(viewProjMat, &m_cb_vs_vertexShader);
+				m_noLightPixelShaderCB.m_data.m_colour = pointLight->m_colour;
+				m_noLightPixelShaderCB.mapToGPU();
+				pointLight->draw(viewProjMat, &m_vertexShaderCB);
 			}
 
 			size_t numSpotLights = m_spotLights.size();
 			for (size_t i = 0; i < numSpotLights; ++i)
 			{
 				entity::SpotLightGameObject* spotLight = m_spotLights.at(i);
-				m_cb_ps_noLightPixelShader.m_data.m_colour = spotLight->m_colour;
-				m_cb_ps_noLightPixelShader.MapToGPU();
-				spotLight->draw(viewProjMat, &m_cb_vs_vertexShader);
+				m_noLightPixelShaderCB.m_data.m_colour = spotLight->m_colour;
+				m_noLightPixelShaderCB.mapToGPU();
+				spotLight->draw(viewProjMat, &m_vertexShaderCB);
 			}
 
 			m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 			if (m_selectingGameObject)
 			{
-				m_cb_ps_noLightPixelShader.m_data.m_colour = XMFLOAT3(1.0f, 1.0f, 1.0f);
-				m_cb_ps_noLightPixelShader.MapToGPU();
+				m_noLightPixelShaderCB.m_data.m_colour = XMFLOAT3(1.0f, 1.0f, 1.0f);
+				m_noLightPixelShaderCB.mapToGPU();
 				drawAxisForObject(m_selectedObject, viewProjMat);
 			}
 		}
@@ -661,6 +720,66 @@ namespace hrzn::gfx
 	void GraphicsHandler::writeFloat4(const XMVECTOR& float4, std::ofstream& stream)
 	{
 		stream << XMVectorGetX(float4) << ' ' << XMVectorGetY(float4) << ' ' << XMVectorGetZ(float4) << ' ' << XMVectorGetW(float4) << ' ';
+	}
+
+	void GraphicsHandler::create3DNoiseTexture()
+	{
+		int size = 32;
+		int height = 16;
+
+		// Set up the constant buffer
+		m_deviceContext->CSSetShader(m_noiseTextureComputeShader.getShader(), nullptr, 0);
+
+		m_noiseTextureComputeShaderCB.m_data.m_size = static_cast<float>(size);
+		m_noiseTextureComputeShaderCB.m_data.m_height = static_cast<float>(height);
+		m_noiseTextureComputeShaderCB.m_data.m_seed = 0.0f;
+		m_noiseTextureComputeShaderCB.m_data.m_noiseSize = 1.0f;
+		m_noiseTextureComputeShaderCB.mapToGPU();
+
+		m_deviceContext->CSSetConstantBuffers(0, 1, m_noiseTextureComputeShaderCB.getAddressOf());
+
+		// Create an empty 3d texture to write to
+		D3D11_TEXTURE3D_DESC textureDesc;
+		ZeroMemory(&textureDesc, sizeof(textureDesc));
+
+		textureDesc.Width = size;
+		textureDesc.Height = height;
+		textureDesc.Depth = size;
+		textureDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		textureDesc.Usage = D3D11_USAGE_DEFAULT;
+		textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+		textureDesc.CPUAccessFlags = 0;
+		textureDesc.MiscFlags = 0;
+
+		m_device->CreateTexture3D(&textureDesc, nullptr, m_noiseTexture.GetAddressOf());
+
+		// Create an unordered access view for the 3d texture
+		D3D11_UNORDERED_ACCESS_VIEW_DESC unorderedAccessViewDesc;
+		ZeroMemory(&unorderedAccessViewDesc, sizeof(unorderedAccessViewDesc));
+
+		unorderedAccessViewDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
+		unorderedAccessViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		unorderedAccessViewDesc.Texture3D.MipSlice = 0;
+		unorderedAccessViewDesc.Texture3D.FirstWSlice = 0;
+		unorderedAccessViewDesc.Texture3D.WSize = size;
+
+		m_device->CreateUnorderedAccessView(m_noiseTexture.Get(), &unorderedAccessViewDesc, m_noiseTextureUnorderedAccessView.GetAddressOf());
+
+		// Set the new UAV
+		m_deviceContext->CSSetUnorderedAccessViews(0, 1, m_noiseTextureUnorderedAccessView.GetAddressOf(), nullptr);
+
+		// Do some epik GPU computations to the UAV
+		m_deviceContext->Dispatch(size / 8, height / 8, size / 8);
+
+		// Create a shader resource view from the resultant data
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+		ZeroMemory(&shaderResourceViewDesc, sizeof(shaderResourceViewDesc));
+		shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
+		shaderResourceViewDesc.Texture3D.MostDetailedMip = 0;
+		shaderResourceViewDesc.Texture3D.MipLevels = 1;
+
+		m_device->CreateShaderResourceView(m_noiseTexture.Get(), &shaderResourceViewDesc, m_noiseTextureShaderResourceView.GetAddressOf());
 	}
 
 	bool GraphicsHandler::loadScene(const char* sceneName)
@@ -1505,18 +1624,19 @@ namespace hrzn::gfx
 
 		//DIRECTIONAL LIGHT COLOUR
 		ImGui::ColorEdit3("Dir Light Colour", &(m_directionalLight.m_colour.x));
+		m_cloudsPixelShaderCB.m_data.m_lightColour = m_directionalLight.m_colour;
 
 		//NORMAL MAPPING CHECKBOX
-		bool useNormalMapping = static_cast<bool>(m_cb_ps_pixelShader.m_data.m_useNormalMapping);
+		bool useNormalMapping = static_cast<bool>(m_pixelShaderCB.m_data.m_useNormalMapping);
 		ImGui::Checkbox("Normal Mapping", &useNormalMapping);
-		m_cb_ps_pixelShader.m_data.m_useNormalMapping = useNormalMapping;
+		m_pixelShaderCB.m_data.m_useNormalMapping = useNormalMapping;
 
 		ImGui::SameLine();
 
 		//POM CHECKBOX
-		bool useParallaxOcclusionMapping = static_cast<bool>(m_cb_ps_pixelShader.m_data.m_useParallaxOcclusionMapping);
+		bool useParallaxOcclusionMapping = static_cast<bool>(m_pixelShaderCB.m_data.m_useParallaxOcclusionMapping);
 		ImGui::Checkbox("PO Mapping", &useParallaxOcclusionMapping);
-		m_cb_ps_pixelShader.m_data.m_useParallaxOcclusionMapping = useParallaxOcclusionMapping;
+		m_pixelShaderCB.m_data.m_useParallaxOcclusionMapping = useParallaxOcclusionMapping;
 
 		ImGui::SameLine();
 
@@ -1526,12 +1646,35 @@ namespace hrzn::gfx
 		//POM HEIGHT CHECKBOX
 		static float parallaxOcclusionMappingHeight = 0.025f;
 		ImGui::DragFloat("PO Mapping Height", &parallaxOcclusionMappingHeight, 0.001f, 0.0f, 0.2f);
-		m_cb_ps_pixelShader.m_data.m_parallaxOcclusionMappingHeight = parallaxOcclusionMappingHeight;
+		m_pixelShaderCB.m_data.m_parallaxOcclusionMappingHeight = parallaxOcclusionMappingHeight;
 
 		//VSYNC CHECKBOX
 		ImGui::Checkbox("Use VSync", &m_useVSync);
 
-		ImGui::SliderFloat("Wave Amplitude", &m_cb_vs_vertexShader.m_data.m_waveAmplitude, 0.0f, 5.0f);
+		ImGui::SliderFloat("Wave Amplitude", &m_vertexShaderCB.m_data.m_waveAmplitude, 0.0f, 5.0f);
+
+		ImGui::NewLine();
+
+		if (ImGui::Button("Toggle Day/Night Cycle")) m_dayNightCycle = !m_dayNightCycle;
+		ImGui::SliderFloat("Day Progress", &m_dayProgress, 0.0f, 1.0f);
+		
+		ImGui::SliderFloat("Sun Size", &m_atmosphericPixelShaderCB.m_data.m_sunSize, 10.0f, 200.0f);
+		ImGui::SliderFloat("Density", &m_atmosphericPixelShaderCB.m_data.m_density, 0.0f, 3.0f);
+		ImGui::SliderFloat("Multi Scatter Phase", &m_atmosphericPixelShaderCB.m_data.m_multiScatterPhase, 0.0f, 3.0f);
+		ImGui::SliderFloat("Anisotropic Intensity", &m_atmosphericPixelShaderCB.m_data.m_anisotropicIntensity, -1.0f, 5.0f);
+		ImGui::SliderFloat("Zenith Offset", &m_atmosphericPixelShaderCB.m_data.m_zenithOffset, -1.0f, 1.0f);
+
+		ImGui::NewLine();
+
+		ImGui::SliderFloat("Absorbtion Through Clouds", &m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionThroughClouds, 0.0f, 2.0f);
+		ImGui::SliderFloat("Absorbtion Towards Sun", &m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionTowardsSun, 0.0f, 2.0f);
+		ImGui::SliderFloat("Phase Factor", &m_cloudsPixelShaderCB.m_data.m_phaseFactor, 0.0f, 2.0f);
+		ImGui::SliderFloat("Darkness Threshold", &m_cloudsPixelShaderCB.m_data.m_darknessThreshold, 0.0f, 1.0f);
+		ImGui::SliderFloat("Cloud Coverage", &m_cloudsPixelShaderCB.m_data.m_cloudCoverage, 0.0f, 1.0f);
+		ImGui::SliderFloat("Cloud Speed", &m_cloudsPixelShaderCB.m_data.m_cloudSpeed, 0.0f, 1.0f);
+		ImGui::SliderFloat("Cloud Height", &m_cloudsPixelShaderCB.m_data.m_cloudHeight, 10.0f, 500.0f);
+		ImGui::SliderInt("Num Steps", &m_cloudsPixelShaderCB.m_data.m_numSteps, 1, 25);
+		ImGui::SliderFloat("Step Size", &m_cloudsPixelShaderCB.m_data.m_stepSize, 5.0f, 100.0f);
 
 		ImGui::End();
 
@@ -1907,6 +2050,7 @@ namespace hrzn::gfx
 
 			//CREATE SAMPLER STATE
 			CD3D11_SAMPLER_DESC samplerDesc(D3D11_DEFAULT);
+			samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 			samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 			samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 			samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -2093,11 +2237,11 @@ namespace hrzn::gfx
 
 		if (m_axisEditState == AxisEditState::eEditTranslate)
 		{
-			m_axisTranslateModel.draw(XMMatrixScaling(scale, scale, scale) * translationMatrix, viewProjection, &m_cb_vs_vertexShader);
+			m_axisTranslateModel.draw(XMMatrixScaling(scale, scale, scale) * translationMatrix, viewProjection, &m_vertexShaderCB);
 		}
 		else if (m_axisEditState == AxisEditState::eEditRotate)
 		{ //Multiply by rotation matrix when rotating
-			m_axisRotateModel.draw(XMMatrixScaling(scale * 0.5f, scale * 0.5f, scale * 0.5f) * m_selectedObject->getTransform().getRotationMatrix() * translationMatrix, viewProjection, &m_cb_vs_vertexShader);
+			m_axisRotateModel.draw(XMMatrixScaling(scale * 0.5f, scale * 0.5f, scale * 0.5f) * m_selectedObject->getTransform().getRotationMatrix() * translationMatrix, viewProjection, &m_vertexShaderCB);
 		}
 	}
 
@@ -2120,7 +2264,7 @@ namespace hrzn::gfx
 
 	float GraphicsHandler::getWaterHeightAt(float posX, float posZ, bool exact)
 	{
-		float gameTime = m_cb_vs_vertexShader.m_data.m_gameTime;
+		float gameTime = m_vertexShaderCB.m_data.m_gameTime;
 		float value = 0.0f;
 		value += sin(-posX * 0.4f + gameTime * 1.2f) * 0.15f + sin(posZ * 0.5f + gameTime * 1.3f) * 0.15f;
 		value += sin(posX * 0.2f + gameTime * 0.6f) * 0.5f + sin(-posZ * 0.22f + gameTime * 0.4f) * 0.45f;
@@ -2128,7 +2272,7 @@ namespace hrzn::gfx
 		{
 			value += sin(posX * 1.5f + gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + gameTime * 0.0019f) * 0.05f;
 		}
-		return value * m_cb_vs_vertexShader.m_data.m_waveAmplitude;
+		return value * m_vertexShaderCB.m_data.m_waveAmplitude;
 	}
 
 	void GraphicsHandler::floatObject(entity::GameObject* object)

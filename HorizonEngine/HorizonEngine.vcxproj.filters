@@ -352,6 +352,8 @@
     <FxCompile Include="res\shaders\cloudsPixelShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
+    <FxCompile Include="res\shaders\atmosphericPixelShader.hlsl" />
+    <FxCompile Include="res\shaders\noiseTextureComputeShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />

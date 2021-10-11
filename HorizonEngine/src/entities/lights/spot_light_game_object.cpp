@@ -14,21 +14,21 @@ namespace hrzn::entity
 		m_type = GameObjectType::eSpotLight;
 	}
 
-	void SpotLightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::CB_PS_pixelShader>& cb_ps_pixelShader, int lightIndex)
+	void SpotLightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& pixelShaderCB, int lightIndex)
 	{
 		//NORMALIZE
 		XMVECTOR colour = XMLoadFloat3(&m_colour);
-		XMStoreFloat3(&cb_ps_pixelShader.m_data.m_spotLights[lightIndex].m_colour, colour);
+		XMStoreFloat3(&pixelShaderCB.m_data.m_spotLights[lightIndex].m_colour, colour);
 
-		cb_ps_pixelShader.m_data.m_spotLights[lightIndex].m_attenuationConstant = m_attenuationConstant;
-		cb_ps_pixelShader.m_data.m_spotLights[lightIndex].m_attenuationLinear = m_attenuationLinear;
-		cb_ps_pixelShader.m_data.m_spotLights[lightIndex].m_attenuationQuadratic = m_attenuationQuadratic;
+		pixelShaderCB.m_data.m_spotLights[lightIndex].m_attenuationConstant = m_attenuationConstant;
+		pixelShaderCB.m_data.m_spotLights[lightIndex].m_attenuationLinear = m_attenuationLinear;
+		pixelShaderCB.m_data.m_spotLights[lightIndex].m_attenuationQuadratic = m_attenuationQuadratic;
 
-		cb_ps_pixelShader.m_data.m_spotLights[lightIndex].m_position = m_transform.getPositionFloat3();
-		XMStoreFloat3(&cb_ps_pixelShader.m_data.m_spotLights[lightIndex].m_direction, m_transform.getFrontVector());
+		pixelShaderCB.m_data.m_spotLights[lightIndex].m_position = m_transform.getPositionFloat3();
+		XMStoreFloat3(&pixelShaderCB.m_data.m_spotLights[lightIndex].m_direction, m_transform.getFrontVector());
 
-		cb_ps_pixelShader.m_data.m_spotLights[lightIndex].m_innerCutoff = m_innerCutoff;
-		cb_ps_pixelShader.m_data.m_spotLights[lightIndex].m_outerCutoff = m_outerCutoff;
+		pixelShaderCB.m_data.m_spotLights[lightIndex].m_innerCutoff = m_innerCutoff;
+		pixelShaderCB.m_data.m_spotLights[lightIndex].m_outerCutoff = m_outerCutoff;
 	}
 
 	float* SpotLightGameObject::getInnerCutoffPtr()

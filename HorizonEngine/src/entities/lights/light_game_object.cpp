@@ -27,7 +27,7 @@ namespace hrzn::entity
 		return true;
 	}
 
-	void LightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::CB_PS_pixelShader>& cb_ps_pixelShader, int lightIndex)
+	void LightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& cb_ps_pixelShader, int lightIndex)
 	{
 		cb_ps_pixelShader.m_data.m_directionalLight.m_colour = m_colour;
 		cb_ps_pixelShader.m_data.m_directionalLight.m_ambientStrength = m_ambientStrength;
@@ -37,7 +37,9 @@ namespace hrzn::entity
 
 	void LightGameObject::setColour(DirectX::XMFLOAT3 colour)
 	{
-		m_colour = colour;
+		float maxColourValue = fmaxf(fmaxf(colour.x, colour.y), colour.z);
+
+		m_colour = DirectX::XMFLOAT3(colour.x / maxColourValue, colour.y / maxColourValue, colour.z / maxColourValue);
 	}
 
 	DirectX::XMFLOAT3 LightGameObject::getColour()

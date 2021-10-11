@@ -36,4 +36,16 @@ namespace hrzn::gfx
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> m_shader;
 		Microsoft::WRL::ComPtr<ID3D10Blob>        m_shaderBuffer;
 	};
+
+	class ComputeShader
+	{
+	public:
+		bool initialize(Microsoft::WRL::ComPtr<ID3D11Device>& device, std::wstring shaderFilePath);
+		ID3D11ComputeShader* getShader();
+		ID3D10Blob* getBuffer();
+
+	private:
+		Microsoft::WRL::ComPtr<ID3D11ComputeShader> m_shader;
+		Microsoft::WRL::ComPtr<ID3D10Blob>          m_shaderBuffer;
+	};
 }

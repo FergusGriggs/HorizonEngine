@@ -14,7 +14,7 @@ namespace hrzn::entity
 		LightGameObject();
 
 		bool initialize(std::string label, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
-		void virtual updateShaderVariables(gfx::ConstantBuffer<gfx::CB_PS_pixelShader>& cb_ps_pixelShader, int lightIndex = 0);
+		void virtual updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& cb_ps_pixelShader, int lightIndex = 0);
 
 		void setColour(DirectX::XMFLOAT3 colour);
 		DirectX::XMFLOAT3 getColour();

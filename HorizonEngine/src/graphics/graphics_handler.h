@@ -41,6 +41,9 @@
 
 namespace hrzn::gfx
 {
+	static const float sc_PI = 3.1415926f;
+	static const float sc_2PI = 6.2831853f;
+
 	enum class AxisEditState
 	{
 		eEditNone,
@@ -82,6 +85,8 @@ namespace hrzn::gfx
 		void writeFloat3(const XMVECTOR& float3, std::ofstream& stream);
 		void writeFloat4(const XMFLOAT4& float4, std::ofstream& stream);
 		void writeFloat4(const XMVECTOR& float4, std::ofstream& stream);
+
+		void create3DNoiseTexture();
 
 		bool loadScene(const char* sceneName);
 		bool saveScene();
@@ -157,14 +162,24 @@ namespace hrzn::gfx
 
 		VertexShader m_vertexShader;
 		VertexShader m_waterVertexShader;
+
 		PixelShader  m_pixelShader;
 		PixelShader  m_noLightPixelShader;
+		PixelShader  m_atmosphericPixelShader;
 		PixelShader  m_cloudsPixelShader;
 
-		ConstantBuffer<CB_VS_vertexShader>       m_cb_vs_vertexShader;
-		ConstantBuffer<CB_PS_pixelShader>        m_cb_ps_pixelShader;
-		ConstantBuffer<CB_PS_noLightPixelShader> m_cb_ps_noLightPixelShader;
-		ConstantBuffer<CB_PS_cloudsPixelShader>  m_cb_ps_cloudsPixelShader;
+		ComputeShader  m_noiseTextureComputeShader;
+
+		ConstantBuffer<VertexShaderCB>              m_vertexShaderCB;
+		ConstantBuffer<PixelShaderCB>               m_pixelShaderCB;
+		ConstantBuffer<NoLightPixelShaderCB>        m_noLightPixelShaderCB;
+		ConstantBuffer<AtmosphericPixelShaderCB>    m_atmosphericPixelShaderCB;
+		ConstantBuffer<CloudsPixelShaderCB>         m_cloudsPixelShaderCB;
+
+		ConstantBuffer<NoiseTextureComputeShaderCB>       m_noiseTextureComputeShaderCB;
+		Microsoft::WRL::ComPtr<ID3D11Texture3D>           m_noiseTexture;
+		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_noiseTextureUnorderedAccessView;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>  m_noiseTextureShaderResourceView;
 
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView>  m_depthStencilView;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D>         m_depthStencilBuffer;
@@ -180,8 +195,6 @@ namespace hrzn::gfx
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerState;
 
 		std::unordered_map<std::string, entity::GameObjectTrack*> m_objectTracks;
-
-		Texture* m_noiseTexture;
 
 		bool m_selectingGameObject = false;
 
@@ -208,6 +221,11 @@ namespace hrzn::gfx
 
 		bool m_useWireframe = false;
 		bool m_useVSync = true;
+
+		bool m_dayNightCycle = true;
+		float m_dayProgress = 0.0f;
+		float m_gameTime = 0.0f;
+		XMFLOAT3 m_sunDirection;
 
 		bool        m_sceneLoaded = false;
 		std::string m_sceneLoadedName;

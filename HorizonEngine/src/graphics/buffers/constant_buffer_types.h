@@ -4,7 +4,7 @@
 
 namespace hrzn::gfx
 {
-	struct CB_VS_vertexShader
+	struct VertexShaderCB
 	{
 		DirectX::XMMATRIX m_modelViewProjectionMatrix;
 		DirectX::XMMATRIX m_modelMatrix;
@@ -12,7 +12,7 @@ namespace hrzn::gfx
 		float             m_waveAmplitude;
 	};
 
-	struct CB_DirectionalLight
+	struct DirectionalLightCB
 	{
 		DirectX::XMFLOAT3 m_colour;
 		float             m_ambientStrength;
@@ -21,7 +21,7 @@ namespace hrzn::gfx
 		float             m_padding1;
 	};
 
-	struct CB_PointLight
+	struct PointLightCB
 	{
 		DirectX::XMFLOAT3 m_position;
 		float             m_padding1;
@@ -35,7 +35,7 @@ namespace hrzn::gfx
 		float             m_padding3;
 	};
 
-	struct CB_SpotLight
+	struct SpotLightCB
 	{
 		DirectX::XMFLOAT3 m_position;
 		float             m_padding1;
@@ -52,14 +52,14 @@ namespace hrzn::gfx
 		DirectX::XMFLOAT3 m_direction;
 	};
 
-	struct CB_Material
+	struct MaterialCB
 	{
 		float             m_shininess;
 		float             m_specularity;
 		DirectX::XMFLOAT2 m_padding1;
 	};
 
-	struct CB_PS_pixelShader
+	struct PixelShaderCB
 	{
 		//PACK_SEAM
 		int                 m_numPointLights;
@@ -73,30 +73,65 @@ namespace hrzn::gfx
 		int                 m_fresnel;
 
 		//PACK_SEAM
-		CB_Material         m_objectMaterial;
+		MaterialCB         m_objectMaterial;
 
 		//PACK_SEAM
-		CB_DirectionalLight m_directionalLight;
-		CB_PointLight       m_pointLights[10];
-		CB_SpotLight        m_spotLights[20];
+		DirectionalLightCB  m_directionalLight;
+		PointLightCB        m_pointLights[10];
+		SpotLightCB         m_spotLights[20];
 
 		//PACK_SEAM
 		DirectX::XMFLOAT3   m_cameraPosition;
 		float               m_padding2;
 	};
 
-	struct CB_PS_noLightPixelShader
+	struct NoLightPixelShaderCB
 	{
 		DirectX::XMFLOAT3 m_colour;
 		int               m_justColour;
 	};
 
-	struct CB_PS_cloudsPixelShader
+	struct AtmosphericPixelShaderCB
+	{
+		DirectX::XMFLOAT3 m_sunDirection;
+		float             m_sunSize;
+
+		DirectX::XMFLOAT3 m_cameraPosition;
+		float             m_padding;
+
+		float  m_density;
+		float  m_multiScatterPhase;
+		float  m_anisotropicIntensity;
+		float  m_zenithOffset;
+	};
+
+	struct CloudsPixelShaderCB
 	{
 		DirectX::XMFLOAT3 m_cameraPosition;
 		float             m_padding1;
 
 		DirectX::XMFLOAT3 m_lightDirection;
-		float             m_padding2;
+		float             m_cloudCoverage;
+
+		DirectX::XMFLOAT3 m_lightColour;
+		float             m_gameTime;
+
+		float             m_lightAbsorbtionThroughClouds;
+		float             m_lightAbsorbtionTowardsSun;
+		float             m_phaseFactor;
+		float             m_darknessThreshold;
+
+		float             m_cloudSpeed;
+		float             m_cloudHeight;
+		int               m_numSteps;
+		float             m_stepSize;
+	};
+
+	struct NoiseTextureComputeShaderCB
+	{
+		float m_size;
+		float m_height;
+		float m_seed;
+		float m_noiseSize;
 	};
 }

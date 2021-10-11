@@ -15,7 +15,7 @@ namespace hrzn::entity
 		RenderableGameObject();
 
 		bool  initialize(std::string label, const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
-		void  draw(const XMMATRIX& viewProjectionMatrix, gfx::ConstantBuffer<gfx::CB_VS_vertexShader>* cb_vs_vertexShader, bool bindTextures = true);
+		void  draw(const XMMATRIX& viewProjectionMatrix, gfx::ConstantBuffer<gfx::VertexShaderCB>* cb_vs_vertexShader, bool bindTextures = true);
 
 		float getRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection);
 
