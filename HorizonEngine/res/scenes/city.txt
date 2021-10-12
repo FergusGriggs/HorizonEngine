@@ -6,25 +6,9 @@ meme 2
 
 191
 
-1 Frame4 environment/meshes/city/wall/frames/left/r.obj
--32.8773 -6.93235 0.690428 
-3 -0 0.683343 -0 0.730098 
-0
-0
-0
-0
-
-1 Window|25 environment/meshes/city/wall/window/light/r.obj
--52.4572 20.8446 3.78751 
-3 0 0.814448 0 0.580237 
-0
-0
-0
-0
-
-1 curvedroad environment/meshes/city/curvedroad/r.obj
-0 0 0 
-3 0 0 0 1 
+5 Spot|Light|1 1 0.5625 0.1875 42.158 57.316 
+-53.1587 4.73631 -45.626 
+3 0.70139 0 -0 0.712778 
 0
 0
 0
@@ -38,15 +22,31 @@ meme 2
 0
 0
 
-5 Spot|Light|1 800 450 150 42.158 57.316 
--53.1587 4.73631 -45.626 
-3 0.70139 0 -0 0.712778 
+1 curvedroad environment/meshes/city/curvedroad/r.obj
+0 0 0 
+3 0 0 0 1 
 0
 0
 0
 0
 
-5 Spot|Light|2 1500 650 250 35.526 45 
+1 Window|25 environment/meshes/city/wall/window/light/r.obj
+-52.4572 20.8446 3.78751 
+3 0 0.814448 0 0.580237 
+0
+0
+0
+0
+
+1 Frame4 environment/meshes/city/wall/frames/left/r.obj
+-32.8773 -6.93235 0.690428 
+3 -0 0.683343 -0 0.730098 
+0
+0
+0
+0
+
+5 Spot|Light|2 1 0.433333 0.166667 35.526 45 
 -49.0979 12.8953 -4.86816 
 3 0.70139 0 -0 0.712778 
 0
@@ -54,7 +54,7 @@ meme 2
 0
 0
 
-5 Spot|Light|3 1500 650 250 29.368 41.211 
+5 Spot|Light|3 1 0.489331 0.245098 11.868 60.824 
 -36.1454 14.7777 -28.1302 
 3 0.70139 0 -0 0.712778 
 0
@@ -62,7 +62,7 @@ meme 2
 0
 0
 
-5 Spot|Light|4 1500 650 250 29.842 40.263 
+5 Spot|Light|4 1 0.433333 0.166667 29.842 40.263 
 -4.17776 17.1393 -24.5361 
 3 0.70139 0 -0 0.712778 
 0
@@ -70,7 +70,7 @@ meme 2
 0
 0
 
-5 Spot|Light|5 1500 650 250 38.842 45.947 
+5 Spot|Light|5 1 0.433333 0.166667 38.842 45.947 
 -69.454 12.727 -21.4719 
 3 0.70139 0 -0 0.712778 
 0
@@ -78,7 +78,7 @@ meme 2
 0
 0
 
-5 Spot|Light|6 1500 650 250 28.421 45 
+5 Spot|Light|6 1 0.433333 0.166667 28.421 45 
 -22.5991 14.6605 -7.13194 
 3 0.70139 0 -0 0.712778 
 0
@@ -86,25 +86,9 @@ meme 2
 0
 0
 
-5 Spot|Light|7 800 450 150 42.158 57.316 
+5 Spot|Light|7 1 0.603465 0.259804 24.725 62.308 
 -57.8915 10.0103 -70.2468 
 3 0.70139 0 -0 0.712778 
-0
-0
-0
-0
-
-1 LampPost8 environment/meshes/city/lamppost/r.obj
--69.8334 -6.43877 -22.5133 
-3 -0 -0.570334 -0 0.821413 
-0
-0
-0
-0
-
-1 Frame3 environment/meshes/city/wall/frames/left/r.obj
--16.4393 -5.63065 1.88108 
-3 -0 0.624196 -0 0.781268 
 0
 0
 0
@@ -118,6 +102,22 @@ meme 2
 0
 0
 
+1 Frame3 environment/meshes/city/wall/frames/left/r.obj
+-16.4393 -5.63065 1.88108 
+3 -0 0.624196 -0 0.781268 
+0
+0
+0
+0
+
+1 LampPost8 environment/meshes/city/lamppost/r.obj
+-69.8334 -6.43877 -22.5133 
+3 -0 -0.570334 -0 0.821413 
+0
+0
+0
+0
+
 1 Frame1 environment/meshes/city/wall/frames/left/r.obj
 14.7042 -2.70609 12.0054 
 3 -0 0.522447 -0 0.852672 
@@ -126,9 +126,9 @@ meme 2
 0
 0
 
-1 Wall18 environment/meshes/city/wall/propaganda/1/r.obj
--81.9477 -8.21979 -21.9515 
-3 -0 -0.492755 -0 0.870168 
+1 LampPost9 environment/meshes/city/lamppost/r.obj
+-99.9767 -8.78624 -2.23897 
+3 -0 -0.43219 -0 0.901783 
 0
 0
 0
@@ -142,9 +142,9 @@ meme 2
 0
 0
 
-1 LampPost9 environment/meshes/city/lamppost/r.obj
--99.9767 -8.78624 -2.23897 
-3 -0 -0.43219 -0 0.901783 
+1 Wall18 environment/meshes/city/wall/propaganda/1/r.obj
+-81.9477 -8.21979 -21.9515 
+3 -0 -0.492755 -0 0.870168 
 0
 0
 0
@@ -174,14 +174,6 @@ meme 2
 0
 0
 
-1 Wall10 environment/meshes/city/wall/propaganda/1/r.obj
-42.6786 2.60796 -12.4671 
-3 0 0.890891 0 -0.454217 
-0
-0
-0
-0
-
 1 LampPost1 environment/meshes/city/lamppost/r.obj
 5.90869 -3.12217 1.34327 
 3 -0 0.546498 -0 0.83746 
@@ -190,17 +182,9 @@ meme 2
 0
 0
 
-1 LampPost3 environment/meshes/city/lamppost/r.obj
--48.8889 -6.24668 -3.8388 
-3 0 0.767812 0 0.640675 
-0
-0
-0
-0
-
-1 Frame8 environment/meshes/city/wall/frames/left/r.obj
--88.8696 -11.5257 28.4317 
-3 0 0.920651 0 0.390386 
+1 Wall10 environment/meshes/city/wall/propaganda/1/r.obj
+42.6786 2.60796 -12.4671 
+3 0 0.890891 0 -0.454217 
 0
 0
 0
@@ -214,17 +198,17 @@ meme 2
 0
 0
 
-1 LampPost2 environment/meshes/city/lamppost/r.obj
--22.6997 -4.47238 -5.98168 
-3 -0 0.676811 -0 0.736157 
+1 Frame8 environment/meshes/city/wall/frames/left/r.obj
+-88.8696 -11.5257 28.4317 
+3 0 0.920651 0 0.390386 
 0
 0
 0
 0
 
-1 Frame9 environment/meshes/city/wall/frames/left/r.obj
--99.2667 -12.4366 40.9869 
-3 0 0.940551 0 0.339653 
+1 LampPost3 environment/meshes/city/lamppost/r.obj
+-48.8889 -6.24668 -3.8388 
+3 0 0.767812 0 0.640675 
 0
 0
 0
@@ -238,9 +222,17 @@ meme 2
 0
 0
 
-1 LampPost4 environment/meshes/city/lamppost/r.obj
--71.9271 -8.06684 5.98114 
-3 0 0.869698 0 0.493584 
+1 Frame9 environment/meshes/city/wall/frames/left/r.obj
+-99.2667 -12.4366 40.9869 
+3 0 0.940551 0 0.339653 
+0
+0
+0
+0
+
+1 LampPost2 environment/meshes/city/lamppost/r.obj
+-22.6997 -4.47238 -5.98168 
+3 -0 0.676811 -0 0.736157 
 0
 0
 0
@@ -254,9 +246,9 @@ meme 2
 0
 0
 
-1 LampPost5 environment/meshes/city/lamppost/r.obj
--96.1928 -10.012 27.4946 
-3 0 0.929882 0 0.367858 
+1 LampPost4 environment/meshes/city/lamppost/r.obj
+-71.9271 -8.06684 5.98114 
+3 0 0.869698 0 0.493584 
 0
 0
 0
@@ -270,9 +262,9 @@ meme 2
 0
 0
 
-1 Frame10 environment/meshes/city/wall/frames/right/r.obj
-36.222 1.541 -17.3936 
-3 -0 0.445094 -0 0.895484 
+1 LampPost5 environment/meshes/city/lamppost/r.obj
+-96.1928 -10.012 27.4946 
+3 0 0.929882 0 0.367858 
 0
 0
 0
@@ -281,6 +273,22 @@ meme 2
 1 RoadBlock1 environment/meshes/city/roadblock/r.obj
 2.00375 -2.89898 2.78977 
 3 0.015231 0.554003 0.0279082 0.831908 
+0
+0
+0
+0
+
+1 Frame10 environment/meshes/city/wall/frames/right/r.obj
+36.222 1.541 -17.3936 
+3 -0 0.445094 -0 0.895484 
+0
+0
+0
+0
+
+1 RoadBlock2 environment/meshes/city/roadblock/r.obj
+3.46205 -2.37825 -1.50176 
+3 0.0113114 0.600024 0.0210437 0.799625 
 0
 0
 0
@@ -302,9 +310,9 @@ meme 2
 0
 0
 
-1 RoadBlock2 environment/meshes/city/roadblock/r.obj
-3.46205 -2.37825 -1.50176 
-3 0.0113114 0.600024 0.0210437 0.799625 
+1 RoadBlock3 environment/meshes/city/roadblock/r.obj
+4.48066 -1.81493 -5.85587 
+3 0.0101566 0.609676 0.0403307 0.791559 
 0
 0
 0
@@ -326,9 +334,9 @@ meme 2
 0
 0
 
-1 RoadBlock3 environment/meshes/city/roadblock/r.obj
-4.48066 -1.81493 -5.85587 
-3 0.0101566 0.609676 0.0403307 0.791559 
+1 RoadBlock4 environment/meshes/city/roadblock/r.obj
+5.71452 -1.42588 -10.0308 
+3 0.0166142 0.563513 0.0312632 0.825348 
 0
 0
 0
@@ -350,9 +358,9 @@ meme 2
 0
 0
 
-1 RoadBlock4 environment/meshes/city/roadblock/r.obj
-5.71452 -1.42588 -10.0308 
-3 0.0166142 0.563513 0.0312632 0.825348 
+1 RoadBlock5 environment/meshes/city/roadblock/r.obj
+7.93641 -1.15218 -14.015 
+3 0.0148002 0.456006 0.028866 0.889385 
 0
 0
 0
@@ -374,9 +382,9 @@ meme 2
 0
 0
 
-1 RoadBlock5 environment/meshes/city/roadblock/r.obj
-7.93641 -1.15218 -14.015 
-3 0.0148002 0.456006 0.028866 0.889385 
+1 RoadBlock6 environment/meshes/city/roadblock/r.obj
+10.4076 -0.674085 -17.8379 
+3 0.0280218 0.487625 0.026965 0.872186 
 0
 0
 0
@@ -398,9 +406,9 @@ meme 2
 0
 0
 
-1 RoadBlock6 environment/meshes/city/roadblock/r.obj
-10.4076 -0.674085 -17.8379 
-3 0.0280218 0.487625 0.026965 0.872186 
+1 RoadBlock7 environment/meshes/city/roadblock/r.obj
+12.4294 -0.262353 -22.0159 
+3 0.023051 0.667829 0.0414236 0.742803 
 0
 0
 0
@@ -422,9 +430,17 @@ meme 2
 0
 0
 
-1 RoadBlock7 environment/meshes/city/roadblock/r.obj
-12.4294 -0.262353 -22.0159 
-3 0.023051 0.667829 0.0414236 0.742803 
+1 RoadBlock8 environment/meshes/city/roadblock/r.obj
+9.89664 -0.470066 -24.7014 
+3 -0 -0.63504 -0 0.772479 
+0
+0
+0
+0
+
+1 Stairs|1 environment/meshes/city/wall/frames/stairs/r.obj
+-50.6453 -6.18453 -33.191 
+3 0 0.770554 0 0.637375 
 0
 0
 0
@@ -441,22 +457,6 @@ meme 2
 1 Frame19 environment/meshes/city/wall/frames/right/r.obj
 -102.082 -10.3024 -8.15552 
 3 0 0.896456 0 0.443133 
-0
-0
-0
-0
-
-1 RoadBlock8 environment/meshes/city/roadblock/r.obj
-9.89664 -0.470066 -24.7014 
-3 -0 -0.63504 -0 0.772479 
-0
-0
-0
-0
-
-1 Stairs|1 environment/meshes/city/wall/frames/stairs/r.obj
--50.6453 -6.18453 -33.191 
-3 0 0.770554 0 0.637375 
 0
 0
 0
@@ -502,17 +502,17 @@ meme 2
 0
 0
 
-1 Roadblock12 environment/meshes/city/roadblock/r.obj
--71.1232 -6.9078 -9.82349 
-3 6.26618e-05 -0.630125 -7.72222e-05 0.776494 
+1 Roadblock9 environment/meshes/city/roadblock/r.obj
+-74.1641 -6.48983 -23.0111 
+3 -0 -0.604023 -0 0.796967 
 0
 0
 0
 0
 
-1 Roadblock9 environment/meshes/city/roadblock/r.obj
--74.1641 -6.48983 -23.0111 
-3 -0 -0.604023 -0 0.796967 
+1 Roadblock12 environment/meshes/city/roadblock/r.obj
+-71.1232 -6.9078 -9.82349 
+3 6.26618e-05 -0.630125 -7.72222e-05 0.776494 
 0
 0
 0
@@ -558,14 +558,6 @@ meme 2
 0
 0
 
-1 Window|2 environment/meshes/city/wall/window/light/r.obj
--54.6268 12.3452 -32.6226 
-3 -0 -0.63489 -0 0.772603 
-0
-0
-0
-0
-
 1 Wall20 environment/meshes/city/wall/propaganda/1/r.obj
 -107.892 -10.3967 -2.24085 
 3 -0 -0.382397 -0 0.923998 
@@ -574,9 +566,9 @@ meme 2
 0
 0
 
-1 Wall21 environment/meshes/city/wall/propaganda/1/r.obj
--118.698 -11.4663 9.3892 
-3 -0 -0.343857 -0 0.939022 
+1 Window|2 environment/meshes/city/wall/window/light/r.obj
+-54.6268 12.3452 -32.6226 
+3 -0 -0.63489 -0 0.772603 
 0
 0
 0
@@ -585,6 +577,14 @@ meme 2
 1 Window|3 environment/meshes/city/wall/window/light/r.obj
 -47.6483 24.3411 -33.9822 
 3 -0 -0.635663 -0 0.771966 
+0
+0
+0
+0
+
+1 Wall21 environment/meshes/city/wall/propaganda/1/r.obj
+-118.698 -11.4663 9.3892 
+3 -0 -0.343857 -0 0.939022 
 0
 0
 0
@@ -622,17 +622,17 @@ meme 2
 0
 0
 
-1 Roadblock15 environment/meshes/city/roadblock/r.obj
--70.4226 -7.6682 3.7918 
-3 0 0.736151 0 -0.676818 
+1 Alleyway|Light|1 environment/meshes/city/misc/indoor_light/r.obj
+-53.1381 3.87665 -45.6491 
+3 0 0 0 1 
 0
 0
 0
 0
 
-1 Alleyway|Light|1 environment/meshes/city/misc/indoor_light/r.obj
--53.1381 3.87665 -45.6491 
-3 0 0 0 1 
+1 Roadblock15 environment/meshes/city/roadblock/r.obj
+-70.4226 -7.6682 3.7918 
+3 0 0.736151 0 -0.676818 
 0
 0
 0
@@ -694,17 +694,17 @@ meme 2
 0
 0
 
-1 Bin|4 environment/meshes/city/misc/bin/r.obj
--60.0159 -5.58628 -27.9958 
-3 0.0367899 -0.620507 0.0203375 0.783073 
+1 Frame22 environment/meshes/city/wall/frames/left/r.obj
+-63.4609 -6.48519 -55.7617 
+3 0 0.773075 0 0.634315 
 0
 0
 0
 0
 
-1 Frame22 environment/meshes/city/wall/frames/left/r.obj
--63.4609 -6.48519 -55.7617 
-3 0 0.773075 0 0.634315 
+1 Bin|4 environment/meshes/city/misc/bin/r.obj
+-60.0159 -5.58628 -27.9958 
+3 0.0367899 -0.620507 0.0203375 0.783073 
 0
 0
 0
@@ -718,14 +718,6 @@ meme 2
 0
 0
 
-1 Bin|2 environment/meshes/city/misc/bin/r.obj
--67.7957 -7.14373 -68.9836 
-3 -0 0.0761572 -0 0.997096 
-0
-0
-0
-0
-
 1 Frame24 environment/meshes/city/wall/frames/left/r.obj
 -67.9687 -6.60518 -83.0094 
 3 -0 -0.182926 -0 0.983127 
@@ -734,9 +726,9 @@ meme 2
 0
 0
 
-1 Bin|3 environment/meshes/city/misc/bin/r.obj
--68.1663 -3.6077 -74.5906 
-3 -0.485365 -0.201572 -0.0759746 0.847359 
+1 Bin|2 environment/meshes/city/misc/bin/r.obj
+-67.7957 -7.14373 -68.9836 
+3 -0 0.0761572 -0 0.997096 
 0
 0
 0
@@ -750,17 +742,17 @@ meme 2
 0
 0
 
-1 Frame26 environment/meshes/city/wall/frames/left/r.obj
--42.2679 -6.52013 -73.779 
-3 0 0.941228 0 -0.337773 
+1 Bin|3 environment/meshes/city/misc/bin/r.obj
+-68.1663 -3.6077 -74.5906 
+3 -0.485365 -0.201572 -0.0759746 0.847359 
 0
 0
 0
 0
 
-1 Bin|1 environment/meshes/city/misc/bin/r.obj
--49.0304 -6.79912 -76.9455 
-3 0 0.941121 0 -0.33807 
+1 Frame26 environment/meshes/city/wall/frames/left/r.obj
+-42.2679 -6.52013 -73.779 
+3 0 0.941228 0 -0.337773 
 0
 0
 0
@@ -774,17 +766,17 @@ meme 2
 0
 0
 
-1 Wall22 environment/meshes/city/wall/propaganda/1/r.obj
--44.7686 -5.43539 -66.9496 
-3 0 0.986399 0 0.164367 
+1 Bin|1 environment/meshes/city/misc/bin/r.obj
+-49.0304 -6.79912 -76.9455 
+3 0 0.941121 0 -0.33807 
 0
 0
 0
 0
 
-1 Window|1 environment/meshes/city/wall/window/no_light/r.obj
--47.5682 12.2908 -34.0635 
-3 -0 -0.638049 -0 0.769996 
+1 Wall22 environment/meshes/city/wall/propaganda/1/r.obj
+-44.7686 -5.43539 -66.9496 
+3 0 0.986399 0 0.164367 
 0
 0
 0
@@ -798,9 +790,9 @@ meme 2
 0
 0
 
-1 Window|6 environment/meshes/city/wall/window/light/r.obj
--27.6958 13.5941 0.946333 
-3 -0 0.659464 -0 0.751736 
+1 Window|1 environment/meshes/city/wall/window/no_light/r.obj
+-47.5682 12.2908 -34.0635 
+3 -0 -0.638049 -0 0.769996 
 0
 0
 0
@@ -814,9 +806,9 @@ meme 2
 0
 0
 
-1 Window|7 environment/meshes/city/wall/window/light/r.obj
--27.662 24.1811 1.0161 
-3 -0 0.663039 -0 0.748585 
+1 Window|6 environment/meshes/city/wall/window/light/r.obj
+-27.6958 13.5941 0.946333 
+3 -0 0.659464 -0 0.751736 
 0
 0
 0
@@ -830,9 +822,9 @@ meme 2
 0
 0
 
-1 Wall26 environment/meshes/city/wall/propaganda/1/r.obj
--68.165 -5.57838 -61.4379 
-3 -0 0.359103 -0 0.933298 
+1 Window|7 environment/meshes/city/wall/window/light/r.obj
+-27.662 24.1811 1.0161 
+3 -0 0.663039 -0 0.748585 
 0
 0
 0
@@ -841,6 +833,14 @@ meme 2
 1 Window|4 environment/meshes/city/wall/window/light/r.obj
 -54.555 24.3257 -32.631 
 3 -0 -0.646295 -0 0.763088 
+0
+0
+0
+0
+
+1 Wall26 environment/meshes/city/wall/propaganda/1/r.obj
+-68.165 -5.57838 -61.4379 
+3 -0 0.359103 -0 0.933298 
 0
 0
 0
@@ -1070,17 +1070,17 @@ meme 2
 0
 0
 
-1 Window|24 environment/meshes/city/wall/window/light/r.obj
--37.5523 11.8259 1.18955 
-3 0 0.723798 0 0.690012 
+1 Double|Wall|29 environment/meshes/city/wall/double/r.obj
+69.7894 14.792 21.2074 
+3 0 0.964376 0 0.264537 
 0
 0
 0
 0
 
-1 Double|Wall|29 environment/meshes/city/wall/double/r.obj
-69.7894 14.792 21.2074 
-3 0 0.964376 0 0.264537 
+1 Window|24 environment/meshes/city/wall/window/light/r.obj
+-37.5523 11.8259 1.18955 
+3 0 0.723798 0 0.690012 
 0
 0
 0
@@ -1214,14 +1214,6 @@ meme 2
 0
 0
 
-1 Window|16 environment/meshes/city/wall/window/light/r.obj
-10.8384 16.1782 10.6698 
-3 -0 0.53727 -0 0.84341 
-0
-0
-0
-0
-
 1 Roof|10 environment/meshes/city/roof/default/r.obj
 -150.397 22.3535 42.3134 
 3 -0 0.367144 -0 0.930164 
@@ -1230,9 +1222,9 @@ meme 2
 0
 0
 
-1 Window|17 environment/meshes/city/wall/window/light/r.obj
-19.2487 27.9311 14.6899 
-3 -0 0.518984 -0 0.854784 
+1 Window|16 environment/meshes/city/wall/window/light/r.obj
+10.8384 16.1782 10.6698 
+3 -0 0.53727 -0 0.84341 
 0
 0
 0
@@ -1246,9 +1238,9 @@ meme 2
 0
 0
 
-1 Window|14 environment/meshes/city/wall/window/light/r.obj
-10.5666 26.6035 10.5314 
-3 -0 0.539212 -0 0.84217 
+1 Window|17 environment/meshes/city/wall/window/light/r.obj
+19.2487 27.9311 14.6899 
+3 -0 0.518984 -0 0.854784 
 0
 0
 0
@@ -1262,9 +1254,9 @@ meme 2
 0
 0
 
-1 Window|15 environment/meshes/city/wall/window/light/r.obj
-4.79176 16.1187 7.86605 
-3 -0 0.554179 -0 0.832398 
+1 Window|14 environment/meshes/city/wall/window/light/r.obj
+10.5666 26.6035 10.5314 
+3 -0 0.539212 -0 0.84217 
 0
 0
 0
@@ -1278,9 +1270,9 @@ meme 2
 0
 0
 
-1 Roof|14 environment/meshes/city/roof/default/r.obj
--93.8114 24.8427 34.4719 
-3 0 0.934046 0 0.357154 
+1 Window|15 environment/meshes/city/wall/window/light/r.obj
+4.79176 16.1187 7.86605 
+3 -0 0.554179 -0 0.832398 
 0
 0
 0
@@ -1294,9 +1286,9 @@ meme 2
 0
 0
 
-1 Window|13 environment/meshes/city/wall/window/light/r.obj
-4.65894 26.6186 7.83723 
-3 -0 0.554985 -0 0.83186 
+1 Roof|14 environment/meshes/city/roof/default/r.obj
+-93.8114 24.8427 34.4719 
+3 0 0.934046 0 0.357154 
 0
 0
 0
@@ -1310,9 +1302,9 @@ meme 2
 0
 0
 
-1 Roof|16 environment/meshes/city/roof/default/r.obj
--69.7666 26.9533 12.1456 
-3 0 0.876436 0 0.481518 
+1 Window|13 environment/meshes/city/wall/window/light/r.obj
+4.65894 26.6186 7.83723 
+3 -0 0.554985 -0 0.83186 
 0
 0
 0
@@ -1326,9 +1318,9 @@ meme 2
 0
 0
 
-1 Roof|17 environment/meshes/city/roof/default/r.obj
--55.3692 27.8306 4.69442 
-3 0 0.818371 0 0.57469 
+1 Roof|16 environment/meshes/city/roof/default/r.obj
+-69.7666 26.9533 12.1456 
+3 0 0.876436 0 0.481518 
 0
 0
 0
@@ -1337,6 +1329,14 @@ meme 2
 1 Window|11 environment/meshes/city/wall/window/light/r.obj
 -11.6546 24.8683 3.07926 
 3 -0 0.603817 -0 0.797123 
+0
+0
+0
+0
+
+1 Roof|17 environment/meshes/city/roof/default/r.obj
+-55.3692 27.8306 4.69442 
+3 0 0.818371 0 0.57469 
 0
 0
 0

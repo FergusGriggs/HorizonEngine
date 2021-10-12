@@ -40,6 +40,8 @@ struct PS_INPUT
 Texture3D<float> noiseTexture : TEXTURE3D : register(t0);
 SamplerState samplerState : SAMPLER : register(s0);
 
+static const float randomConstant = 50.0f;
+
 float getLinearProgress(float edge0, float edge1, float x)
 {
     return clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
@@ -73,21 +75,21 @@ float cloudNoise(float3 x)
 
 float getDensityAt(float3 position)
 {
-    float total = cloudNoise(float3(position.x * 0.0001f, position.y * 0.0002f, position.z * 0.0001f - gameTime * cloudSpeed)) * 0.75;
-    total += cloudNoise(position * 0.00025f + 1240.0f) * 0.15f;
-    total += cloudNoise(position * 0.0015f + 142450.0f) * 0.1f;
+    float total = cloudNoise(float3(position.x * 0.00005f, position.y * 0.0002f, position.z * 0.0001f - gameTime * cloudSpeed)) * 0.65;
+    total += cloudNoise(position * 0.00015f + 1240.0f) * 0.25f;
+    total += cloudNoise(position * 0.001f + 142450.0f) * 0.1f;
 
     float halfCloudHeight = cloudHeight * 0.5f;
     float halfDiff = position.y - halfCloudHeight;
     if (halfDiff > 0.0f)
     {
         float normalisedDistToEdge = min(halfCloudHeight, halfDiff) / halfCloudHeight;
-        total -= getLinearProgress(0.7f, 1.0f, normalisedDistToEdge);
+        total -= getLinearProgress(0.5f, 1.0f, normalisedDistToEdge);
     }
     else
     {
         float normalisedDistToEdge = min(halfCloudHeight, -halfDiff) / halfCloudHeight;
-        total -= getLinearProgress(0.5f, 1.0f, normalisedDistToEdge);
+        total -= pow(getLinearProgress(0.5f, 1.0f, normalisedDistToEdge), 2.0f);
     }
 
     //total = lerp(min(1.0f, total), 0.0f, 1.0f - cloudCoverage);
@@ -98,43 +100,39 @@ float getDensityAt(float3 position)
     return total;
 }
 
-float getLight(float3 position, float noiseOffset)
+float getLight(float3 position, float noiseOffset, float step)
 {
-    float lightStepSize = 20.0f;
     int numLightSteps = 3;
 
     float totalDensity = 0.0f;
+    step = 50.0f;
 
-    position -= noiseOffset * lightDirection;
+    position -= noiseOffset * lightDirection * step;
 
     [unroll(numLightSteps)]
     while (true)
     {
-        position -= lightDirection * lightStepSize;
-        totalDensity += max(0.0f, getDensityAt(position) * lightStepSize);
+        position -= lightDirection * step;
+        totalDensity += max(0.0f, getDensityAt(position));
     }
 
-    float transmittance = exp(-totalDensity * lightAbsorbtionTowardsSun);
+    float transmittance = exp(-totalDensity * lightAbsorbtionTowardsSun * randomConstant);
     return darknessThreshold + transmittance * (1.0f - darknessThreshold);
 }
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
-    //int maxSamples = 5;
-    float oneOverSampleCount = 1.0f / (float)numSteps;
-    
     float3 cameraFragPosDiff = input.worldPos - cameraPosition;
     float flatCameraFragDist = length(float3(cameraFragPosDiff.x, 0.0f, cameraFragPosDiff.z));
 
     float3 mainRayDirection = normalize(cameraFragPosDiff);
-    //mainRayDirection = normalize(float3(mainRayDirection.x, max(mainRayDirection.y, 0.5f), mainRayDirection.z));
 
     float angle = acos(dot(mainRayDirection, float3(0.0f, -1.0f, 0.0f))) - 1.570796f;
 
-    float distCloudHeightMod = 1.0f;// getLinearProgress(7000.0f, 0.0f, flatCameraFragDist);
+    //float distCloudHeightMod = getLinearProgress(7000.0f, 0.0f, flatCameraFragDist);
 
-    float dist = (cloudHeight * distCloudHeightMod) / sin(angle);
-    float step = dist * oneOverSampleCount;
+    float dist = (cloudHeight) / sin(angle); // * distCloudHeightMod
+    float step = dist / (float)numSteps;
 
     float noiseOffset = cloudNoise(input.worldPos * 5.0f);
     float3 rayPos = float3(input.worldPos.x, 0.0f, input.worldPos.z) + mainRayDirection * noiseOffset * step;
@@ -145,8 +143,6 @@ float4 main(PS_INPUT input) : SV_TARGET
     float transmittance = 1.0f;
     float lightEnergy = 0.0f;
 
-    float randomConstant = 50.0f;
-
     [unroll(100)]
     while(rayDist < dist && stepsMade < numSteps)
     {
@@ -154,7 +150,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 
         if (density > 0.0f)
         {
-            float lightTransmittance = getLight(rayPos, noiseOffset);
+            float lightTransmittance = getLight(rayPos, noiseOffset, step);
             lightEnergy += density * transmittance * lightTransmittance * phaseFactor * randomConstant;
 
             transmittance *= exp(-density * lightAbsorbtionThroughClouds * randomConstant);
@@ -174,7 +170,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     
     float sunDot = dot(normalize(input.worldPos - cameraPosition), -lightDirection);
     float lightIntensity = clamp((sunDot - 0.9f) / (1.0f - 0.9f), 0.0, 1.0);
-    lightIntensity = pow(lightIntensity, 10.0f);
+    lightIntensity = pow(lightIntensity, 10.0f) * 1.5f;
 
     lightEnergy += lightEnergy * lightIntensity;
 

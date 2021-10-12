@@ -146,19 +146,21 @@ namespace hrzn::gfx
 			XMStoreFloat3(&m_atmosphericPixelShaderCB.m_data.m_sunDirection, XMVector3Normalize(XMVectorSet(0.8f, 0.5f, 0.4f, 1.0f)));
 			m_atmosphericPixelShaderCB.m_data.m_sunSize = 75.0f;
 			m_atmosphericPixelShaderCB.m_data.m_density = 0.65f;
-			m_atmosphericPixelShaderCB.m_data.m_multiScatterPhase = 0.4f;
+			m_atmosphericPixelShaderCB.m_data.m_multiScatterPhase = 0.27f;
 			m_atmosphericPixelShaderCB.m_data.m_anisotropicIntensity = 1.0f;
-			m_atmosphericPixelShaderCB.m_data.m_zenithOffset = 0.0f;
+			m_atmosphericPixelShaderCB.m_data.m_zenithOffset = -0.02f;
+			m_atmosphericPixelShaderCB.m_data.m_nightDensity = 1.2f;
+			m_atmosphericPixelShaderCB.m_data.m_nightZenithYClamp = 0.05f;
 
 			hr = m_cloudsPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'cloudsPixelShader' constant buffer.");
-			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionThroughClouds = 0.221f;
-			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionTowardsSun = 0.448f;
-			m_cloudsPixelShaderCB.m_data.m_phaseFactor = 0.262f;
+			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionThroughClouds = 0.338f;
+			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionTowardsSun = 0.559f;
+			m_cloudsPixelShaderCB.m_data.m_phaseFactor = 0.428f;
 			m_cloudsPixelShaderCB.m_data.m_darknessThreshold = 0.09f;
 			m_cloudsPixelShaderCB.m_data.m_cloudCoverage = 0.446f;
-			m_cloudsPixelShaderCB.m_data.m_cloudSpeed = 0.0075f;
-			m_cloudsPixelShaderCB.m_data.m_numSteps = 25;
+			m_cloudsPixelShaderCB.m_data.m_cloudSpeed = 0.02f;
+			m_cloudsPixelShaderCB.m_data.m_numSteps = 40;
 			m_cloudsPixelShaderCB.m_data.m_stepSize = 85.0f;
 			m_cloudsPixelShaderCB.m_data.m_cloudHeight = 1050.0f;
 
@@ -332,8 +334,6 @@ namespace hrzn::gfx
 	
 		UINT offset = 0;
 
-		m_vertexShaderCB.m_data.m_gameTime += deltaTime;
-
 		XMMATRIX viewProjMat = m_camera.getViewMatrix() * m_camera.getProjectionMatrix();
 
 		{
@@ -348,6 +348,8 @@ namespace hrzn::gfx
 			{
 				m_dayProgress += deltaTime * 0.0166666; // 1 day = 60 seconds
 				m_gameTime += deltaTime;
+				m_vertexShaderCB.m_data.m_gameTime = m_gameTime;
+
 
 				m_cloudsPixelShaderCB.m_data.m_gameTime = m_gameTime;
 			}
@@ -373,16 +375,19 @@ namespace hrzn::gfx
 			}
 			else
 			{
-				float t = fmaxf(0.0f, fminf(1.0f, (split - 0.35f) / (0.0f - 0.35f)));
+				float density = fmaxf(0.0f, fminf(1.0f, (split - 0.35f) / (0.0f - 0.35f)));
+
+				float lightLerp = fmaxf(0.0f, fminf(1.0f, (split - 0.25f) / (0.0f - 0.25f)));
+				float smoothLightLerp = lightLerp * lightLerp * (3.0f - 2.0f * lightLerp);
 
 				XMFLOAT3 sunsetColour = XMFLOAT3(1.0f, 0.62f, 0.26f);
-				XMFLOAT3 nightSunColour = XMFLOAT3(0.0f, 0.0f, 0.0f);
+				XMFLOAT3 nightSunColour = XMFLOAT3(0.025f, 0.025f, 0.0375f);
 
 				XMFLOAT3 sunColour = XMFLOAT3(0.0f, 0.0f, 0.0f);
-				XMStoreFloat3(&sunColour, XMVectorLerp(XMLoadFloat3(&nightSunColour), XMLoadFloat3(&sunsetColour), t));
+				XMStoreFloat3(&sunColour, XMVectorLerp(XMLoadFloat3(&nightSunColour), XMLoadFloat3(&sunsetColour), smoothLightLerp));
 				m_directionalLight.setColour(sunColour);
 
-				m_atmosphericPixelShaderCB.m_data.m_density = 0.25f + t * (0.65f - 0.25f);
+				m_atmosphericPixelShaderCB.m_data.m_density = 0.25f + density * (0.65f - 0.25f);
 			}
 
 			XMVECTOR sunDirection = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), XMMatrixRotationAxis(XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f), m_dayProgress * sc_2PI));
@@ -434,7 +439,7 @@ namespace hrzn::gfx
 				}
 				else
 				{
-					renderableGameObject->draw(viewProjMat, &m_vertexShaderCB);
+					renderableGameObject->draw(viewProjMat, &m_vertexShaderCB, false);
 				}
 			}
 
@@ -471,7 +476,6 @@ namespace hrzn::gfx
 			}
 
 			//DRAW WATER
-
 			m_pixelShaderCB.m_data.m_objectMaterial.m_shininess = 8.0f;
 			m_pixelShaderCB.m_data.m_objectMaterial.m_specularity = 0.5f;
 			m_pixelShaderCB.m_data.m_fresnel = 1;
@@ -766,7 +770,7 @@ namespace hrzn::gfx
 		textureDesc.Height = height;
 		textureDesc.Depth = size;
 		textureDesc.MipLevels = 0;
-		textureDesc.Format = DXGI_FORMAT_R16_FLOAT;
+		textureDesc.Format = DXGI_FORMAT_R8_SNORM;
 		textureDesc.Usage = D3D11_USAGE_DEFAULT;
 		textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
 		textureDesc.CPUAccessFlags = 0;
@@ -781,7 +785,7 @@ namespace hrzn::gfx
 		ZeroMemory(&unorderedAccessViewDesc, sizeof(unorderedAccessViewDesc));
 
 		unorderedAccessViewDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
-		unorderedAccessViewDesc.Format = DXGI_FORMAT_R16_FLOAT;
+		unorderedAccessViewDesc.Format = DXGI_FORMAT_R8_SNORM;
 		unorderedAccessViewDesc.Texture3D.MipSlice = 0;
 		unorderedAccessViewDesc.Texture3D.FirstWSlice = 0;
 		unorderedAccessViewDesc.Texture3D.WSize = size;
@@ -806,7 +810,7 @@ namespace hrzn::gfx
 		// Create a shader resource view from the resultant data
 		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
 		ZeroMemory(&shaderResourceViewDesc, sizeof(shaderResourceViewDesc));
-		shaderResourceViewDesc.Format = DXGI_FORMAT_R16_FLOAT;//DXGI_FORMAT_R16G16B16A16_FLOAT
+		shaderResourceViewDesc.Format = DXGI_FORMAT_R8_SNORM;//DXGI_FORMAT_R16G16B16A16_FLOAT
 		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
 		shaderResourceViewDesc.Texture3D.MostDetailedMip = 0;
 		shaderResourceViewDesc.Texture3D.MipLevels = 1;
@@ -1691,23 +1695,29 @@ namespace hrzn::gfx
 		if (ImGui::Button("Toggle Day/Night Cycle")) m_dayNightCycle = !m_dayNightCycle;
 		ImGui::SliderFloat("Day Progress", &m_dayProgress, 0.0f, 1.0f);
 		
-		ImGui::SliderFloat("Sun Size", &m_atmosphericPixelShaderCB.m_data.m_sunSize, 10.0f, 200.0f);
-		ImGui::SliderFloat("Density", &m_atmosphericPixelShaderCB.m_data.m_density, 0.0f, 3.0f);
-		ImGui::SliderFloat("Multi Scatter Phase", &m_atmosphericPixelShaderCB.m_data.m_multiScatterPhase, 0.0f, 3.0f);
-		ImGui::SliderFloat("Anisotropic Intensity", &m_atmosphericPixelShaderCB.m_data.m_anisotropicIntensity, -1.0f, 5.0f);
-		ImGui::SliderFloat("Zenith Offset", &m_atmosphericPixelShaderCB.m_data.m_zenithOffset, -1.0f, 1.0f);
+		if (ImGui::CollapsingHeader("Atmosphere Options"))
+		{
+			ImGui::SliderFloat("Sun Size", &m_atmosphericPixelShaderCB.m_data.m_sunSize, 10.0f, 200.0f);
+			ImGui::SliderFloat("Density", &m_atmosphericPixelShaderCB.m_data.m_density, 0.0f, 3.0f);
+			ImGui::SliderFloat("Multi Scatter Phase", &m_atmosphericPixelShaderCB.m_data.m_multiScatterPhase, 0.0f, 3.0f);
+			ImGui::SliderFloat("Anisotropic Intensity", &m_atmosphericPixelShaderCB.m_data.m_anisotropicIntensity, -1.0f, 5.0f);
+			ImGui::SliderFloat("Zenith Offset", &m_atmosphericPixelShaderCB.m_data.m_zenithOffset, -1.0f, 1.0f);
+			ImGui::SliderFloat("Night Density", &m_atmosphericPixelShaderCB.m_data.m_nightDensity, 0.0f, 2.0f);
+			ImGui::SliderFloat("Night Zenith Y Clamp", &m_atmosphericPixelShaderCB.m_data.m_nightZenithYClamp, 0.0f, 0.1f);
+		}
 
-		ImGui::NewLine();
-
-		ImGui::SliderFloat("Absorbtion Through Clouds", &m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionThroughClouds, 0.0f, 2.0f);
-		ImGui::SliderFloat("Absorbtion Towards Sun", &m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionTowardsSun, 0.0f, 2.0f);
-		ImGui::SliderFloat("Phase Factor", &m_cloudsPixelShaderCB.m_data.m_phaseFactor, 0.0f, 2.0f);
-		ImGui::SliderFloat("Darkness Threshold", &m_cloudsPixelShaderCB.m_data.m_darknessThreshold, 0.0f, 1.0f);
-		ImGui::SliderFloat("Cloud Coverage", &m_cloudsPixelShaderCB.m_data.m_cloudCoverage, 0.0f, 1.0f);
-		ImGui::SliderFloat("Cloud Speed", &m_cloudsPixelShaderCB.m_data.m_cloudSpeed, 0.0f, 0.25f);
-		ImGui::SliderFloat("Cloud Height", &m_cloudsPixelShaderCB.m_data.m_cloudHeight, 100.0f, 2000.0f);
-		ImGui::SliderInt("Num Steps", &m_cloudsPixelShaderCB.m_data.m_numSteps, 1, 100);
-		ImGui::SliderFloat("Step Size", &m_cloudsPixelShaderCB.m_data.m_stepSize, 5.0f, 100.0f);
+		if (ImGui::CollapsingHeader("Clouds Options"))
+		{
+			ImGui::SliderFloat("Absorbtion Through Clouds", &m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionThroughClouds, 0.0f, 2.0f);
+			ImGui::SliderFloat("Absorbtion Towards Sun", &m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionTowardsSun, 0.0f, 2.0f);
+			ImGui::SliderFloat("Phase Factor", &m_cloudsPixelShaderCB.m_data.m_phaseFactor, 0.0f, 2.0f);
+			ImGui::SliderFloat("Darkness Threshold", &m_cloudsPixelShaderCB.m_data.m_darknessThreshold, 0.0f, 1.0f);
+			ImGui::SliderFloat("Cloud Coverage", &m_cloudsPixelShaderCB.m_data.m_cloudCoverage, 0.0f, 1.0f);
+			ImGui::SliderFloat("Cloud Speed", &m_cloudsPixelShaderCB.m_data.m_cloudSpeed, 0.0f, 0.25f);
+			ImGui::SliderFloat("Cloud Height", &m_cloudsPixelShaderCB.m_data.m_cloudHeight, 100.0f, 2000.0f);
+			ImGui::SliderInt("Num Steps", &m_cloudsPixelShaderCB.m_data.m_numSteps, 1, 100);
+			ImGui::SliderFloat("Step Size", &m_cloudsPixelShaderCB.m_data.m_stepSize, 5.0f, 100.0f);
+		}
 
 		ImGui::End();
 
@@ -2297,13 +2307,12 @@ namespace hrzn::gfx
 
 	float GraphicsHandler::getWaterHeightAt(float posX, float posZ, bool exact)
 	{
-		float gameTime = m_vertexShaderCB.m_data.m_gameTime;
 		float value = 0.0f;
-		value += sin(-posX * 0.4f + gameTime * 1.2f) * 0.15f + sin(posZ * 0.5f + gameTime * 1.3f) * 0.15f;
-		value += sin(posX * 0.2f + gameTime * 0.6f) * 0.5f + sin(-posZ * 0.22f + gameTime * 0.4f) * 0.45f;
+		value += sin(-posX * 0.4f + m_gameTime * 1.2f) * 0.15f + sin(posZ * 0.5f + m_gameTime * 1.3f) * 0.15f;
+		value += sin(posX * 0.2f + m_gameTime * 0.6f) * 0.5f + sin(-posZ * 0.22f + m_gameTime * 0.4f) * 0.45f;
 		if (exact)
 		{
-			value += sin(posX * 1.5f + gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + gameTime * 0.0019f) * 0.05f;
+			value += sin(posX * 1.5f + m_gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + m_gameTime * 0.0019f) * 0.05f;
 		}
 		return value * m_vertexShaderCB.m_data.m_waveAmplitude;
 	}

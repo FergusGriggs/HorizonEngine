@@ -54,7 +54,7 @@ VS_OUTPUT main(VS_INPUT input)
     float3 normal = normalize(cross(bitangent, tangent));
     
     output.pos = mul(float4(input.pos + float3(0.0f, offsetMain, 0.0f), 1.0f), modelViewProjectionMatrix);
-    output.texCoord = input.texCoord; //float2(input.texCoord.x, input.texCoord.y * 0.5f); //float2(input.texCoord.x - gameTime * 0.0001f, input.texCoord.y * 0.5f + gameTime * 0.0001f);
+    output.texCoord = float2(input.texCoord.x + sin(gameTime * 0.1f), input.texCoord.y * 0.75f + cos(gameTime * 0.15f + 0.7f)); //float2(input.texCoord.x - gameTime * 0.0001f, input.texCoord.y * 0.5f + gameTime * 0.0001f);
     output.normal = normal;//normalize(mul(float4(input.normal, 0.0f), modelMatrix));
     output.worldPos = mul(float4(input.pos, 1.0f), modelMatrix);
 

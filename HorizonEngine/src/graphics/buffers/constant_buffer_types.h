@@ -103,6 +103,10 @@ namespace hrzn::gfx
 		float  m_multiScatterPhase;
 		float  m_anisotropicIntensity;
 		float  m_zenithOffset;
+
+		float             m_nightDensity;
+		float             m_nightZenithYClamp;
+		DirectX::XMFLOAT2 m_padding1;
 	};
 
 	struct CloudsPixelShaderCB

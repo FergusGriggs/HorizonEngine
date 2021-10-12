@@ -7,6 +7,8 @@ cbuffer constantBuffer : register(b0)
 {
     float4x4 modelViewProjectionMatrix;
     float4x4 modelMatrix;
+    float gameTime;
+    float waveAmplitude;
 };
 
 struct VS_INPUT
