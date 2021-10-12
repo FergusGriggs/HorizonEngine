@@ -115,7 +115,7 @@ float3 getAtmosphericScattering(float3 viewDirection, float3 sunDirection)
 	if (sunDirection.y < zenithOffset)
 	{
 		float skyRemovalStart = min(1.0f, (-sunDirection.y + zenithOffset) / (0.5f + zenithOffset));
-		totalSky *= smoothstep(skyRemovalStart - 1.0f, skyRemovalStart, dot(viewDirection, sunDirection) * 0.5f + 0.5f);
+		totalSky *= getLinearProgress(skyRemovalStart - 1.0f, skyRemovalStart, dot(viewDirection, sunDirection) * 0.5f + 0.5f);
 	}
 
 	//float nightSkyIntensity = smoothstep(0.2f, -0.2f, sunDirection.y - zenithOffset);

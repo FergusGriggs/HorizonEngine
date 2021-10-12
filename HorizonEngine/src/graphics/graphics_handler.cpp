@@ -148,19 +148,19 @@ namespace hrzn::gfx
 			m_atmosphericPixelShaderCB.m_data.m_density = 0.65f;
 			m_atmosphericPixelShaderCB.m_data.m_multiScatterPhase = 0.4f;
 			m_atmosphericPixelShaderCB.m_data.m_anisotropicIntensity = 1.0f;
-			m_atmosphericPixelShaderCB.m_data.m_zenithOffset = -0.075f;
+			m_atmosphericPixelShaderCB.m_data.m_zenithOffset = 0.0f;
 
 			hr = m_cloudsPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'cloudsPixelShader' constant buffer.");
-			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionThroughClouds = 0.03f;
-			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionTowardsSun = 0.4f;
-			m_cloudsPixelShaderCB.m_data.m_phaseFactor = 0.17f;
-			m_cloudsPixelShaderCB.m_data.m_darknessThreshold = 0.07f;
-			m_cloudsPixelShaderCB.m_data.m_cloudCoverage = 1.0f;
-			m_cloudsPixelShaderCB.m_data.m_cloudSpeed = 0.25f;
-			m_cloudsPixelShaderCB.m_data.m_numSteps = 7;
-			m_cloudsPixelShaderCB.m_data.m_stepSize = 35.0f;
-			m_cloudsPixelShaderCB.m_data.m_cloudHeight = 200.0f;
+			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionThroughClouds = 0.221f;
+			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionTowardsSun = 0.448f;
+			m_cloudsPixelShaderCB.m_data.m_phaseFactor = 0.262f;
+			m_cloudsPixelShaderCB.m_data.m_darknessThreshold = 0.09f;
+			m_cloudsPixelShaderCB.m_data.m_cloudCoverage = 0.446f;
+			m_cloudsPixelShaderCB.m_data.m_cloudSpeed = 0.0075f;
+			m_cloudsPixelShaderCB.m_data.m_numSteps = 25;
+			m_cloudsPixelShaderCB.m_data.m_stepSize = 85.0f;
+			m_cloudsPixelShaderCB.m_data.m_cloudHeight = 1050.0f;
 
 			//LOAD AXIS MODELS
 			if (!m_axisTranslateModel.initialize("res/models/axis/translate2.obj", m_device.Get(), m_deviceContext.Get()))
@@ -216,8 +216,8 @@ namespace hrzn::gfx
 			{
 				return false;
 			}
-			m_clouds.getTransform().setPosition(0.0f, 500.0f, 0.0f);
-			m_clouds.setScale(XMFLOAT3(50.0f, 50.0f, 50.0f));
+			m_clouds.getTransform().setPosition(0.0f, 2000.0f, 0.0f);
+			m_clouds.setScale(XMFLOAT3(200.0f, 200.0f, 200.0f));
 
 			if (!m_ocean.initialize("Ocean", "res/models/ocean_smooth_large_2.obj", m_device.Get(), m_deviceContext.Get()))
 			{
@@ -265,6 +265,9 @@ namespace hrzn::gfx
 
 	void GraphicsHandler::renderFrame(float deltaTime)
 	{
+		float blackColour[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), blackColour);
+
 		m_camera.updateView();
 
 		//Directional light shader variables
@@ -355,12 +358,31 @@ namespace hrzn::gfx
 			float zeroToOneDayOrNight = modf(m_dayProgress * 2.0f, &dayOrNight);
 			float split = 1.0f - abs(zeroToOneDayOrNight - 0.5f) * 2.0f;
 
-			float t = fmaxf(0.0f, fminf(1.0f, (split - 0.25f) / (0.1f - 0.25f)));
-			float densityMod = t * t * (3.0f - 2.0f * t);
-
 			if (dayOrNight == 0.0f)
 			{
-				m_atmosphericPixelShaderCB.m_data.m_density = 0.14f + densityMod * (0.65f - 0.142f);
+				float t = fmaxf(0.0f, fminf(1.0f, (split - 0.25f) / (0.1f - 0.25f)));
+				float densityMod = t * t * (3.0f - 2.0f * t);
+				m_atmosphericPixelShaderCB.m_data.m_density = 0.142f + densityMod * (0.65f - 0.142f);
+
+				XMFLOAT3 sunsetColour = XMFLOAT3(1.0f, 0.62f, 0.26f);
+				XMFLOAT3 daySunColour = XMFLOAT3(1.0f, 0.85f, 0.65f);
+
+				XMFLOAT3 sunColour = XMFLOAT3(0.0f, 0.0f, 0.0f);
+				XMStoreFloat3(&sunColour, XMVectorLerp(XMLoadFloat3(&daySunColour), XMLoadFloat3(&sunsetColour), t));
+				m_directionalLight.setColour(sunColour);
+			}
+			else
+			{
+				float t = fmaxf(0.0f, fminf(1.0f, (split - 0.35f) / (0.0f - 0.35f)));
+
+				XMFLOAT3 sunsetColour = XMFLOAT3(1.0f, 0.62f, 0.26f);
+				XMFLOAT3 nightSunColour = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
+				XMFLOAT3 sunColour = XMFLOAT3(0.0f, 0.0f, 0.0f);
+				XMStoreFloat3(&sunColour, XMVectorLerp(XMLoadFloat3(&nightSunColour), XMLoadFloat3(&sunsetColour), t));
+				m_directionalLight.setColour(sunColour);
+
+				m_atmosphericPixelShaderCB.m_data.m_density = 0.25f + t * (0.65f - 0.25f);
 			}
 
 			XMVECTOR sunDirection = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), XMMatrixRotationAxis(XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f), m_dayProgress * sc_2PI));
@@ -371,7 +393,6 @@ namespace hrzn::gfx
 
 			m_atmosphericPixelShaderCB.m_data.m_sunDirection = m_sunDirection;
 			
-
 			m_atmosphericPixelShaderCB.mapToGPU();
 
 			m_skybox.getTransform().setPosition(m_camera.getTransform().getPositionFloat3());
@@ -468,15 +489,14 @@ namespace hrzn::gfx
 			m_deviceContext->VSSetShader(m_vertexShader.getShader(), NULL, 0);
 			m_deviceContext->PSSetShader(m_cloudsPixelShader.getShader(), NULL, 0);
 
-			m_deviceContext->PSSetConstantBuffers(0, 1, m_cloudsPixelShaderCB.getAddressOf());
-			m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
-
 			XMFLOAT3 cameraPosFloat = m_camera.getTransform().getPositionFloat3();
 			m_cloudsPixelShaderCB.m_data.m_cameraPosition = cameraPosFloat;
 
 			XMStoreFloat3(&m_cloudsPixelShaderCB.m_data.m_lightDirection, m_directionalLight.getTransform().getFrontVector());
-
 			m_cloudsPixelShaderCB.mapToGPU();
+
+			m_deviceContext->PSSetConstantBuffers(0, 1, m_cloudsPixelShaderCB.getAddressOf());
+			m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
 
 			m_clouds.getTransform().setPosition(cameraPosFloat.x, m_clouds.getTransform().getPositionFloat3().y, cameraPosFloat.z);
 
@@ -725,7 +745,7 @@ namespace hrzn::gfx
 	void GraphicsHandler::create3DNoiseTexture()
 	{
 		int size = 32;
-		int height = 16;
+		int height = 32;
 
 		// Set up the constant buffer
 		m_deviceContext->CSSetShader(m_noiseTextureComputeShader.getShader(), nullptr, 0);
@@ -745,25 +765,29 @@ namespace hrzn::gfx
 		textureDesc.Width = size;
 		textureDesc.Height = height;
 		textureDesc.Depth = size;
-		textureDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		textureDesc.MipLevels = 0;
+		textureDesc.Format = DXGI_FORMAT_R16_FLOAT;
 		textureDesc.Usage = D3D11_USAGE_DEFAULT;
 		textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
 		textureDesc.CPUAccessFlags = 0;
 		textureDesc.MiscFlags = 0;
+		
 
-		m_device->CreateTexture3D(&textureDesc, nullptr, m_noiseTexture.GetAddressOf());
+		HRESULT hr = m_device->CreateTexture3D(&textureDesc, nullptr, m_noiseTexture.GetAddressOf());
+		COM_ERROR_IF_FAILED(hr, "Failed to create noise texture");
 
 		// Create an unordered access view for the 3d texture
 		D3D11_UNORDERED_ACCESS_VIEW_DESC unorderedAccessViewDesc;
 		ZeroMemory(&unorderedAccessViewDesc, sizeof(unorderedAccessViewDesc));
 
 		unorderedAccessViewDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
-		unorderedAccessViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		unorderedAccessViewDesc.Format = DXGI_FORMAT_R16_FLOAT;
 		unorderedAccessViewDesc.Texture3D.MipSlice = 0;
 		unorderedAccessViewDesc.Texture3D.FirstWSlice = 0;
 		unorderedAccessViewDesc.Texture3D.WSize = size;
 
-		m_device->CreateUnorderedAccessView(m_noiseTexture.Get(), &unorderedAccessViewDesc, m_noiseTextureUnorderedAccessView.GetAddressOf());
+		hr = m_device->CreateUnorderedAccessView(m_noiseTexture.Get(), &unorderedAccessViewDesc, m_noiseTextureUnorderedAccessView.GetAddressOf());
+		COM_ERROR_IF_FAILED(hr, "Failed to create noise texture UAV");
 
 		// Set the new UAV
 		m_deviceContext->CSSetUnorderedAccessViews(0, 1, m_noiseTextureUnorderedAccessView.GetAddressOf(), nullptr);
@@ -771,15 +795,24 @@ namespace hrzn::gfx
 		// Do some epik GPU computations to the UAV
 		m_deviceContext->Dispatch(size / 8, height / 8, size / 8);
 
+		//Unbind the UAV
+		ID3D11UnorderedAccessView* ppUAViewNULL[1] = { NULL };
+		ID3D11ShaderResourceView* ppSRVNULL[1] = { NULL };
+
+		m_deviceContext->CSSetShader(NULL, NULL, 0);
+		m_deviceContext->CSSetUnorderedAccessViews(0, 1, ppUAViewNULL, NULL);
+		m_deviceContext->CSSetShaderResources(0, 1, ppSRVNULL);
+
 		// Create a shader resource view from the resultant data
 		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
 		ZeroMemory(&shaderResourceViewDesc, sizeof(shaderResourceViewDesc));
-		shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		shaderResourceViewDesc.Format = DXGI_FORMAT_R16_FLOAT;//DXGI_FORMAT_R16G16B16A16_FLOAT
 		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
 		shaderResourceViewDesc.Texture3D.MostDetailedMip = 0;
 		shaderResourceViewDesc.Texture3D.MipLevels = 1;
 
-		m_device->CreateShaderResourceView(m_noiseTexture.Get(), &shaderResourceViewDesc, m_noiseTextureShaderResourceView.GetAddressOf());
+		hr = m_device->CreateShaderResourceView(m_noiseTexture.Get(), &shaderResourceViewDesc, m_noiseTextureShaderResourceView.GetAddressOf());
+		COM_ERROR_IF_FAILED(hr, "Failed to create noise texture SRV");
 	}
 
 	bool GraphicsHandler::loadScene(const char* sceneName)
@@ -1671,9 +1704,9 @@ namespace hrzn::gfx
 		ImGui::SliderFloat("Phase Factor", &m_cloudsPixelShaderCB.m_data.m_phaseFactor, 0.0f, 2.0f);
 		ImGui::SliderFloat("Darkness Threshold", &m_cloudsPixelShaderCB.m_data.m_darknessThreshold, 0.0f, 1.0f);
 		ImGui::SliderFloat("Cloud Coverage", &m_cloudsPixelShaderCB.m_data.m_cloudCoverage, 0.0f, 1.0f);
-		ImGui::SliderFloat("Cloud Speed", &m_cloudsPixelShaderCB.m_data.m_cloudSpeed, 0.0f, 1.0f);
-		ImGui::SliderFloat("Cloud Height", &m_cloudsPixelShaderCB.m_data.m_cloudHeight, 10.0f, 500.0f);
-		ImGui::SliderInt("Num Steps", &m_cloudsPixelShaderCB.m_data.m_numSteps, 1, 25);
+		ImGui::SliderFloat("Cloud Speed", &m_cloudsPixelShaderCB.m_data.m_cloudSpeed, 0.0f, 0.25f);
+		ImGui::SliderFloat("Cloud Height", &m_cloudsPixelShaderCB.m_data.m_cloudHeight, 100.0f, 2000.0f);
+		ImGui::SliderInt("Num Steps", &m_cloudsPixelShaderCB.m_data.m_numSteps, 1, 100);
 		ImGui::SliderFloat("Step Size", &m_cloudsPixelShaderCB.m_data.m_stepSize, 5.0f, 100.0f);
 
 		ImGui::End();
@@ -1954,7 +1987,7 @@ namespace hrzn::gfx
 			swapChainDescription.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 			HRESULT hr = D3D11CreateDeviceAndSwapChain( adapters[0].m_pAdapter, D3D_DRIVER_TYPE_UNKNOWN,
-														NULL, NULL, NULL, 0, D3D11_SDK_VERSION, &swapChainDescription,
+														NULL, D3D11_CREATE_DEVICE_DEBUG, NULL, 0, D3D11_SDK_VERSION, &swapChainDescription,
 														m_swapChain.GetAddressOf(), m_device.GetAddressOf(),
 														NULL, m_deviceContext.GetAddressOf());
 
@@ -2050,7 +2083,7 @@ namespace hrzn::gfx
 
 			//CREATE SAMPLER STATE
 			CD3D11_SAMPLER_DESC samplerDesc(D3D11_DEFAULT);
-			samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 			samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 			samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 			samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;

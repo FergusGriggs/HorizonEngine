@@ -14,7 +14,7 @@ namespace hrzn::entity
 		m_fov(90.0f),
 		m_aspectRatio(1.0f),
 		m_nearZ(0.1f),
-		m_farZ(1000.0f),
+		m_farZ(10000.0f),
 		
 		m_mouseToWorldVectorDirection(XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f)),
 		

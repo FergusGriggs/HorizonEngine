@@ -37,7 +37,7 @@ namespace hrzn::entity
 
 	void LightGameObject::setColour(DirectX::XMFLOAT3 colour)
 	{
-		float maxColourValue = fmaxf(fmaxf(colour.x, colour.y), colour.z);
+		float maxColourValue = fmaxf(fmaxf(fmaxf(colour.x, colour.y), colour.z), 1.0f);
 
 		m_colour = DirectX::XMFLOAT3(colour.x / maxColourValue, colour.y / maxColourValue, colour.z / maxColourValue);
 	}
