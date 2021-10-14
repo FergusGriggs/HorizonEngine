@@ -354,6 +354,7 @@
     </FxCompile>
     <FxCompile Include="res\shaders\atmosphericPixelShader.hlsl" />
     <FxCompile Include="res\shaders\noiseTextureComputeShader.hlsl" />
+    <FxCompile Include="res\shaders\waterPixelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />

@@ -29,20 +29,6 @@ namespace hrzn::entity
 		return true;
 	}
 
-	void RenderableGameObject::draw(const XMMATRIX& viewProjectionMatrix, gfx::ConstantBuffer<gfx::VertexShaderCB>* cb_vs_vertexShader, bool bindTextures)
-	{
-		XMFLOAT3 objectPosition = m_transform.getPositionFloat3();
-
-		if (m_type == GameObjectType::eRenderable)
-		{
-			m_model->draw(XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z) * m_transform.getRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z), viewProjectionMatrix, cb_vs_vertexShader, bindTextures);
-		}
-		else
-		{
-			m_model->draw(m_transform.getRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z), viewProjectionMatrix, cb_vs_vertexShader, bindTextures);
-		}
-	}
-
 	float RenderableGameObject::getRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection)
 	{
 		BoundingBox objectBoundingBox = m_model->getBoundingBox();

@@ -15,7 +15,9 @@ namespace hrzn::entity
 		RenderableGameObject();
 
 		bool  initialize(std::string label, const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
-		void  draw(const XMMATRIX& viewProjectionMatrix, gfx::ConstantBuffer<gfx::VertexShaderCB>* cb_vs_vertexShader, bool bindTextures = true);
+
+		template <class T>
+		void  draw(const XMMATRIX& viewProjectionMatrix, gfx::ConstantBuffer<T>* vertexShaderCB, bool bindTextures = true);
 
 		float getRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection);
 
@@ -32,3 +34,21 @@ namespace hrzn::entity
 	};
 }
 
+
+namespace hrzn::entity
+{
+	template<class T>
+	inline void RenderableGameObject::draw(const XMMATRIX& viewProjectionMatrix, gfx::ConstantBuffer<T>* vertexShaderCB, bool bindTextures)
+	{
+		XMFLOAT3 objectPosition = m_transform.getPositionFloat3();
+
+		if (m_type == GameObjectType::eRenderable)
+		{
+			m_model->draw(XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z) * m_transform.getRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z), viewProjectionMatrix, vertexShaderCB, bindTextures);
+		}
+		else
+		{
+			m_model->draw(m_transform.getRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z), viewProjectionMatrix, vertexShaderCB, bindTextures);
+		}
+	}
+}

@@ -8,7 +8,15 @@ cbuffer constantBuffer : register(b0)
     float4x4 modelViewProjectionMatrix;
     float4x4 modelMatrix;
     float gameTime;
-    float waveAmplitude;
+    int waveCount;
+
+    float waveScale;
+    float wavePeriod;
+    float waveSeed;
+    float waveSpeed;
+
+    float waveScaleMultiplier;
+    float3 padding1;
 };
 
 struct VS_INPUT
@@ -23,10 +31,10 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
-    float3 normal : NORMAL;
-    float2 texCoord : TEXCOORD;
-    float3 worldPos : WORLD_POSIITION;
-    float3x3 TBNMatrix : TBN_MATRIX;
+    //float3 normal : NORMAL;
+    //float2 texCoord : TEXCOORD;
+    float3 baseWorldPos : BASE_WORLD_POSIITION;
+    //float3x3 TBNMatrix : TBN_MATRIX;
 };
 
 Texture2D noiseTexture : TEXTURE : register(t4);
@@ -37,33 +45,81 @@ float GetWaterHeightAt(float posX, float posZ)
     float value = sin(posX * 1.5f + gameTime * 1.7f) * 0.05f + sin(posZ * 1.5f + gameTime * 1.9f) * 0.05f;
     value += sin(-posX * 0.4f + gameTime * 1.2f) * 0.15f + sin(posZ * 0.5f + gameTime * 1.3f) * 0.15f;
     value += sin(posX * 0.2f + gameTime * 0.6f) * 0.5f + sin(-posZ * 0.22f + gameTime * 0.4f) * 0.45f;
-    return value * waveAmplitude;
+    return value * waveScale;
     //return noiseTexture.Sample(samplerState, float2(posX, posZ), 1);
+}
+
+float hash11(float p)
+{
+    p = frac(p * 0.1031f);
+    p *= p + 33.33f;
+    p *= p + p;
+    return frac(p);
+}
+
+float3 getFourierOffset(float3 position)
+{
+    float3 flatPosition = float3(position.x, 0.0f, position.z);
+    float3 finalOffset = float3(0.0f, 0.0f, 0.0f);
+
+    float scale = 0.5f;
+
+    int waveNum = 0;
+
+    [unroll(20)]
+    while (waveNum < waveCount)
+    {
+        float waveAngle = hash11((float)waveNum * waveSeed) * waveSeed;
+        float3 waveDir = float3(cos(waveAngle), 0.0f, sin(waveAngle));
+
+        float distWaveTravelled = gameTime * waveSpeed * scale + dot(flatPosition, waveDir);
+
+        float angle = distWaveTravelled / (wavePeriod * scale * pow(1.2f, (float)waveNum - 1.0f));
+
+        float xOffset = cos(waveAngle) * cos(angle) * waveScale * scale;
+        float yOffset = sin(angle) * waveScale * scale;
+        float zOffset = sin(waveAngle) * cos(angle) * waveScale * scale;
+
+        scale *= waveScaleMultiplier;
+
+        finalOffset += float3(xOffset, yOffset, zOffset);
+
+        waveNum++;
+    }
+
+    return finalOffset;
 }
 
 VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT output;
-    float offsetMain = GetWaterHeightAt(input.pos.x, input.pos.z);
-    float offsetTangent = GetWaterHeightAt(input.pos.x + 0.025f, input.pos.z);
-    float offsetBitangent = GetWaterHeightAt(input.pos.x, input.pos.z + 0.025f);
-    
-    float3 pos = float3(0.0f, offsetMain, 0.0f);
-    float3 tangent = normalize(float3(0.025f, offsetTangent, 0.0f) - pos);
-    float3 bitangent = normalize(float3(0.0f, offsetBitangent, 0.025f) - pos);
-    float3 normal = normalize(cross(bitangent, tangent));
-    
-    output.pos = mul(float4(input.pos + float3(0.0f, offsetMain, 0.0f), 1.0f), modelViewProjectionMatrix);
-    output.texCoord = float2(input.texCoord.x + sin(gameTime * 0.1f), input.texCoord.y * 0.75f + cos(gameTime * 0.15f + 0.7f)); //float2(input.texCoord.x - gameTime * 0.0001f, input.texCoord.y * 0.5f + gameTime * 0.0001f);
-    output.normal = normal;//normalize(mul(float4(input.normal, 0.0f), modelMatrix));
-    output.worldPos = mul(float4(input.pos, 1.0f), modelMatrix);
+    float3 baseFlatWorldPos = mul(float4(input.pos, 1.0f), modelMatrix);
+    //float3 tangentFlatWorldPos = float3(baseFlatWorldPos.x + 0.025f, baseFlatWorldPos.y, baseFlatWorldPos.z);
+    //float3 bitangentFlatWorldPos = float3(baseFlatWorldPos.x, baseFlatWorldPos.y, baseFlatWorldPos.z + 0.025f);
+
+    float3 mainFourierOffset = getFourierOffset(baseFlatWorldPos);
+    //float3 tangentFourierOffset = getFourierOffset(tangentFlatWorldPos);
+    //float3 bitangentFourierOffset = getFourierOffset(bitangentFlatWorldPos);
+
+    //float3 mainFourierPosition = baseFlatWorldPos + mainFourierOffset;
+    //float3 tangentFourierPosition = tangentFlatWorldPos + tangentFourierOffset;
+    //float3 bitangentFourierPosition = bitangentFlatWorldPos + bitangentFourierOffset;
+
+    //float3 tangent = normalize(tangentFourierPosition - mainFourierPosition);
+    //float3 bitangent = normalize(bitangentFourierPosition - mainFourierPosition);
+    //float3 normal = normalize(cross(bitangent, tangent));
+
+    output.pos = mul(float4(input.pos + mainFourierOffset, 1.0f), modelViewProjectionMatrix);
+    //output.texCoord = float2(input.texCoord.x, input.texCoord.y * 0.75f); //float2(input.texCoord.x - gameTime * 0.0001f, input.texCoord.y * 0.5f + gameTime * 0.0001f);
+    //output.normal = normal;
+    output.baseWorldPos = baseFlatWorldPos;
 
     //float3 tangent = normalize(mul(float4(input.tangent, 0.0f), modelMatrix));
     //float3 normal = normalize(mul(float4(input.normal, 0.0f), modelMatrix));
     //tangent = normalize(tangent - dot(tangent, normal) * normal);
     //float3 bitangent = cross(normal, tangent);
 
-    output.TBNMatrix = transpose(float3x3(tangent, bitangent, normal));
+    //output.TBNMatrix = transpose(float3x3(tangent, bitangent, normal));
 
     return output;
 }

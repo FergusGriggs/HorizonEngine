@@ -9,7 +9,43 @@ namespace hrzn::gfx
 		DirectX::XMMATRIX m_modelViewProjectionMatrix;
 		DirectX::XMMATRIX m_modelMatrix;
 		float             m_gameTime;
-		float             m_waveAmplitude;
+		float             m_padding;
+	};
+
+	struct WaterVertexShaderCB
+	{
+		DirectX::XMMATRIX  m_modelViewProjectionMatrix;
+		DirectX::XMMATRIX  m_modelMatrix;
+		float              m_gameTime;
+		int                m_waveCount;
+			  
+		float m_waveScale;
+		float m_wavePeriod;
+		float m_waveSeed;
+		float m_waveSpeed;
+
+		float             m_waveScaleMultiplier;
+		DirectX::XMFLOAT3 m_padding1;
+	};
+
+	struct WaterPixelShaderCB
+	{
+		DirectX::XMFLOAT3 m_cameraPosition;
+		float             m_gameTime;
+
+		//Water parameters
+		int   m_waveCount;
+		float m_waveScale;
+		float m_wavePeriod;
+		float m_waveSpeed;
+
+		float m_waveSeed;
+		float m_waveScaleMultiplier;
+		float m_foamStart;
+		float m_colourChangeStart;
+
+		DirectX::XMFLOAT3 m_lightDirection;
+		float             m_padding2;
 	};
 
 	struct DirectionalLightCB

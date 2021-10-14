@@ -112,6 +112,11 @@ namespace hrzn::gfx
 			return false;
 		}
 
+		if (!m_waterPixelShader.initialize(m_device, shaderFolder + L"waterPixelShader.cso"))
+		{
+			return false;
+		}
+
 		// Initialise compute shaders
 		if (!m_noiseTextureComputeShader.initialize(m_device, shaderFolder + L"noiseTextureComputeShader.cso"))
 		{
@@ -131,8 +136,25 @@ namespace hrzn::gfx
 			//CREATE CONSTANT BUFFERS
 			HRESULT hr = m_vertexShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'vertexShader' constant buffer.");
-			m_vertexShaderCB.m_data.m_waveAmplitude = 3.5f;
+			hr = m_waterVertexShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterVertexShader' constant buffer.");
+			m_waterVertexShaderCB.m_data.m_waveCount = 20;
+			m_waterVertexShaderCB.m_data.m_waveScale = 9.3f;
+			m_waterVertexShaderCB.m_data.m_wavePeriod = 26.5f;
+			m_waterVertexShaderCB.m_data.m_waveSpeed = 21.0f;
+			m_waterVertexShaderCB.m_data.m_waveSeed = 258.671f;
+			m_waterVertexShaderCB.m_data.m_waveScaleMultiplier = 0.538f;
+
+			hr = m_waterPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterPixelShader' constant buffer.");
+			m_waterPixelShaderCB.m_data.m_waveCount = m_waterVertexShaderCB.m_data.m_waveCount;
+			m_waterPixelShaderCB.m_data.m_waveScale = m_waterVertexShaderCB.m_data.m_waveScale;
+			m_waterPixelShaderCB.m_data.m_wavePeriod = m_waterVertexShaderCB.m_data.m_wavePeriod;
+			m_waterPixelShaderCB.m_data.m_waveSpeed = m_waterVertexShaderCB.m_data.m_waveSpeed;
+			m_waterPixelShaderCB.m_data.m_waveSeed = m_waterVertexShaderCB.m_data.m_waveSeed;
+			m_waterPixelShaderCB.m_data.m_waveScaleMultiplier = m_waterVertexShaderCB.m_data.m_waveScaleMultiplier;
+			m_waterPixelShaderCB.m_data.m_foamStart = 1.446f;
+			m_waterPixelShaderCB.m_data.m_colourChangeStart = 1.0f;
 
 			hr = m_pixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'pixelShader' constant buffer.");
@@ -150,19 +172,19 @@ namespace hrzn::gfx
 			m_atmosphericPixelShaderCB.m_data.m_anisotropicIntensity = 1.0f;
 			m_atmosphericPixelShaderCB.m_data.m_zenithOffset = -0.02f;
 			m_atmosphericPixelShaderCB.m_data.m_nightDensity = 1.2f;
-			m_atmosphericPixelShaderCB.m_data.m_nightZenithYClamp = 0.05f;
+			m_atmosphericPixelShaderCB.m_data.m_nightZenithYClamp = 0.1f;
 
 			hr = m_cloudsPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'cloudsPixelShader' constant buffer.");
-			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionThroughClouds = 0.338f;
-			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionTowardsSun = 0.559f;
-			m_cloudsPixelShaderCB.m_data.m_phaseFactor = 0.428f;
-			m_cloudsPixelShaderCB.m_data.m_darknessThreshold = 0.09f;
-			m_cloudsPixelShaderCB.m_data.m_cloudCoverage = 0.446f;
-			m_cloudsPixelShaderCB.m_data.m_cloudSpeed = 0.02f;
-			m_cloudsPixelShaderCB.m_data.m_numSteps = 40;
-			m_cloudsPixelShaderCB.m_data.m_stepSize = 85.0f;
-			m_cloudsPixelShaderCB.m_data.m_cloudHeight = 1050.0f;
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'cloudsPixelShader' constant buffer."); // Fluffy 1 // Fluffy 2 // Bulky bois
+			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionThroughClouds = 0.084f; //             0.084f      0.084f      0.338f
+			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionTowardsSun = 0.392f; //                0.273f      0.392f      0.559f
+			m_cloudsPixelShaderCB.m_data.m_phaseFactor = 0.266f; //                              0.208f      0.266f      0.428f
+			m_cloudsPixelShaderCB.m_data.m_darknessThreshold = 0.073f; //                        0.09f       0.073f      0.09f
+			m_cloudsPixelShaderCB.m_data.m_cloudCoverage = 0.497f; //                            0.465f      0.497f      0.446f
+			m_cloudsPixelShaderCB.m_data.m_cloudSpeed = 0.02f; // 
+			m_cloudsPixelShaderCB.m_data.m_numSteps = 40; //
+			m_cloudsPixelShaderCB.m_data.m_stepSize = 85.0f; //
+			m_cloudsPixelShaderCB.m_data.m_cloudHeight = 2000.0f;
 
 			//LOAD AXIS MODELS
 			if (!m_axisTranslateModel.initialize("res/models/axis/translate2.obj", m_device.Get(), m_deviceContext.Get()))
@@ -221,11 +243,11 @@ namespace hrzn::gfx
 			m_clouds.getTransform().setPosition(0.0f, 2000.0f, 0.0f);
 			m_clouds.setScale(XMFLOAT3(200.0f, 200.0f, 200.0f));
 
-			if (!m_ocean.initialize("Ocean", "res/models/ocean_smooth_large_2.obj", m_device.Get(), m_deviceContext.Get()))
+			if (!m_ocean.initialize("Ocean", "res/models/ocean_tesselated.obj", m_device.Get(), m_deviceContext.Get()))
 			{
 				return false;
 			}
-			m_ocean.getTransform().setPosition(0.0f, 1.0f, 0.0f);
+			m_ocean.getTransform().setPosition(0.0f, -15.0f, 0.0f);
 
 			if (!m_directionalLight.initialize("Directional Light", m_device.Get(), m_deviceContext.Get()))
 			{
@@ -348,10 +370,11 @@ namespace hrzn::gfx
 			{
 				m_dayProgress += deltaTime * 0.0166666; // 1 day = 60 seconds
 				m_gameTime += deltaTime;
+
 				m_vertexShaderCB.m_data.m_gameTime = m_gameTime;
-
-
+				m_waterVertexShaderCB.m_data.m_gameTime = m_gameTime;
 				m_cloudsPixelShaderCB.m_data.m_gameTime = m_gameTime;
+				m_waterPixelShaderCB.m_data.m_gameTime = m_gameTime;
 			}
 
 			if (m_dayProgress > 1.0f) m_dayProgress -= 1.0f;
@@ -476,24 +499,27 @@ namespace hrzn::gfx
 			}
 
 			//DRAW WATER
-			m_pixelShaderCB.m_data.m_objectMaterial.m_shininess = 8.0f;
-			m_pixelShaderCB.m_data.m_objectMaterial.m_specularity = 0.5f;
-			m_pixelShaderCB.m_data.m_fresnel = 1;
-
-			m_pixelShaderCB.mapToGPU();
-		
 			m_deviceContext->VSSetShader(m_waterVertexShader.getShader(), NULL, 0);
-			m_ocean.draw(viewProjMat, &m_vertexShaderCB);
+			m_deviceContext->PSSetShader(m_waterPixelShader.getShader(), NULL, 0);
 
-			m_pixelShaderCB.m_data.m_fresnel = 0;
-			m_pixelShaderCB.m_data.m_objectMaterial.m_specularity = 1.0f;
+			m_waterVertexShaderCB.mapToGPU();
+			
+			XMFLOAT3 cameraPosFloat = m_camera.getTransform().getPositionFloat3();
+			m_ocean.getTransform().setPosition(cameraPosFloat.x, m_ocean.getTransform().getPositionFloat3().y, cameraPosFloat.z);
+
+			m_waterPixelShaderCB.m_data.m_cameraPosition = cameraPosFloat;
+			XMStoreFloat3(&m_waterPixelShaderCB.m_data.m_lightDirection, m_directionalLight.getTransform().getFrontVector());
+
+			m_waterPixelShaderCB.mapToGPU();
+
+			m_deviceContext->PSSetConstantBuffers(0, 1, m_waterPixelShaderCB.getAddressOf());
+
+			m_ocean.draw(viewProjMat, &m_waterVertexShaderCB);
 
 			//DRAWCLOUDS
-
 			m_deviceContext->VSSetShader(m_vertexShader.getShader(), NULL, 0);
 			m_deviceContext->PSSetShader(m_cloudsPixelShader.getShader(), NULL, 0);
 
-			XMFLOAT3 cameraPosFloat = m_camera.getTransform().getPositionFloat3();
 			m_cloudsPixelShaderCB.m_data.m_cameraPosition = cameraPosFloat;
 
 			XMStoreFloat3(&m_cloudsPixelShaderCB.m_data.m_lightDirection, m_directionalLight.getTransform().getFrontVector());
@@ -1688,13 +1714,32 @@ namespace hrzn::gfx
 		//VSYNC CHECKBOX
 		ImGui::Checkbox("Use VSync", &m_useVSync);
 
-		ImGui::SliderFloat("Wave Amplitude", &m_vertexShaderCB.m_data.m_waveAmplitude, 0.0f, 5.0f);
-
 		ImGui::NewLine();
 
-		if (ImGui::Button("Toggle Day/Night Cycle")) m_dayNightCycle = !m_dayNightCycle;
+		if (ImGui::Button("Toggle Time Progression")) m_dayNightCycle = !m_dayNightCycle;
 		ImGui::SliderFloat("Day Progress", &m_dayProgress, 0.0f, 1.0f);
 		
+		if (ImGui::CollapsingHeader("Ocean Options"))
+		{
+			ImGui::SliderInt("Wave Count", &m_waterVertexShaderCB.m_data.m_waveCount, 0, 20);
+			ImGui::SliderFloat("Wave Scale", &m_waterVertexShaderCB.m_data.m_waveScale, 0.0f, 10.0f);
+			ImGui::SliderFloat("Wave Period", &m_waterVertexShaderCB.m_data.m_wavePeriod, 0.0f, 50.0f);
+			ImGui::SliderFloat("Wave Speed", &m_waterVertexShaderCB.m_data.m_waveSpeed, 0.0f, 50.0f);
+			ImGui::SliderFloat("Wave Seed", &m_waterVertexShaderCB.m_data.m_waveSeed, 100.0f, 1000.0f);
+			ImGui::SliderFloat("Wave Scale Multiplier", &m_waterVertexShaderCB.m_data.m_waveScaleMultiplier, 0.0f, 1.0f);
+
+			m_waterPixelShaderCB.m_data.m_waveCount = m_waterVertexShaderCB.m_data.m_waveCount;
+			m_waterPixelShaderCB.m_data.m_waveScale = m_waterVertexShaderCB.m_data.m_waveScale;
+			m_waterPixelShaderCB.m_data.m_wavePeriod = m_waterVertexShaderCB.m_data.m_wavePeriod;
+			m_waterPixelShaderCB.m_data.m_waveSpeed = m_waterVertexShaderCB.m_data.m_waveSpeed;
+			m_waterPixelShaderCB.m_data.m_waveSeed = m_waterVertexShaderCB.m_data.m_waveSeed;
+			m_waterPixelShaderCB.m_data.m_waveScaleMultiplier = m_waterVertexShaderCB.m_data.m_waveScaleMultiplier;
+
+			ImGui::SliderFloat("Foam Start", &m_waterPixelShaderCB.m_data.m_foamStart, 0.0f, 20.0f);
+			ImGui::SliderFloat("Colour Change Start", &m_waterPixelShaderCB.m_data.m_colourChangeStart, 0.0f, 1.5f);
+
+		}
+
 		if (ImGui::CollapsingHeader("Atmosphere Options"))
 		{
 			ImGui::SliderFloat("Sun Size", &m_atmosphericPixelShaderCB.m_data.m_sunSize, 10.0f, 200.0f);
@@ -2314,7 +2359,7 @@ namespace hrzn::gfx
 		{
 			value += sin(posX * 1.5f + m_gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + m_gameTime * 0.0019f) * 0.05f;
 		}
-		return value * m_vertexShaderCB.m_data.m_waveAmplitude;
+		return value * m_vertexShaderCB.m_data.m_padding;
 	}
 
 	void GraphicsHandler::floatObject(entity::GameObject* object)

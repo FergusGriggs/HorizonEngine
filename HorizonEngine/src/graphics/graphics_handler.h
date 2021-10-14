@@ -167,11 +167,15 @@ namespace hrzn::gfx
 		PixelShader  m_noLightPixelShader;
 		PixelShader  m_atmosphericPixelShader;
 		PixelShader  m_cloudsPixelShader;
+		PixelShader  m_waterPixelShader;
 
 		ComputeShader  m_noiseTextureComputeShader;
 
 		ConstantBuffer<VertexShaderCB>              m_vertexShaderCB;
 		ConstantBuffer<PixelShaderCB>               m_pixelShaderCB;
+
+		ConstantBuffer<WaterVertexShaderCB>         m_waterVertexShaderCB;
+		ConstantBuffer<WaterPixelShaderCB>          m_waterPixelShaderCB;
 		ConstantBuffer<NoLightPixelShaderCB>        m_noLightPixelShaderCB;
 		ConstantBuffer<AtmosphericPixelShaderCB>    m_atmosphericPixelShaderCB;
 		ConstantBuffer<CloudsPixelShaderCB>         m_cloudsPixelShaderCB;

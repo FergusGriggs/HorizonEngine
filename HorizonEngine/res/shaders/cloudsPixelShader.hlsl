@@ -75,9 +75,9 @@ float cloudNoise(float3 x)
 
 float getDensityAt(float3 position)
 {
-    float total = cloudNoise(float3(position.x * 0.00005f, position.y * 0.0002f, position.z * 0.0001f - gameTime * cloudSpeed)) * 0.65;
-    total += cloudNoise(position * 0.00015f + 1240.0f) * 0.25f;
-    total += cloudNoise(position * 0.001f + 142450.0f) * 0.1f;
+    float total = cloudNoise(float3(position.x * 0.0001f, position.y * 0.0002f, position.z * 0.00015f - gameTime * cloudSpeed)) * 0.45;
+    total += cloudNoise(float3(position.x * 0.00003f - gameTime * cloudSpeed * 0.4, position.y * 0.00005f, position.z * 0.00003f + gameTime * cloudSpeed * 0.5) + 1240.0f) * 0.45f;
+    total += cloudNoise(float3(position.x * 0.001f, position.y * 0.001f, position.z * 0.001f - gameTime * cloudSpeed * 0.8) + 414.0f) * 0.1f;
 
     float halfCloudHeight = cloudHeight * 0.5f;
     float halfDiff = position.y - halfCloudHeight;
