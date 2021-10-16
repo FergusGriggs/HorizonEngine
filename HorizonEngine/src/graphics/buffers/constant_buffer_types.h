@@ -25,7 +25,8 @@ namespace hrzn::gfx
 		float m_waveSpeed;
 
 		float             m_waveScaleMultiplier;
-		DirectX::XMFLOAT3 m_padding1;
+		int               m_iscolateWaveNum;
+		DirectX::XMFLOAT2 m_padding1;
 	};
 
 	struct WaterPixelShaderCB
@@ -45,6 +46,9 @@ namespace hrzn::gfx
 		float m_colourChangeStart;
 
 		DirectX::XMFLOAT3 m_lightDirection;
+		int               m_iscolateWaveNum;
+
+		DirectX::XMFLOAT3 m_lightColour;
 		float             m_padding2;
 	};
 

@@ -16,7 +16,8 @@ cbuffer constantBuffer : register(b0)
     float waveSpeed;
 
     float waveScaleMultiplier;
-    float3 padding1;
+    int iscolateWaveNum;
+    float2 padding1;
 };
 
 struct VS_INPUT
@@ -57,6 +58,8 @@ float hash11(float p)
     return frac(p);
 }
 
+static float windDir = float3(1.0f, 0.0f, 0.0f);
+
 float3 getFourierOffset(float3 position)
 {
     float3 flatPosition = float3(position.x, 0.0f, position.z);
@@ -69,20 +72,30 @@ float3 getFourierOffset(float3 position)
     [unroll(20)]
     while (waveNum < waveCount)
     {
-        float waveAngle = hash11((float)waveNum * waveSeed) * waveSeed;
-        float3 waveDir = float3(cos(waveAngle), 0.0f, sin(waveAngle));
+        if (iscolateWaveNum == -1 || iscolateWaveNum == waveNum)
+        {
+            float waveAngle = hash11((float)waveNum * waveSeed) * waveSeed;
+            float3 waveDir = float3(cos(waveAngle), 0.0f, sin(waveAngle));
+            //float3 waveDirRight = float3(waveDir.z, 0.0f, -waveDir.x);
 
-        float distWaveTravelled = gameTime * waveSpeed * scale + dot(flatPosition, waveDir);
+            float windScaleModifier = dot(waveDir, windDir) * 0.1f + 0.8f;
 
-        float angle = distWaveTravelled / (wavePeriod * scale * pow(1.2f, (float)waveNum - 1.0f));
+            float initialWaveDist = dot(flatPosition, waveDir);
+            float distWaveTravelled = gameTime * waveSpeed * ((float)waveNum * 1.0f + 1.0f) * scale + initialWaveDist;
 
-        float xOffset = cos(waveAngle) * cos(angle) * waveScale * scale;
-        float yOffset = sin(angle) * waveScale * scale;
-        float zOffset = sin(waveAngle) * cos(angle) * waveScale * scale;
+            float angle = distWaveTravelled / (wavePeriod * scale * pow(1.1f, (float)waveNum - 1.0f));
+
+            //float signedDistanceToWaveCentre = dot(waveDirRight, flatPosition);
+            float waveBreakScaleMod = 1.0f;// sin(signedDistanceToWaveCentre * 0.05f + waveAngle * 1024.0f + gameTime * waveSpeed * 0.06f + initialWaveDist * 0.2f) * 0.15f + 0.85f;
+
+            float xOffset = cos(waveAngle) * cos(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
+            float yOffset = sin(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
+            float zOffset = sin(waveAngle) * cos(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
+
+            finalOffset += float3(xOffset, yOffset, zOffset);
+        }
 
         scale *= waveScaleMultiplier;
-
-        finalOffset += float3(xOffset, yOffset, zOffset);
 
         waveNum++;
     }

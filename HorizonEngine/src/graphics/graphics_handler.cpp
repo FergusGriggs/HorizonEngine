@@ -139,11 +139,12 @@ namespace hrzn::gfx
 			hr = m_waterVertexShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterVertexShader' constant buffer.");
 			m_waterVertexShaderCB.m_data.m_waveCount = 20;
-			m_waterVertexShaderCB.m_data.m_waveScale = 9.3f;
-			m_waterVertexShaderCB.m_data.m_wavePeriod = 26.5f;
-			m_waterVertexShaderCB.m_data.m_waveSpeed = 21.0f;
+			m_waterVertexShaderCB.m_data.m_waveScale = 14.3f;
+			m_waterVertexShaderCB.m_data.m_wavePeriod = 50.5f;
+			m_waterVertexShaderCB.m_data.m_waveSpeed = 25.0f;
 			m_waterVertexShaderCB.m_data.m_waveSeed = 258.671f;
-			m_waterVertexShaderCB.m_data.m_waveScaleMultiplier = 0.538f;
+			m_waterVertexShaderCB.m_data.m_waveScaleMultiplier = 0.7f;
+			m_waterVertexShaderCB.m_data.m_iscolateWaveNum = -1;
 
 			hr = m_waterPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterPixelShader' constant buffer.");
@@ -153,8 +154,9 @@ namespace hrzn::gfx
 			m_waterPixelShaderCB.m_data.m_waveSpeed = m_waterVertexShaderCB.m_data.m_waveSpeed;
 			m_waterPixelShaderCB.m_data.m_waveSeed = m_waterVertexShaderCB.m_data.m_waveSeed;
 			m_waterPixelShaderCB.m_data.m_waveScaleMultiplier = m_waterVertexShaderCB.m_data.m_waveScaleMultiplier;
-			m_waterPixelShaderCB.m_data.m_foamStart = 1.446f;
-			m_waterPixelShaderCB.m_data.m_colourChangeStart = 1.0f;
+			m_waterPixelShaderCB.m_data.m_iscolateWaveNum = m_waterVertexShaderCB.m_data.m_iscolateWaveNum;
+			m_waterPixelShaderCB.m_data.m_foamStart = 1.176f;
+			m_waterPixelShaderCB.m_data.m_colourChangeStart = 1.123f;
 
 			hr = m_pixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'pixelShader' constant buffer.");
@@ -170,7 +172,7 @@ namespace hrzn::gfx
 			m_atmosphericPixelShaderCB.m_data.m_density = 0.65f;
 			m_atmosphericPixelShaderCB.m_data.m_multiScatterPhase = 0.27f;
 			m_atmosphericPixelShaderCB.m_data.m_anisotropicIntensity = 1.0f;
-			m_atmosphericPixelShaderCB.m_data.m_zenithOffset = -0.02f;
+			m_atmosphericPixelShaderCB.m_data.m_zenithOffset = -0.06f;
 			m_atmosphericPixelShaderCB.m_data.m_nightDensity = 1.2f;
 			m_atmosphericPixelShaderCB.m_data.m_nightZenithYClamp = 0.1f;
 
@@ -247,7 +249,7 @@ namespace hrzn::gfx
 			{
 				return false;
 			}
-			m_ocean.getTransform().setPosition(0.0f, -15.0f, 0.0f);
+			m_ocean.getTransform().setPosition(0.0f, -25.0f, 0.0f);
 
 			if (!m_directionalLight.initialize("Directional Light", m_device.Get(), m_deviceContext.Get()))
 			{
@@ -504,10 +506,14 @@ namespace hrzn::gfx
 
 			m_waterVertexShaderCB.mapToGPU();
 			
-			XMFLOAT3 cameraPosFloat = m_camera.getTransform().getPositionFloat3();
-			m_ocean.getTransform().setPosition(cameraPosFloat.x, m_ocean.getTransform().getPositionFloat3().y, cameraPosFloat.z);
+			// Put the centre a bit in front of the camera where the best fidelity is in the mesh
+			XMVECTOR oceanPosition = m_camera.getTransform().getPositionVector() + m_camera.getTransform().getFrontVector() * 50.0f;
 
+			m_ocean.getTransform().setPosition(XMVectorGetX(oceanPosition), m_ocean.getTransform().getPositionFloat3().y, XMVectorGetZ(oceanPosition));
+
+			XMFLOAT3 cameraPosFloat = m_camera.getTransform().getPositionFloat3();
 			m_waterPixelShaderCB.m_data.m_cameraPosition = cameraPosFloat;
+
 			XMStoreFloat3(&m_waterPixelShaderCB.m_data.m_lightDirection, m_directionalLight.getTransform().getFrontVector());
 
 			m_waterPixelShaderCB.mapToGPU();
@@ -1688,6 +1694,7 @@ namespace hrzn::gfx
 		//DIRECTIONAL LIGHT COLOUR
 		ImGui::ColorEdit3("Dir Light Colour", &(m_directionalLight.m_colour.x));
 		m_cloudsPixelShaderCB.m_data.m_lightColour = m_directionalLight.m_colour;
+		m_waterPixelShaderCB.m_data.m_lightColour = m_directionalLight.m_colour;
 
 		//NORMAL MAPPING CHECKBOX
 		bool useNormalMapping = static_cast<bool>(m_pixelShaderCB.m_data.m_useNormalMapping);
@@ -1722,11 +1729,12 @@ namespace hrzn::gfx
 		if (ImGui::CollapsingHeader("Ocean Options"))
 		{
 			ImGui::SliderInt("Wave Count", &m_waterVertexShaderCB.m_data.m_waveCount, 0, 20);
-			ImGui::SliderFloat("Wave Scale", &m_waterVertexShaderCB.m_data.m_waveScale, 0.0f, 10.0f);
-			ImGui::SliderFloat("Wave Period", &m_waterVertexShaderCB.m_data.m_wavePeriod, 0.0f, 50.0f);
-			ImGui::SliderFloat("Wave Speed", &m_waterVertexShaderCB.m_data.m_waveSpeed, 0.0f, 50.0f);
+			ImGui::SliderFloat("Wave Scale", &m_waterVertexShaderCB.m_data.m_waveScale, 0.0f, 25.0f);
+			ImGui::SliderFloat("Wave Period", &m_waterVertexShaderCB.m_data.m_wavePeriod, 0.0f, 100.0f);
+			ImGui::SliderFloat("Wave Speed", &m_waterVertexShaderCB.m_data.m_waveSpeed, 0.0f, 100.0f);
 			ImGui::SliderFloat("Wave Seed", &m_waterVertexShaderCB.m_data.m_waveSeed, 100.0f, 1000.0f);
 			ImGui::SliderFloat("Wave Scale Multiplier", &m_waterVertexShaderCB.m_data.m_waveScaleMultiplier, 0.0f, 1.0f);
+			ImGui::SliderInt("Iscolate Wave Num", &m_waterVertexShaderCB.m_data.m_iscolateWaveNum, -1, 20);
 
 			m_waterPixelShaderCB.m_data.m_waveCount = m_waterVertexShaderCB.m_data.m_waveCount;
 			m_waterPixelShaderCB.m_data.m_waveScale = m_waterVertexShaderCB.m_data.m_waveScale;
@@ -1734,10 +1742,10 @@ namespace hrzn::gfx
 			m_waterPixelShaderCB.m_data.m_waveSpeed = m_waterVertexShaderCB.m_data.m_waveSpeed;
 			m_waterPixelShaderCB.m_data.m_waveSeed = m_waterVertexShaderCB.m_data.m_waveSeed;
 			m_waterPixelShaderCB.m_data.m_waveScaleMultiplier = m_waterVertexShaderCB.m_data.m_waveScaleMultiplier;
+			m_waterPixelShaderCB.m_data.m_iscolateWaveNum = m_waterVertexShaderCB.m_data.m_iscolateWaveNum;
 
-			ImGui::SliderFloat("Foam Start", &m_waterPixelShaderCB.m_data.m_foamStart, 0.0f, 20.0f);
-			ImGui::SliderFloat("Colour Change Start", &m_waterPixelShaderCB.m_data.m_colourChangeStart, 0.0f, 1.5f);
-
+			ImGui::SliderFloat("Foam Start", &m_waterPixelShaderCB.m_data.m_foamStart, 0.0f, 5.0f);
+			ImGui::SliderFloat("Colour Change Start", &m_waterPixelShaderCB.m_data.m_colourChangeStart, 0.0f, 2.0f);
 		}
 
 		if (ImGui::CollapsingHeader("Atmosphere Options"))

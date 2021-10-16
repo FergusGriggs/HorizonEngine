@@ -1,0 +1,116 @@
+{"Scene": {
+	"SceneMeta": {
+		"scene_name": "test_scene",
+		"author": "fergus",
+		"date_created": "15:40:23;14/10/2021",
+		"date_modified": "15:40:23;14/10/2021"
+	},
+
+	"SceneSettings": {
+		"TimeSettings": {
+			"start_time": 0.25,
+			"progress_time: false,
+			"day_duration": 60.0
+		},
+		
+		"SkySettings": {
+			"sun_size": 75.0,
+			"anisotropic_intenisty": 1.0,
+			"zenith_offset": -0.06
+		},
+		
+		"CloudSettings": {
+			"enabled": true,
+			"light_absorbtion_through_clouds": 0.084,
+			"light_absorbtion_towards_sun": 0.392,
+			"phase_factor": 0.266,
+			"darkness_threshold": 0.073,
+			"cloud_coverage": 0.497,
+			"cloud_speed": 0.02,
+			"num_steps": 40,
+			"step_size": 85.0,
+			"cloud_height": 2000.0
+		},
+		
+		"WaterSettings": {
+			"enabled": true,
+			"wave_count": 20,
+			"wave_scale": 9.3,
+			"wave_period": 26.5,
+			"wave_speed": 21.0,
+			"wave_seed": 258.671,
+			"wave_scale_multiplier": 0.538,
+			"foam_start": 1.446,
+			"colour_change_start": 1.0
+		}
+	},
+	
+	"GameObjectTracks": [
+		{
+			"name": "test_track",
+			"nodes": [
+				{
+					"position": [0.0, 0.0, 0.0],
+					"look_at_position": [1.0, 0.0, 0.0]
+				}
+				{
+					"position": [1.0, 0.0, 0.0],
+					"look_at_position": [2.0, 0.0, 0.0]
+				}
+				{
+					"position": [0.0, 1.0, 0.0],
+					"look_at_position": [1.0, 1.0, 0.0]
+				}
+				{
+					"position": [-1.0, 0.0, 0.0],
+					"look_at_position": [0.0, 0.0, 0.0]
+				}
+			]
+		}
+	],
+	
+	"GameObjects": [
+		{
+			"id": "directional_light",
+			"type": "SpotLight",
+			"position": [0.0, 0.0, 0.0],
+			"orientation": [0.0, 0.0, 0.0, 1.0],
+			
+			"floating": false,
+			
+			"Controller": {
+				"active": true,
+				"contoller_type": "player",
+				"move_speed": 1.0
+			}
+			
+			"ObjectTracks": [
+				{
+					"id": "test_track",
+					"is_following": false,
+					"track_delta": 0.0,
+					"track_speed": 1.0
+				}
+			],
+			
+			"RelativeCameras": [
+				{ "relative_position": [0.0, 5.0, 0.0] }
+			],
+			
+			"LightData": {
+				"colour": [1.0, 0.0, 0.0],
+				
+				"PointLightData": {
+					"attenuation_constant": 0.2,
+					"attenuation_linear": 0.05,
+					"attenuation_quadratic": 0.001,
+					
+					"SpotLightData": {
+						"inner_cutoff": 0.45,
+						"outer_cutoff": 0.6
+					}
+				}
+			}
+		}
+	]
+}}
