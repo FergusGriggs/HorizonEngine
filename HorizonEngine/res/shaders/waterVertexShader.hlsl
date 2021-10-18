@@ -69,7 +69,7 @@ float3 getFourierOffset(float3 position)
 
     int waveNum = 0;
 
-    [unroll(20)]
+    [unroll(50)]
     while (waveNum < waveCount)
     {
         if (iscolateWaveNum == -1 || iscolateWaveNum == waveNum)

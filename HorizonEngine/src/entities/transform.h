@@ -75,6 +75,9 @@ namespace hrzn::entity
 
 		void updateAxisVectorsUsingRotationMatrix(const XMMATRIX& rotationMatrix);
 
+		void editPositionImGui();
+		void showAxisVectorsImGui() const;
+
 	private:
 		// Position info
 		XMFLOAT3   m_position;

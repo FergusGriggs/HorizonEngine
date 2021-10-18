@@ -1,5 +1,7 @@
 #include "transform.h"
 
+#include "../graphics/imgui/imgui.h"
+
 namespace hrzn::entity
 {
 	Transform::Transform() :
@@ -219,5 +221,17 @@ namespace hrzn::entity
 		XMStoreFloat3(&m_front, XMVector3Transform(DEFAULT_FRONT_VECTOR, rotationMatrix));
 		XMStoreFloat3(&m_right, XMVector3Transform(DEFAULT_RIGHT_VECTOR, rotationMatrix));
 		XMStoreFloat3(&m_up, XMVector3Transform(DEFAULT_UP_VECTOR, rotationMatrix));
+	}
+
+	void Transform::editPositionImGui()
+	{
+		ImGui::DragFloat3("Position", &m_position.x, 3.0f, -500.0f, 500.0f);
+	}
+
+	void Transform::showAxisVectorsImGui() const
+	{
+		ImGui::Text("front -> (%f, %f, %f)", m_front.x, m_front.y, m_front.z);
+		ImGui::Text("up -> (%f, %f, %f)", m_up.x, m_up.y, m_up.z);
+		ImGui::Text("right -> (%f, %f, %f)", m_right.x, m_right.y, m_right.z);
 	}
 }

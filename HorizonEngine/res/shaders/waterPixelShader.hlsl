@@ -41,6 +41,9 @@ float hash11(float p)
 
 static float windDir = float3(1.0f, 0.0f, 0.0f);
 
+Texture3D<float> noiseTexture : TEXTURE3D: register(t0);
+SamplerState samplerState : SAMPLER: register(s0);
+
 float3 getFourierOffset(float3 position)
 {
     float3 flatPosition = float3(position.x, 0.0f, position.z);
@@ -50,7 +53,7 @@ float3 getFourierOffset(float3 position)
 
     int waveNum = 0;
 
-    [unroll(20)]
+    [unroll(50)]
     while (waveNum < waveCount)
     {
         if (iscolateWaveNum == -1 || iscolateWaveNum == waveNum)
@@ -81,6 +84,11 @@ float3 getFourierOffset(float3 position)
         waveNum++;
     }
 
+    finalOffset += float3(0.0f, noiseTexture.Sample(samplerState, (position + float3(0.0f, 0.5f, 0.0f)) * 0.04f) * waveScale * 0.05f, 0.0f);
+    //finalOffset += float3(0.0f, noiseTexture.Sample(samplerState, (position + finalOffset) * 0.1f) * 0.25f, 0.0f);
+
+    //return float3(noiseTexture.Sample(samplerState, (position + finalOffset) * 0.1f), 0.0f, 0.0f);
+
     return finalOffset;
 }
 
@@ -110,7 +118,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 {
     float3 modifiedLightColour = float3(max(lightColour.r, 0.05f), max(lightColour.g, 0.1f), max(lightColour.b, 0.15f));
 
-    float3 viewDirection = normalize(cameraPosition - input.baseWorldPos);
+    float3 viewDirection = normalize(input.baseWorldPos - cameraPosition);
 
     float3 tangentFlatWorldPos = float3(input.baseWorldPos.x + sampleOffset, input.baseWorldPos.y, input.baseWorldPos.z);
     float3 bitangentFlatWorldPos = float3(input.baseWorldPos.x, input.baseWorldPos.y, input.baseWorldPos.z + sampleOffset);
@@ -137,10 +145,10 @@ float4 main(PS_INPUT input) : SV_TARGET
     float foamDistMod = getLinearProgress(450.0f, 10.0f, cameraDist);
     float heightDistMod = -getLinearProgress(450.0f, 1500.0f, cameraDist);
 
-    float fresnel = clamp(1.0f - dot(normal, viewDirection), 0.0f, 1.0f);
-    fresnel = pow(fresnel, 5.0f) * 0.5f;
+    float fresnel = clamp(1.0f - dot(-normal, viewDirection), 0.0f, 1.0f);
+    fresnel = pow(fresnel, 10.0f) * 0.5f;
 
-    float3 reflected = modifiedLightColour;//getSkyColor(reflect(viewDirection, normal));
+    float3 reflected = modifiedLightColour;//getSkyColor();// max(0.0f, sign(reflect(viewDirection, normal).y))
     float3 refracted = seaBaseColour * modifiedLightColour + diffuse(normal, -lightDirection, 20.0f) * seaWaterColour * 0.12f;
     float3 colour = lerp(refracted, reflected, fresnel);
 
@@ -154,10 +162,10 @@ float4 main(PS_INPUT input) : SV_TARGET
     colour += foam * modifiedLightColour;
 
     float foamSpecular = lerp(1.0f, 80.0f, pow(1.0f - foam, 5.0f));
-    float specularFactor = specular(normal, lightDirection, viewDirection, foamSpecular) * 0.25f;
+    float specularFactor = specular(normal, -lightDirection, viewDirection, foamSpecular) * 0.25f;
     colour += float3(specularFactor, specularFactor, specularFactor) * modifiedLightColour;
 
-    float3 factor = float3(foamSpecular, foamSpecular, foamSpecular);
+    //colour = float3(fresnel, fresnel, fresnel);
 
     return float4(colour, waterAlpha);
 }

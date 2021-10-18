@@ -154,5 +154,5 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     float noiseWidthOffset = sampleNoises(float3(xOffset, yOffset, zOffset) * 0.05f * noiseSize + 1000.0f + seed) * minD;
     float noise = sampleNoises(id.xyz * 0.05f * noiseSize + seed) * (1.0f - maxD);
 
-    bufferOut[id.xyz] = noiseWidthOffset + noise * 0.5f + 0.5f;
+    bufferOut[id.xyz] = clamp(noiseWidthOffset + noise * 0.5f + 0.5f, 0.05f, 0.95f);
 }

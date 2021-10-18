@@ -507,7 +507,7 @@ namespace hrzn::gfx
 			m_waterVertexShaderCB.mapToGPU();
 			
 			// Put the centre a bit in front of the camera where the best fidelity is in the mesh
-			XMVECTOR oceanPosition = m_camera.getTransform().getPositionVector() + m_camera.getTransform().getFrontVector() * 50.0f;
+			XMVECTOR oceanPosition = m_camera.getTransform().getPositionVector() + m_camera.getTransform().getFrontVector() * (abs(m_camera.getTransform().getPositionFloat3().y) + 50.0f) * 1.2f;
 
 			m_ocean.getTransform().setPosition(XMVectorGetX(oceanPosition), m_ocean.getTransform().getPositionFloat3().y, XMVectorGetZ(oceanPosition));
 
@@ -519,8 +519,9 @@ namespace hrzn::gfx
 			m_waterPixelShaderCB.mapToGPU();
 
 			m_deviceContext->PSSetConstantBuffers(0, 1, m_waterPixelShaderCB.getAddressOf());
+			m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
 
-			m_ocean.draw(viewProjMat, &m_waterVertexShaderCB);
+			m_ocean.draw(viewProjMat, &m_waterVertexShaderCB, false);
 
 			//DRAWCLOUDS
 			m_deviceContext->VSSetShader(m_vertexShader.getShader(), NULL, 0);
@@ -802,7 +803,7 @@ namespace hrzn::gfx
 		textureDesc.Height = height;
 		textureDesc.Depth = size;
 		textureDesc.MipLevels = 0;
-		textureDesc.Format = DXGI_FORMAT_R8_SNORM;
+		textureDesc.Format = DXGI_FORMAT_R8_SNORM;//DXGI_FORMAT_R8_SNORM
 		textureDesc.Usage = D3D11_USAGE_DEFAULT;
 		textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
 		textureDesc.CPUAccessFlags = 0;
@@ -1728,7 +1729,7 @@ namespace hrzn::gfx
 		
 		if (ImGui::CollapsingHeader("Ocean Options"))
 		{
-			ImGui::SliderInt("Wave Count", &m_waterVertexShaderCB.m_data.m_waveCount, 0, 20);
+			ImGui::SliderInt("Wave Count", &m_waterVertexShaderCB.m_data.m_waveCount, 0, 50);
 			ImGui::SliderFloat("Wave Scale", &m_waterVertexShaderCB.m_data.m_waveScale, 0.0f, 25.0f);
 			ImGui::SliderFloat("Wave Period", &m_waterVertexShaderCB.m_data.m_wavePeriod, 0.0f, 100.0f);
 			ImGui::SliderFloat("Wave Speed", &m_waterVertexShaderCB.m_data.m_waveSpeed, 0.0f, 100.0f);
@@ -1798,6 +1799,12 @@ namespace hrzn::gfx
 
 
 		ImGui::Begin("Camera Settings");
+
+		m_camera.getTransform().editPositionImGui();
+		m_camera.getTransform().showAxisVectorsImGui();
+
+		ImGui::NewLine();
+
 		//CAMERA TRACK CHECKBOX
 		bool followTrack = m_camera.getFollowingObjectTrack();
 		ImGui::Checkbox("Camera Follow Track", &followTrack);
@@ -2146,7 +2153,7 @@ namespace hrzn::gfx
 
 			//CREATE SAMPLER STATE
 			CD3D11_SAMPLER_DESC samplerDesc(D3D11_DEFAULT);
-			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;//D3D11_FILTER_MIN_MAG_MIP_LINEAR
 			samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 			samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 			samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
