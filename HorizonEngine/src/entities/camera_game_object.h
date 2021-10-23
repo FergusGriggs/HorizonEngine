@@ -19,8 +19,8 @@ namespace hrzn::entity
 		void  update(float deltaTime) override;
 		void  setProjectionValues(float fovDegrees, float aspectRatio, float nearZ, float farZ);
 		void  zoom(float fovDiff);
-		void  setZoom(float fov);
-		float getZoom();
+		void  setFOV(float fov);
+		float getFOV();
 
 		const XMMATRIX& getViewMatrix() const;
 		const XMMATRIX& getProjectionMatrix() const;

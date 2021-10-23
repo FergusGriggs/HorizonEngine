@@ -8,9 +8,9 @@ namespace hrzn::entity
 	PointLightGameObject::PointLightGameObject() :
 		LightGameObject(),
 		
-		m_attenuationConstant(0.706f),
-		m_attenuationLinear(0.073f),
-		m_attenuationQuadratic(0.011f)
+		m_attenuationConstant(0.269f),
+		m_attenuationLinear(0.018f),
+		m_attenuationQuadratic(0.001f)
 
 	{
 		m_type = GameObjectType::ePointLight;

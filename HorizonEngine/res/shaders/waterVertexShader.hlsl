@@ -7,17 +7,16 @@ cbuffer constantBuffer : register(b0)
 {
     float4x4 modelViewProjectionMatrix;
     float4x4 modelMatrix;
+
     float gameTime;
     int waveCount;
-
     float waveScale;
     float wavePeriod;
+
     float waveSeed;
     float waveSpeed;
-
     float waveScaleMultiplier;
     int iscolateWaveNum;
-    float2 padding1;
 };
 
 struct VS_INPUT
@@ -74,11 +73,11 @@ float3 getFourierOffset(float3 position)
     {
         if (iscolateWaveNum == -1 || iscolateWaveNum == waveNum)
         {
-            float waveAngle = hash11((float)waveNum * waveSeed) * waveSeed;
+            float waveAngle = (float)waveNum * waveSeed;// hash11((float)waveNum * waveSeed)* waveSeed;
             float3 waveDir = float3(cos(waveAngle), 0.0f, sin(waveAngle));
             //float3 waveDirRight = float3(waveDir.z, 0.0f, -waveDir.x);
 
-            float windScaleModifier = dot(waveDir, windDir) * 0.1f + 0.8f;
+            float windScaleModifier = dot(waveDir, windDir) * 0.35f + 0.7f;
 
             float initialWaveDist = dot(flatPosition, waveDir);
             float distWaveTravelled = gameTime * waveSpeed * ((float)waveNum * 1.0f + 1.0f) * scale + initialWaveDist;

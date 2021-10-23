@@ -138,12 +138,12 @@ namespace hrzn::gfx
 
 			hr = m_waterVertexShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterVertexShader' constant buffer.");
-			m_waterVertexShaderCB.m_data.m_waveCount = 20;
-			m_waterVertexShaderCB.m_data.m_waveScale = 14.3f;
-			m_waterVertexShaderCB.m_data.m_wavePeriod = 50.5f;
-			m_waterVertexShaderCB.m_data.m_waveSpeed = 25.0f;
-			m_waterVertexShaderCB.m_data.m_waveSeed = 258.671f;
-			m_waterVertexShaderCB.m_data.m_waveScaleMultiplier = 0.7f;
+			m_waterVertexShaderCB.m_data.m_waveCount = 30;
+			m_waterVertexShaderCB.m_data.m_waveScale = 6.6f;//14.3f
+			m_waterVertexShaderCB.m_data.m_wavePeriod = 21.5f;//50.5f
+			m_waterVertexShaderCB.m_data.m_waveSpeed = 12.0f;//25.0f
+			m_waterVertexShaderCB.m_data.m_waveSeed = 656.993f;
+			m_waterVertexShaderCB.m_data.m_waveScaleMultiplier = 0.745f;
 			m_waterVertexShaderCB.m_data.m_iscolateWaveNum = -1;
 
 			hr = m_waterPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
@@ -155,12 +155,13 @@ namespace hrzn::gfx
 			m_waterPixelShaderCB.m_data.m_waveSeed = m_waterVertexShaderCB.m_data.m_waveSeed;
 			m_waterPixelShaderCB.m_data.m_waveScaleMultiplier = m_waterVertexShaderCB.m_data.m_waveScaleMultiplier;
 			m_waterPixelShaderCB.m_data.m_iscolateWaveNum = m_waterVertexShaderCB.m_data.m_iscolateWaveNum;
-			m_waterPixelShaderCB.m_data.m_foamStart = 1.176f;
-			m_waterPixelShaderCB.m_data.m_colourChangeStart = 1.123f;
+			m_waterPixelShaderCB.m_data.m_foamStart = 0.97f;
+			m_waterPixelShaderCB.m_data.m_colourChangeStart = 1.88f;//1.123f
 
 			hr = m_pixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'pixelShader' constant buffer.");
 			m_pixelShaderCB.m_data.m_useNormalMapping = true;
+			m_pixelShaderCB.m_data.m_useParallaxOcclusionMapping = true;
 
 			hr = m_noLightPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'noLightPixelShader' constant buffer.");
@@ -217,9 +218,13 @@ namespace hrzn::gfx
 			m_defaultSpecularTexture = new Texture(m_device.Get(), defaultSpecularTextureFilePath, aiTextureType::aiTextureType_DIFFUSE);
 			m_defaultNormalTexture = new Texture(m_device.Get(), defaultNormalTextureFilePath, aiTextureType::aiTextureType_DIFFUSE);
 
-			std::string highlightDiffuseTextureFilePath = "res/textures/engraved/diffuse.jpg";
-			std::string highlightSpecularTextureFilePath = "res/textures/engraved/specular.jpg";
-			std::string highlightNormalTextureFilePath = "res/textures/engraved/normal.jpg";
+			/*std::string highlightDiffuseTextureFilePath = "res/textures/gems/gems_diffuse.jpg";
+			std::string highlightSpecularTextureFilePath = "res/textures/gems/roughness.jpg";
+			std::string highlightNormalTextureFilePath = "res/textures/gems/normal.jpg";*/
+
+			std::string highlightDiffuseTextureFilePath = "res/textures/hrzn_statue/diffuse.jpg";
+			std::string highlightSpecularTextureFilePath = "res/textures/hrzn_statue/roughness.jpg";
+			std::string highlightNormalTextureFilePath = "res/textures/hrzn_statue/normal.png";
 
 			m_highlightDiffuseTexture = new Texture(m_device.Get(), highlightDiffuseTextureFilePath, aiTextureType::aiTextureType_DIFFUSE);
 			m_highlightSpecularTexture = new Texture(m_device.Get(), highlightSpecularTextureFilePath, aiTextureType::aiTextureType_DIFFUSE);
@@ -259,7 +264,7 @@ namespace hrzn::gfx
 			m_directionalLight.getTransform().lookAtPosition(XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
 			m_directionalLight.setColour(XMFLOAT3(0.9f, 0.85f, 0.8f));
 
-			if (!loadScene("city.txt"))
+			if (!loadScene("test.txt"))
 			{
 				return false;
 			}
@@ -275,8 +280,9 @@ namespace hrzn::gfx
 			//dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box4"))->GetRigidBody()->SetIsStatic(false);
 			//dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box5"))->GetRigidBody()->SetIsStatic(false);
 
-			m_camera.getTransform().setPosition(0.0f, 10.0f, -7.0f);
-			m_camera.getTransform().lookAtPosition(XMVectorSet(0.0f, 7.0f, 0.0f, 1.0f));
+			m_camera.getTransform().setPosition(-12.0f, 3.0f, 7.0f);
+			m_camera.getTransform().lookAtPosition(XMFLOAT3(-12.0f, 0.0f, -3.6f));
+			//m_camera.getTransform().lookAtPosition(XMVectorSet(0.0f, 7.0f, 0.0f, 1.0f));
 			m_camera.setProjectionValues(90.0f, static_cast<float>(m_windowWidth) / static_cast<float>(m_windowHeight), 0.1f, 1000.0f);
 			//camera.SetObjectTrack(objectTracks.at("camera_track"));
 			//camera.SetFollowingObjectTrack(true);
@@ -368,19 +374,6 @@ namespace hrzn::gfx
 
 			m_atmosphericPixelShaderCB.m_data.m_cameraPosition = m_camera.getTransform().getPositionFloat3();
 
-			if (m_dayNightCycle)
-			{
-				m_dayProgress += deltaTime * 0.0166666; // 1 day = 60 seconds
-				m_gameTime += deltaTime;
-
-				m_vertexShaderCB.m_data.m_gameTime = m_gameTime;
-				m_waterVertexShaderCB.m_data.m_gameTime = m_gameTime;
-				m_cloudsPixelShaderCB.m_data.m_gameTime = m_gameTime;
-				m_waterPixelShaderCB.m_data.m_gameTime = m_gameTime;
-			}
-
-			if (m_dayProgress > 1.0f) m_dayProgress -= 1.0f;
-
 			float dayOrNight = 0.0f;
 			float zeroToOneDayOrNight = modf(m_dayProgress * 2.0f, &dayOrNight);
 			float split = 1.0f - abs(zeroToOneDayOrNight - 0.5f) * 2.0f;
@@ -450,7 +443,7 @@ namespace hrzn::gfx
 					floatObject(renderableGameObject);
 				}
 
-				if (renderableGameObject == m_selectedObject)
+				/*if (renderableGameObject == m_selectedObject)
 				{
 					m_deviceContext->PSSetShaderResources(0, 1, m_highlightDiffuseTexture->getTextureResourceViewAddress());
 					m_deviceContext->PSSetShaderResources(1, 1, m_highlightSpecularTexture->getTextureResourceViewAddress());
@@ -464,8 +457,9 @@ namespace hrzn::gfx
 				}
 				else
 				{
-					renderableGameObject->draw(viewProjMat, &m_vertexShaderCB, false);
-				}
+					renderableGameObject->draw(viewProjMat, &m_vertexShaderCB);
+				}*/
+				renderableGameObject->draw(viewProjMat, &m_vertexShaderCB);
 			}
 
 			//Draw particles
@@ -507,9 +501,13 @@ namespace hrzn::gfx
 			m_waterVertexShaderCB.mapToGPU();
 			
 			// Put the centre a bit in front of the camera where the best fidelity is in the mesh
-			XMVECTOR oceanPosition = m_camera.getTransform().getPositionVector() + m_camera.getTransform().getFrontVector() * (abs(m_camera.getTransform().getPositionFloat3().y) + 50.0f) * 1.2f;
+			float fovDistMod = (1.0f - (fminf(70.0f, m_camera.getFOV()) / 70.0f)) * 150.0f;
+			XMVECTOR oceanPosition = m_camera.getTransform().getPositionVector() + m_camera.getTransform().getFrontVector() * (abs(m_camera.getTransform().getPositionFloat3().y) + 30.0f + fovDistMod) * 1.2f;
 
 			m_ocean.getTransform().setPosition(XMVectorGetX(oceanPosition), m_ocean.getTransform().getPositionFloat3().y, XMVectorGetZ(oceanPosition));
+
+			//float scaleMod = fmaxf(1.0f, m_camera.getTransform().getPositionFloat3().y * 0.01f);
+			//m_ocean.setScale(XMFLOAT3(scaleMod, scaleMod, scaleMod));
 
 			XMFLOAT3 cameraPosFloat = m_camera.getTransform().getPositionFloat3();
 			m_waterPixelShaderCB.m_data.m_cameraPosition = cameraPosFloat;
@@ -1482,6 +1480,12 @@ namespace hrzn::gfx
 			{
 				m_selectedObject->getTransform().setOrientationQuaternion(XMQuaternionIdentity());
 			}
+			static XMFLOAT3 axis = XMFLOAT3(0.0f, 1.0f, 0.0f);
+			ImGui::DragFloat3("Rotation Axis", &axis.x, 0.1f, -1.0f, 1.0f);
+			if (ImGui::Button("Rotate 90 degrees about axis"))
+			{
+				m_selectedObject->getTransform().rotateUsingAxis(XMLoadFloat3(&axis), 1.5707963f);
+			}
 
 			entity::GameObjectType type = m_selectedObject->getType();
 			if (type == entity::GameObjectType::eRenderable)
@@ -1714,17 +1718,54 @@ namespace hrzn::gfx
 		//WIREFRAME CHECKBOX
 		ImGui::Checkbox("Wireframe", &m_useWireframe);
 
-		//POM HEIGHT CHECKBOX
-		static float parallaxOcclusionMappingHeight = 0.025f;
-		ImGui::DragFloat("PO Mapping Height", &parallaxOcclusionMappingHeight, 0.001f, 0.0f, 0.2f);
+		ImGui::SameLine();
+
+		// Show Normals
+		bool showWorldNormals = static_cast<bool>(m_pixelShaderCB.m_data.m_showWorldNormals);
+		ImGui::Checkbox("Normals", &showWorldNormals);
+		m_pixelShaderCB.m_data.m_showWorldNormals = showWorldNormals;
+
+		// Show UVs
+		bool showUVs = static_cast<bool>(m_pixelShaderCB.m_data.m_showUVs);
+		ImGui::Checkbox("Show UVs", &showUVs);
+		m_pixelShaderCB.m_data.m_showUVs = showUVs;
+
+		ImGui::SameLine();
+
+		// Cull back normals
+		bool cullBackNormals = static_cast<bool>(m_pixelShaderCB.m_data.m_cullBackNormals);
+		ImGui::Checkbox("Cull Back Normals", &cullBackNormals);
+		m_pixelShaderCB.m_data.m_cullBackNormals = cullBackNormals;
+
+		ImGui::SameLine();
+
+		// Misc Toggle A
+		bool miscToggleA = static_cast<bool>(m_pixelShaderCB.m_data.m_miscToggleA);
+		ImGui::Checkbox("Misc A", &miscToggleA);
+		m_pixelShaderCB.m_data.m_miscToggleA = miscToggleA;
+
+		ImGui::SameLine();
+
+		// Misc Toggle B
+		bool miscToggleB = static_cast<bool>(m_pixelShaderCB.m_data.m_miscToggleB);
+		ImGui::Checkbox("Misc B", &miscToggleB);
+		m_pixelShaderCB.m_data.m_miscToggleB = miscToggleB;
+
+		// Pom Height
+		static float parallaxOcclusionMappingHeight = 0.05f;
+		ImGui::DragFloat("PO Mapping Height", &parallaxOcclusionMappingHeight, 0.001f, 0.0f, 0.5f);
 		m_pixelShaderCB.m_data.m_parallaxOcclusionMappingHeight = parallaxOcclusionMappingHeight;
 
 		//VSYNC CHECKBOX
 		ImGui::Checkbox("Use VSync", &m_useVSync);
 
-		ImGui::NewLine();
+		ImGui::SameLine();
 
-		if (ImGui::Button("Toggle Time Progression")) m_dayNightCycle = !m_dayNightCycle;
+		if (ImGui::Checkbox("Day/Night Cycle", &m_dayNightCycle));
+
+		ImGui::SameLine();
+
+		if (ImGui::Checkbox("Pause", &m_paused));
 		ImGui::SliderFloat("Day Progress", &m_dayProgress, 0.0f, 1.0f);
 		
 		if (ImGui::CollapsingHeader("Ocean Options"))
@@ -1830,7 +1871,7 @@ namespace hrzn::gfx
 			m_camera.setFollowingObjectTrack(false);
 			m_camera.getTransform().setPosition(XMFLOAT3(0.0f, 37.5f, 0.0f));
 			m_camera.getTransform().lookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.5f));
-			m_camera.setZoom(80.0f);
+			m_camera.setFOV(80.0f);
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Static View Two"))
@@ -1839,7 +1880,7 @@ namespace hrzn::gfx
 			m_camera.setFollowingObjectTrack(false);
 			m_camera.getTransform().setPosition(XMFLOAT3(10.0f, 10.0f, 10.0f));
 			m_camera.getTransform().lookAtPosition(XMFLOAT3(3.0f, 2.5f, 3.0f));
-			m_camera.setZoom(70.0f);
+			m_camera.setFOV(70.0f);
 		}
 
 		ImGui::End();
@@ -1860,6 +1901,23 @@ namespace hrzn::gfx
 
 	void GraphicsHandler::update(float deltaTime)
 	{
+		if (!m_paused)
+		{
+			m_gameTime += deltaTime;
+
+			m_vertexShaderCB.m_data.m_gameTime = m_gameTime;
+			m_waterVertexShaderCB.m_data.m_gameTime = m_gameTime;
+			m_cloudsPixelShaderCB.m_data.m_gameTime = m_gameTime;
+			m_waterPixelShaderCB.m_data.m_gameTime = m_gameTime;
+		}
+
+		if (m_dayNightCycle)
+		{
+			m_dayProgress += deltaTime * 0.0166666; // 1 day = 60 seconds
+		}
+
+		if (m_dayProgress > 1.0f) m_dayProgress -= 1.0f;
+
 		//UPDATE MOUSE NDC
 		computeMouseNDC();
 
@@ -2377,19 +2435,73 @@ namespace hrzn::gfx
 		return value * m_vertexShaderCB.m_data.m_padding;
 	}
 
+	XMVECTOR GraphicsHandler::getFourierOffset(float x, float z)
+	{
+		auto hash11 = [](float p)
+		{
+			float buffer;
+			p = modf(p * 0.1031f, &buffer);
+			p *= p + 33.33f;
+			p *= p + p;
+			return modf(p, &buffer);
+		};
+
+		XMVECTOR windDir = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+
+		XMVECTOR flatPosition = XMVectorSet(x, 0.0f, x, 1.0f);
+		XMVECTOR finalOffset = XMVectorSet(0.0f, m_ocean.getTransform().getPositionFloat3().y, 0.0f, 1.0f);
+
+		float scale = 0.5f;
+
+		int waveNum = 0;
+		while (waveNum < m_waterVertexShaderCB.m_data.m_waveCount)
+		{
+			float waveAngle = hash11((float)waveNum * m_waterVertexShaderCB.m_data.m_waveSeed) * m_waterVertexShaderCB.m_data.m_waveSeed;
+			XMVECTOR waveDir = XMVectorSet(cos(waveAngle), 0.0f, sin(waveAngle), 0.0f);
+			//float3 waveDirRight = float3(waveDir.z, 0.0f, -waveDir.x);
+
+			float windScaleModifier = XMVectorGetX(XMVector3Dot(waveDir, windDir)) * 0.1f + 0.8f;
+
+			float initialWaveDist = XMVectorGetX(XMVector3Dot(flatPosition, waveDir));
+			float distWaveTravelled = m_gameTime * m_waterVertexShaderCB.m_data.m_waveSpeed * ((float)waveNum * 1.0f + 1.0f) * scale + initialWaveDist;
+
+			float angle = distWaveTravelled / (m_waterVertexShaderCB.m_data.m_wavePeriod * scale * pow(1.1f, (float)waveNum - 1.0f));
+
+			//float signedDistanceToWaveCentre = dot(waveDirRight, flatPosition);
+			float waveBreakScaleMod = 1.0f;// sin(signedDistanceToWaveCentre * 0.05f + waveAngle * 1024.0f + gameTime * waveSpeed * 0.06f + initialWaveDist * 0.2f) * 0.15f + 0.85f;
+
+			float xOffset = cos(waveAngle) * cos(angle) * m_waterVertexShaderCB.m_data.m_waveScale * scale * waveBreakScaleMod * windScaleModifier;
+			float yOffset = sin(angle) * m_waterVertexShaderCB.m_data.m_waveScale * scale * waveBreakScaleMod * windScaleModifier;
+			float zOffset = sin(waveAngle) * cos(angle) * m_waterVertexShaderCB.m_data.m_waveScale * scale * waveBreakScaleMod * windScaleModifier;
+
+			finalOffset += XMVectorSet(xOffset, yOffset, zOffset, 0.0f);
+
+			scale *= m_waterVertexShaderCB.m_data.m_waveScaleMultiplier;
+
+			waveNum++;
+		}
+
+		return finalOffset;
+	}
+
 	void GraphicsHandler::floatObject(entity::GameObject* object)
 	{
-		XMFLOAT3 positionFloat = object->getTransform().getPositionFloat3();
-		XMVECTOR position = XMVectorSet(0.0f, getWaterHeightAt(positionFloat.x, positionFloat.z), 0.0f, 0.0f);
-
-		object->getTransform().setPosition(XMFLOAT3(positionFloat.x, XMVectorGetY(position) + 1.5f, positionFloat.z));
+		const XMFLOAT3& anchorPosition = object->getTransform().getPositionFloat3();
 
 		XMVECTOR objectFront = object->getTransform().getFrontVector();
 		XMVECTOR objectRight = object->getTransform().getRightVector();
 
-		XMVECTOR tangent = XMVector3Normalize(XMVectorSet(XMVectorGetX(objectRight), getWaterHeightAt(positionFloat.x + XMVectorGetX(objectRight), positionFloat.z + XMVectorGetZ(objectRight)), XMVectorGetZ(objectRight), 0.0f) - position);
-		XMVECTOR bitangent = XMVector3Normalize(XMVectorSet(XMVectorGetX(objectFront), getWaterHeightAt(positionFloat.x + XMVectorGetX(objectFront), positionFloat.z + XMVectorGetZ(objectFront)), XMVectorGetZ(objectFront), 0.0f) - position);
+		XMVECTOR flatTangent = XMVector3Normalize(XMVectorSet(XMVectorGetX(objectRight), 0.0f, XMVectorGetZ(objectRight), 0.0f));
+		XMVECTOR flatBitangent = XMVector3Normalize(XMVectorSet(XMVectorGetX(objectFront), 0.0f, XMVectorGetZ(objectFront), 0.0f));
 
+		XMVECTOR displacedMainPosition = getFourierOffset(anchorPosition.x, anchorPosition.z);
+		XMVECTOR displacedTangentPosition = getFourierOffset(anchorPosition.x + XMVectorGetX(flatTangent), anchorPosition.z + XMVectorGetZ(flatTangent));
+		XMVECTOR displacedBitangentPosition = getFourierOffset(anchorPosition.x + XMVectorGetX(flatBitangent), anchorPosition.z + XMVectorGetZ(flatBitangent));
+
+		XMStoreFloat3(&(object->getFloatOffset()), displacedMainPosition);
+
+		XMVECTOR tangent = XMVector3Normalize(displacedTangentPosition - displacedMainPosition);
+		XMVECTOR bitangent = XMVector3Normalize(displacedBitangentPosition - displacedMainPosition);
 		XMVECTOR normal = XMVector3Normalize(XMVector3Cross(bitangent, tangent));
 
 		XMMATRIX rotationMatrix =  XMMATRIX(tangent, normal, bitangent, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
@@ -2398,6 +2510,6 @@ namespace hrzn::gfx
 		rotationMatrix.r[1].m128_f32[3] = 0.0f;
 		rotationMatrix.r[2].m128_f32[3] = 0.0f;
 
-		object->getTransform().setOrientationRotationMatrix(rotationMatrix);
+		//object->getTransform().setOrientationRotationMatrix(rotationMatrix);
 	}
 }

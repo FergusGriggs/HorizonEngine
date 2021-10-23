@@ -17,6 +17,7 @@ namespace hrzn::entity
 		m_objectTrack(nullptr),
 
 		m_floating(false),
+		m_floatOffset(XMFLOAT3(0.0f, 0.0f, 0.0f)),
 
 		m_hasParentObject(false),
 		m_parentObject(nullptr),
@@ -109,6 +110,11 @@ namespace hrzn::entity
 	void GameObject::setFloating(bool floating)
 	{
 		m_floating = floating;
+	}
+
+	XMFLOAT3& GameObject::getFloatOffset()
+	{
+		return m_floatOffset;
 	}
 
 	void GameObject::setObjectTrack(GameObjectTrack* objectTrack)

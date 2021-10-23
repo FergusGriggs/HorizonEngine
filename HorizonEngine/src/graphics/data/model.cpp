@@ -118,7 +118,13 @@ namespace hrzn::gfx
 
 		Assimp::Importer importer;
 
-		const aiScene* pScene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
+		const aiScene* pScene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded); //
+
+		//aiProcess_ConvertToLeftHanded
+		// v
+		//aiProcess_MakeLeftHanded
+		//aiProcess_FlipUVs
+		//aiProcess_FlipWindingOrder
 
 		if (pScene == nullptr)
 		{
@@ -317,7 +323,8 @@ namespace hrzn::gfx
 				return materialTextures;
 			}
 		}
-		else {
+		else
+		{
 			for (UINT i = 0; i < textureCount; i++)
 			{
 				aiString path;

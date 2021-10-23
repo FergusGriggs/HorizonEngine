@@ -42,6 +42,11 @@ namespace hrzn::entity
 	{
 		XMFLOAT3 objectPosition = m_transform.getPositionFloat3();
 
+		if (m_floating)
+		{
+			objectPosition = m_floatOffset;
+		}
+
 		if (m_type == GameObjectType::eRenderable)
 		{
 			m_model->draw(XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z) * m_transform.getRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z), viewProjectionMatrix, vertexShaderCB, bindTextures);

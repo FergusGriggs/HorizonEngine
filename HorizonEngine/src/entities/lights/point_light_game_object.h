@@ -21,9 +21,9 @@ namespace hrzn::entity
 		float attenuationLinear = 0.09f;
 		float attenuationQuadratic = 0.032f;*/
 
-		float m_attenuationConstant = 0.706f;
-		float m_attenuationLinear = 0.073f;
-		float m_attenuationQuadratic = 0.011f;
+		float m_attenuationConstant;
+		float m_attenuationLinear;
+		float m_attenuationQuadratic;
 	};
 }
 

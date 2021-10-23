@@ -16,17 +16,16 @@ namespace hrzn::gfx
 	{
 		DirectX::XMMATRIX  m_modelViewProjectionMatrix;
 		DirectX::XMMATRIX  m_modelMatrix;
+
 		float              m_gameTime;
-		int                m_waveCount;
-			  
-		float m_waveScale;
-		float m_wavePeriod;
+		int                m_waveCount; 
+		float              m_waveScale;
+		float              m_wavePeriod;
+
 		float m_waveSeed;
 		float m_waveSpeed;
-
 		float             m_waveScaleMultiplier;
 		int               m_iscolateWaveNum;
-		DirectX::XMFLOAT2 m_padding1;
 	};
 
 	struct WaterPixelShaderCB
@@ -110,7 +109,12 @@ namespace hrzn::gfx
 		int                 m_useNormalMapping;
 		int                 m_useParallaxOcclusionMapping;
 		float               m_parallaxOcclusionMappingHeight;
-		int                 m_fresnel;
+		int                 m_showWorldNormals;
+
+		int                 m_showUVs;
+		int                 m_cullBackNormals;
+		int                 m_miscToggleA;
+		int                 m_miscToggleB;
 
 		//PACK_SEAM
 		MaterialCB         m_objectMaterial;

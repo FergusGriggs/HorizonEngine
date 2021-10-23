@@ -112,8 +112,10 @@ namespace hrzn::gfx
 		bool  initializeDirectX(HWND hwnd);
 		bool  initializeShaders();
 		bool  initializeScene();
-		void  floatObject(entity::GameObject* object);
-		float getWaterHeightAt(float posX, float posZ, bool exact = false);
+
+		void      floatObject(entity::GameObject* object);
+		float     getWaterHeightAt(float posX, float posZ, bool exact = false);
+		XMVECTOR  getFourierOffset(float x, float z);
 
 	private:
 		entity::CameraGameObject     m_camera;
@@ -226,8 +228,9 @@ namespace hrzn::gfx
 		bool m_useWireframe = false;
 		bool m_useVSync = true;
 
-		bool m_dayNightCycle = true;
-		float m_dayProgress = 0.0f;
+		bool m_dayNightCycle = false;
+		bool m_paused = false;
+		float m_dayProgress = 0.494f;
 		float m_gameTime = 0.0f;
 		XMFLOAT3 m_sunDirection;
 

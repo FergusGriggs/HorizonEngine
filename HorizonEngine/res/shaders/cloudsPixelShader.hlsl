@@ -27,7 +27,10 @@ struct PS_INPUT
     float3 normal : NORMAL;
     float2 texCoord : TEXCOORD;
     float3 worldPos : WORLD_POSIITION;
-    float3x3 TBNMatrix : TBN_MATRIX;
+
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
+    //float3x3 TBNMatrix : TBN_MATRIX;
 };
 
 //float GetDensityAt(float3 position)

@@ -26,7 +26,11 @@ struct VS_OUTPUT
     float3 normal : NORMAL;
     float2 texCoord : TEXCOORD;
     float3 worldPos : WORLD_POSIITION;
-    float3x3 TBNMatrix : TBN_MATRIX;
+
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
+
+    //float3x3 TBNMatrix : TBN_MATRIX;
 };
 
 VS_OUTPUT main (VS_INPUT input)
@@ -37,17 +41,17 @@ VS_OUTPUT main (VS_INPUT input)
     output.normal = normalize(mul(float4(input.normal, 0.0f), modelMatrix));
     output.worldPos = mul(float4(input.pos, 1.0f), modelMatrix);
 
-    float3 tangent = normalize(mul(float4(input.tangent, 0.0f), modelMatrix));
-    float3 normal = normalize(mul(float4(input.normal, 0.0f), modelMatrix));
+    output.tangent = normalize(mul(float4(input.tangent, 0.0f), modelMatrix));
+    output.bitangent = normalize(mul(float4(input.bitangent, 0.0f), modelMatrix));
+
     //float3 bitangent = normalize(mul(float4(input.bitangent, 0.0f), modelMatrix));
 
     // re-orthogonalize T with respect to N
-    tangent = normalize(tangent - dot(tangent, normal) * normal);
+    //output.tangent = normalize(output.tangent - dot(output.tangent, output.normal) * output.normal);
     // then retrieve perpendicular vector B with the cross product of T and N
-    float3 bitangent = cross(normal, tangent);
+    //output.bitangent = -normalize(cross(output.tangent, output.normal));
 
-    output.TBNMatrix = transpose(float3x3(tangent, bitangent, normal));
-
+    //output.TBNMatrix = float3x3(tangent, bitangent, normal);
 
     //output.TBNMatrix = transpose(float3x3(tangent, bitangent, output.normal));
 

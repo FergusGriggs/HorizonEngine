@@ -83,7 +83,7 @@ namespace hrzn
 			{
 				if (m_mouse.isRightDown())
 				{
-					float moveFactor = m_graphicsHandler.getCamera().getZoom() / 90.0f;
+					float moveFactor = m_graphicsHandler.getCamera().getFOV() / 90.0f;
 					if (moveFactor > 1.0f) moveFactor = 1.0f;
 					m_graphicsHandler.getCamera().getTransform().rotateUsingAxis(m_graphicsHandler.getCamera().getTransform().getRightVector(), (float)mouseEvent.getPos().y * 0.01f * moveFactor);
 					m_graphicsHandler.getCamera().getTransform().rotateUsingAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), (float)mouseEvent.getPos().x * 0.01f * moveFactor);

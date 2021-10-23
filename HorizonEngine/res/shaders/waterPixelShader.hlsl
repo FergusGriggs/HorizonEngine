@@ -28,7 +28,7 @@ cbuffer constantBuffer : register(b0)
 struct PS_INPUT
 {
     float4 pos : SV_POSITION;
-    float3 baseWorldPos : WORLD_POSIITION;
+    float3 baseWorldPos : BASE_WORLD_POSIITION;
 };
 
 float hash11(float p)
@@ -58,11 +58,11 @@ float3 getFourierOffset(float3 position)
     {
         if (iscolateWaveNum == -1 || iscolateWaveNum == waveNum)
         {
-            float waveAngle = hash11((float)waveNum * waveSeed) * waveSeed;
+            float waveAngle = (float)waveNum * waveSeed;// hash11((float)waveNum * waveSeed)* waveSeed;
             float3 waveDir = float3(cos(waveAngle), 0.0f, sin(waveAngle));
             //float3 waveDirRight = float3(waveDir.z, 0.0f, -waveDir.x);
 
-            float windScaleModifier = dot(waveDir, windDir) * 0.1f + 0.8f;
+            float windScaleModifier = dot(waveDir, windDir) * 0.35f + 0.7f;
 
             float initialWaveDist = dot(flatPosition, waveDir);
             float distWaveTravelled = gameTime * waveSpeed * ((float)waveNum * 1.0f + 1.0f) * scale + initialWaveDist;
@@ -84,7 +84,7 @@ float3 getFourierOffset(float3 position)
         waveNum++;
     }
 
-    finalOffset += float3(0.0f, noiseTexture.Sample(samplerState, (position + float3(0.0f, 0.5f, 0.0f)) * 0.04f) * waveScale * 0.05f, 0.0f);
+    //finalOffset += float3(0.0f, noiseTexture.Sample(samplerState, (position + float3(0.0f, 0.5f, 0.0f)) * 0.04f) * waveScale * 0.05f, 0.0f);
     //finalOffset += float3(0.0f, noiseTexture.Sample(samplerState, (position + finalOffset) * 0.1f) * 0.25f, 0.0f);
 
     //return float3(noiseTexture.Sample(samplerState, (position + finalOffset) * 0.1f), 0.0f, 0.0f);
@@ -94,7 +94,7 @@ float3 getFourierOffset(float3 position)
 
 static const float3 seaBaseColour = float3(0.0f, 0.09f, 0.18f);
 static const float3 seaWaterColour = float3(0.0f, 0.45f, 0.65f) * 0.7f;
-static const float sampleOffset = 0.25f;
+static const float sampleOffset = 0.025f;
 
 static const float pi = 3.141592f;
 
@@ -146,10 +146,10 @@ float4 main(PS_INPUT input) : SV_TARGET
     float heightDistMod = -getLinearProgress(450.0f, 1500.0f, cameraDist);
 
     float fresnel = clamp(1.0f - dot(-normal, viewDirection), 0.0f, 1.0f);
-    fresnel = pow(fresnel, 10.0f) * 0.5f;
+    fresnel = pow(fresnel, 10.0f) * 0.35f;
 
-    float3 reflected = modifiedLightColour;//getSkyColor();// max(0.0f, sign(reflect(viewDirection, normal).y))
     float3 refracted = seaBaseColour * modifiedLightColour + diffuse(normal, -lightDirection, 20.0f) * seaWaterColour * 0.12f;
+    float3 reflected = modifiedLightColour;//getSkyColor();// max(0.0f, sign(reflect(viewDirection, normal).y))
     float3 colour = lerp(refracted, reflected, fresnel);
 
    // float height = getLinearProgress(-1.0f, 1.0f, (mainFourierOffset.y - input.baseWorldPos.y) / waveScale);

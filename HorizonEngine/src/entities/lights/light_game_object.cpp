@@ -8,7 +8,7 @@ namespace hrzn::entity
 	LightGameObject::LightGameObject() :
 		RenderableGameObject(),
 		m_colour(DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f)),
-		m_ambientStrength(0.3f)
+		m_ambientStrength(0.1f)
 	{
 		m_type = GameObjectType::eLight;
 	}

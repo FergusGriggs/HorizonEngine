@@ -4,7 +4,7 @@ meme 2
 0 0 0 1 0 0 
 0 0 0 1 0 0 
 
-191
+194
 
 5 Spot|Light|1 1 0.5625 0.1875 42.158 57.316 
 -53.1587 4.73631 -45.626 
@@ -79,7 +79,7 @@ meme 2
 0
 
 5 Spot|Light|6 1 0.433333 0.166667 28.421 45 
--22.5991 14.6605 -7.13194 
+-20.0979 14.6605 -7.13194 
 3 0.70139 0 -0 0.712778 
 0
 0
@@ -231,7 +231,7 @@ meme 2
 0
 
 1 LampPost2 environment/meshes/city/lamppost/r.obj
--22.6997 -4.47238 -5.98168 
+-20.1155 -4.47238 -5.98168 
 3 -0 0.676811 -0 0.736157 
 0
 0
@@ -990,6 +990,14 @@ meme 2
 0
 0
 
+1 plane environment/meshes/../../small_plane.obj
+-19.9563 12.1923 -6.97142 
+3 0 0 0 1 
+0
+0
+0
+0
+
 1 Double|Wall|18 environment/meshes/city/wall/double/r.obj
 -94.0133 0.425715 34.6354 
 3 0 0.938376 0 0.345617 
@@ -1529,6 +1537,22 @@ meme 2
 1 Window|26 environment/meshes/city/wall/window/light/r.obj
 -52.5339 11.733 3.84683 
 3 0 0.810875 0 0.585219 
+0
+0
+0
+0
+
+1 statue horizon_statue.obj
+-7.05429 0 -5.09827 
+3 0 0.924478 0 -0.381235 
+0
+0
+0
+0
+
+1 normal_map_test_cube normal_map_test_cube.obj
+-10.0543 0 -5.09827 
+3 0 0 0 1 
 0
 0
 0

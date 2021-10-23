@@ -43,7 +43,7 @@ namespace hrzn::gfx
 	namespace colours
 	{
 		static const Colour sc_unloadedTextureColour(100, 100, 100);
-		static const Colour sc_unloadedSpecularTextureColour(255, 255, 255);
+		static const Colour sc_unloadedSpecularTextureColour(128, 128, 128);
 		static const Colour sc_unloadedNormalTextureColour(128, 128, 255);
 		static const Colour sc_unhandledTextureColour(255, 0, 0);
 		static const Colour sc_unloadedDepthTextureColour(0, 0, 0);

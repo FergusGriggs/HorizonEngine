@@ -43,8 +43,9 @@ namespace hrzn::entity
 		void  setObjectTrackDelta(float trackDelta);
 
 		// Float functions
-		bool getFloating();
-		void setFloating(bool floating);
+		bool      getFloating();
+		void      setFloating(bool floating);
+		XMFLOAT3& getFloatOffset();
 
 		// Parent functions
 		void        setParentObject(GameObject* parentObject);
@@ -83,15 +84,16 @@ namespace hrzn::entity
 
 		//Floating
 		bool             m_floating;
+		XMFLOAT3         m_floatOffset;
 
 		//Relative Camera
 		bool                  m_hasParentObject;
-		GameObject* m_parentObject;
+		GameObject*           m_parentObject;
 		std::vector<XMFLOAT3> m_relativePositions;
 
 		//Following objects
 		bool                  m_isFollowingObject;
-		GameObject* m_objectToFollow;
+		GameObject*           m_objectToFollow;
 
 		//Controller
 		GameObjectController* m_controller;

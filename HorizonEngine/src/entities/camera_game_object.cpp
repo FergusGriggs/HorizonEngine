@@ -65,14 +65,14 @@ namespace hrzn::entity
 		m_projection = XMMatrixPerspectiveFovLH(fovRadians, m_aspectRatio, m_nearZ, m_farZ);
 	}
 
-	void CameraGameObject::setZoom(float fov)
+	void CameraGameObject::setFOV(float fov)
 	{
 		m_fov = fov;
 		float fovRadians = (fov / 180.0f) * XM_PI;
 		m_projection = XMMatrixPerspectiveFovLH(fovRadians, m_aspectRatio, m_nearZ, m_farZ);
 	}
 
-	float CameraGameObject::getZoom()
+	float CameraGameObject::getFOV()
 	{
 		return m_fov;
 	}

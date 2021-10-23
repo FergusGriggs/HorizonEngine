@@ -95,6 +95,7 @@ boat_track 9
 0
 0
 0
+0
 
 1 Sea|Mine|1 sea_mine.obj
 30.0 -4.0 25.0
