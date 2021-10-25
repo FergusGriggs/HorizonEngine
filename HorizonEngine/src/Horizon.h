@@ -17,7 +17,7 @@ namespace hrzn
 		Horizon();
 		Horizon(const Horizon&);
 
-		bool initialize(HINSTANCE hInstance, std::string windowTitle, std::string windowClass, int width, int height);
+		bool initialize(HINSTANCE hInstance, std::string windowClass);
 
 		bool processMessages();
 		void update();

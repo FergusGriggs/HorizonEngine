@@ -3,14 +3,13 @@
 
 #include "graphics_handler.h"
 
+#include "../user_config.h"
+
 namespace hrzn::gfx
 {
-	bool GraphicsHandler::initialize(HWND hwnd, int width, int height)
+	bool GraphicsHandler::initialize(HWND hwnd)
 	{
 		m_fpsTimer.start();
-
-		m_windowWidth = width;
-		m_windowHeight = height;
 
 		if (!initializeDirectX(hwnd))
 		{
@@ -1280,8 +1279,8 @@ namespace hrzn::gfx
 
 	void GraphicsHandler::computeMouseNDC()
 	{
-		m_mouseNDCX = (2.0f * static_cast<float>(m_mousePosX)) / (static_cast<float>(m_windowWidth)) - 1.0f;
-		m_mouseNDCY = 1.0f - (2.0f * static_cast<float>(m_mousePosY)) / static_cast<float>(m_windowHeight);
+		m_mouseNDCX = (2.0f * static_cast<float>(m_mousePosX)) / (static_cast<float>(UserConfig::it().getWindowWidth())) - 1.0f;
+		m_mouseNDCY = 1.0f - (2.0f * static_cast<float>(m_mousePosY)) / static_cast<float>(UserConfig::it().getWindowHeight());
 	}
 
 	bool GraphicsHandler::initializeDirectX(HWND hwnd)
@@ -1301,8 +1300,8 @@ namespace hrzn::gfx
 			DXGI_SWAP_CHAIN_DESC swapChainDescription;
 			ZeroMemory(&swapChainDescription, sizeof(DXGI_SWAP_CHAIN_DESC));
 
-			swapChainDescription.BufferDesc.Width = m_windowWidth;
-			swapChainDescription.BufferDesc.Height = m_windowHeight;
+			swapChainDescription.BufferDesc.Width = UserConfig::it().getWindowWidth();
+			swapChainDescription.BufferDesc.Height = UserConfig::it().getWindowHeight();
 			swapChainDescription.BufferDesc.RefreshRate.Numerator = 120; //VSYNC FPS
 			swapChainDescription.BufferDesc.RefreshRate.Denominator = 1;
 
@@ -1345,7 +1344,7 @@ namespace hrzn::gfx
 			COM_ERROR_IF_FAILED(hr, "Failed to create render target view.");
 
 			//CREATE DEPTH STENCIL TEXTURE AND VIEW
-			CD3D11_TEXTURE2D_DESC depthStencilTextureDesc(DXGI_FORMAT_D24_UNORM_S8_UINT, m_windowWidth, m_windowHeight);
+			CD3D11_TEXTURE2D_DESC depthStencilTextureDesc(DXGI_FORMAT_D24_UNORM_S8_UINT, UserConfig::it().getWindowWidth(), UserConfig::it().getWindowHeight());
 			depthStencilTextureDesc.MipLevels = 1;
 			depthStencilTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
@@ -1369,7 +1368,7 @@ namespace hrzn::gfx
 			COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil state.");
 
 			//CREATE VIEWPORT
-			CD3D11_VIEWPORT viewport(0.0f, 0.0f, static_cast<float>(m_windowWidth), static_cast<float>(m_windowHeight));
+			CD3D11_VIEWPORT viewport(0.0f, 0.0f, static_cast<float>(UserConfig::it().getWindowWidth()), static_cast<float>(UserConfig::it().getWindowHeight()));
 			m_deviceContext->RSSetViewports(1, &viewport);
 
 			//CREATE DEFAULT RASTERIZER STATE

@@ -116,7 +116,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)\HorizonEngine\includes;%(AdditionalLibraryDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -214,6 +214,7 @@
     <ClCompile Include="src\utils\error_logger.cpp" />
     <ClCompile Include="src\utils\timer.cpp" />
     <ClCompile Include="src\window_container.cpp" />
+    <ClCompile Include="src\user_config.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\input\input_manager.h" />
@@ -270,6 +271,7 @@
     <ClInclude Include="src\utils\string_helpers.h" />
     <ClInclude Include="src\utils\timer.h" />
     <ClInclude Include="src\window_container.h" />
+    <ClInclude Include="src\user_config.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="res\shaders\atmosphericPixelShader.hlsl">

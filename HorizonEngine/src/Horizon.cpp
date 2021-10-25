@@ -3,6 +3,8 @@
 
 #include "horizon.h"
 
+#include "user_config.h"
+
 namespace hrzn
 {
 	Horizon::Horizon() :
@@ -36,19 +38,19 @@ namespace hrzn
 	{
 	}
 
-	bool Horizon::initialize(HINSTANCE hInstance, std::string windowTitle, std::string windowClass, int width, int height)
+	bool Horizon::initialize(HINSTANCE hInstance, std::string windowClass)
 	{
 		m_timer.start();
 
 		m_controllerManager.addController(&m_graphicsHandler.getCamera(), entity::ControllerType::eCamera, 0.005f);
 		m_controllerManager.getControllers().at(0).setActive(true);
 
-		if (!m_renderWindow.initialize(this, hInstance, windowTitle, windowClass, width, height))
+		if (!m_renderWindow.initialize(this, hInstance, UserConfig::it().getWindowName(), windowClass, UserConfig::it().getWindowWidth(), UserConfig::it().getWindowHeight()))
 		{
 			return false;
 		}
 
-		if (!m_graphicsHandler.initialize(m_renderWindow.getHWND(), width, height, &m_controllerManager))
+		if (!m_graphicsHandler.initialize(m_renderWindow.getHWND(), &m_controllerManager))
 		{
 			return false;
 		}

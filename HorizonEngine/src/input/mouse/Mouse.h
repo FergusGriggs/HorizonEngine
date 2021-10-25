@@ -30,14 +30,16 @@ namespace hrzn::input
 		bool isRightDown() const;
 		bool isMiddleDown() const;
 
-		const MousePos& getPos() const;
+		const MousePosPixel& getPos() const;
+		const MousePosNDC&   getPosNDC() const;
 
 		bool isEventBufferEmpty() const;
 		MouseEvent readEvent();
 
 	private:
 		std::queue<MouseEvent> m_eventBuffer;
-		MousePos               m_pos;
+		MousePosPixel          m_pos;
+		MousePosNDC            m_posNDC;
 
 		bool m_leftIsDown;
 		bool m_rightIsDown;

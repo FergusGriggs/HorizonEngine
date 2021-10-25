@@ -57,12 +57,13 @@ namespace hrzn::input
 		MouseEvent();
 		MouseEvent(const EventType type, const int x, const int y);
 
-		bool            isValid() const;
-		EventType       getType() const;
-		const MousePos& getPos() const;
+		bool               isValid() const;
+		EventType          getType() const;
+
+		const MousePosPixel& getPos() const;
 
 	private:
-		EventType m_type;
-		MousePos  m_pos;
+		EventType     m_type;
+		MousePosPixel m_pos;
 	};
 }

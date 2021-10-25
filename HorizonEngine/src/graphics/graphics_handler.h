@@ -50,7 +50,7 @@ namespace hrzn::gfx
 	class GraphicsHandler
 	{
 	public:
-		bool initialize(HWND hwnd, int width, int height);
+		bool initialize(HWND hwnd);
 
 		void update(float deltaTime);
 		void renderActiveScene(const scene::SceneManager& sceneManager);

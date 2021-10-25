@@ -1,4 +1,5 @@
 #include "Mouse.h"
+#include "mouse.h"
 
 namespace hrzn::input
 {
@@ -85,9 +86,14 @@ namespace hrzn::input
 		return m_middleIsDown;
 	}
 
-	const MousePos& Mouse::getPos() const
+	const MousePosPixel& Mouse::getPos() const
 	{
 		return m_pos;
+	}
+
+	const MousePosNDC& Mouse::getPosNDC() const
+	{
+		return m_posNDC;
 	}
 
 	bool Mouse::isEventBufferEmpty() const

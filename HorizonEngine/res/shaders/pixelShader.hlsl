@@ -154,17 +154,17 @@ float4 main(PS_INPUT input) : SV_TARGET
     float3 tangent = normalize(input.tangent);
     float3 bitangent = normalize(input.bitangent);
 
-    {
-        float3 dx = ddx(n);
-        float3 dy = ddy(n);
-        float3 xneg = n - dx;
-        float3 xpos = n + dx;
-        float3 yneg = n - dy;
-        float3 ypos = n + dy;
+    /*{
+        float3 dx = ddx(normal);
+        float3 dy = ddy(normal);
+        float3 xneg = normal - dx;
+        float3 xpos = normal + dx;
+        float3 yneg = normal - dy;
+        float3 ypos = normal + dy;
         float depth = length(vertex);
         float curvature = (cross(xneg, xpos).y - cross(yneg, ypos).x) * 4.0 / depth;
         return float4(curvature, curvature, curvature, 1.0f);
-    }
+    }*/
     
     //float3 tangent = normalize(input.tangent - dot(input.tangent, normal) * normal);
 

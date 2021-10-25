@@ -24,7 +24,7 @@ namespace hrzn::input
 		return m_type;
 	}
 
-	const MousePos& MouseEvent::getPos() const
+	const MousePosPixel& MouseEvent::getPos() const
 	{
 		return m_pos;
 	}
