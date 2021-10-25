@@ -15,21 +15,7 @@
 #include "imgui/imgui_impl_dx11.h"
 
 #include "data/resource_manager.h"
-
-// Entities
-#include "../entities/camera_game_object.h"
-#include "../entities/utility/game_object_controller.h"
-#include "../entities/renderable_game_object.h"
-
-// Lights
-#include "../entities/lights/light_game_object.h"
-#include "../entities/lights/spot_light_game_object.h"
-#include "../entities/lights/point_light_game_object.h"
-
-// Physics
-#include "../entities/physics/physics_game_object.h"
-#include "../entities/physics/particle_system/particle_system.h"
-#include "../entities/physics/spring.h"
+#include "../scene/scene_manager.h"
 
 // Misc
 #include "../utils/adapter_reader.h"
@@ -64,10 +50,10 @@ namespace hrzn::gfx
 	class GraphicsHandler
 	{
 	public:
-		bool initialize(HWND hwnd, int width, int height, entity::ControllerManager* controllerManager);
-		void renderFrame(float deltaTime);
+		bool initialize(HWND hwnd, int width, int height);
+
 		void update(float deltaTime);
-		void checkObjectCollisions(float deltaTime);
+		void renderActiveScene(const scene::SceneManager& sceneManager);
 
 		void adjustMouseX(int xPos);
 		void adjustMouseY(int yPos);
@@ -75,79 +61,34 @@ namespace hrzn::gfx
 		void setMouseY(int yPos);
 		void computeMouseNDC();
 
-		void checkSelectingObject();
-		void updateSelectedObject();
-
-		XMFLOAT3 readFloat3(std::ifstream& stream);
-		XMFLOAT4 readFloat4(std::ifstream& stream);
-
-		void writeFloat3(const XMFLOAT3& float3, std::ofstream& stream);
-		void writeFloat3(const XMVECTOR& float3, std::ofstream& stream);
-		void writeFloat4(const XMFLOAT4& float4, std::ofstream& stream);
-		void writeFloat4(const XMVECTOR& float4, std::ofstream& stream);
-
 		void create3DNoiseTexture();
-
-		bool loadScene(const char* sceneName);
-		bool saveScene();
-		bool saveSceneTGP();
-		void unloadScene();
-
-		void removeGameObject(const std::string& gameObjectLabel);
 
 		void updateImGui();
 
-		entity::CameraGameObject& getCamera();
+		void drawAxisForObject(scene::entity::GameObject* gameObject, const XMMATRIX& viewProjection);
 
-		entity::GameObject* getGameObject(const std::string& label);
+		AxisEditSubState getAxisEditSubState();
+		void             stopAxisEdit();
 
-		void                drawAxisForObject(entity::GameObject* gameObject, const XMMATRIX& viewProjection);
-
-		AxisEditSubState    getAxisEditSubState();
-		void                stopAxisEdit();
-
-		static XMVECTOR     rayPlaneIntersect(XMVECTOR rayPoint, XMVECTOR rayDirection, XMVECTOR planeNormal, XMVECTOR planePoint);
+		static XMVECTOR  rayPlaneIntersect(XMVECTOR rayPoint, XMVECTOR rayDirection, XMVECTOR planeNormal, XMVECTOR planePoint);
 
 	private:
 		bool  initializeDirectX(HWND hwnd);
 		bool  initializeShaders();
 		bool  initializeScene();
 
-		void      floatObject(entity::GameObject* object);
-		float     getWaterHeightAt(float posX, float posZ, bool exact = false);
-		XMVECTOR  getFourierOffset(float x, float z);
-
 	private:
-		entity::CameraGameObject     m_camera;
-		entity::RenderableGameObject m_skybox;
-		entity::RenderableGameObject m_clouds;
-		entity::RenderableGameObject m_ocean;
-		entity::LightGameObject      m_directionalLight;
+		Microsoft::WRL::ComPtr<ID3D11Device>           m_device;
+		Microsoft::WRL::ComPtr<ID3D11DeviceContext>    m_deviceContext;
+		Microsoft::WRL::ComPtr<IDXGISwapChain>         m_swapChain;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_renderTargetView;
 
-		std::unordered_map<std::string, entity::GameObject*> m_gameObjectMap;
-		std::vector<entity::RenderableGameObject*>           m_renderableGameObjects;
-		std::vector<entity::physics::PhysicsGameObject*>     m_physicsGameObjects;
-		std::vector<entity::PointLightGameObject*>           m_pointLights;
-		std::vector<entity::SpotLightGameObject*>            m_spotLights;
+		Model* m_axisTranslateModel;
+		Model* m_axisRotateModel;
+		Model* m_springModel;
 
-		std::vector<entity::physics::Spring*> m_springs;
-
-		Model m_axisTranslateModel;
-		Model m_axisRotateModel;
-		Model m_particleMesh;
-		Model m_springModel;
-
-		XMFLOAT3 m_xAxisTranslateDefaultBounds;
-		XMFLOAT3 m_yAxisTranslateDefaultBounds;
-		XMFLOAT3 m_zAxisTranslateDefaultBounds;
-
-		BoundingBox m_xAxisTranslateBoudingBox;
-		BoundingBox m_yAxisTranslateBoudingBox;
-		BoundingBox m_zAxisTranslateBoudingBox;
-
-		entity::ControllerManager* m_controllerManager;
-
-		entity::physics::ParticleSystem* m_particleSystem;
+		XMFLOAT3 m_axisTranslateDefaultBounds[3];
+		BoundingBox m_axisTranslateBoudingBoxes[3];
 
 		gfx::Texture* m_defaultDiffuseTexture;
 		gfx::Texture* m_defaultSpecularTexture;
@@ -156,11 +97,6 @@ namespace hrzn::gfx
 		gfx::Texture* m_highlightDiffuseTexture;
 		gfx::Texture* m_highlightSpecularTexture;
 		gfx::Texture* m_highlightNormalTexture;
-
-		Microsoft::WRL::ComPtr<ID3D11Device>           m_device;
-		Microsoft::WRL::ComPtr<ID3D11DeviceContext>    m_deviceContext;
-		Microsoft::WRL::ComPtr<IDXGISwapChain>         m_swapChain;
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_renderTargetView;
 
 		VertexShader m_vertexShader;
 		VertexShader m_waterVertexShader;
@@ -200,47 +136,17 @@ namespace hrzn::gfx
 
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerState;
 
-		std::unordered_map<std::string, entity::GameObjectTrack*> m_objectTracks;
-
-		bool m_selectingGameObject = false;
-
-		entity::RenderableGameObject* m_selectedObject;
-
 		AxisEditState    m_axisEditState = AxisEditState::eEditTranslate;
 		AxisEditSubState m_axisEditSubState = AxisEditSubState::eEditNone;
 
 		float    m_lastAxisGrabOffset = FLT_MAX;
 		XMVECTOR m_lastGrabPos;
 
-		int m_windowWidth = 0;
-		int m_windowHeight = 0;
-
-		int m_mousePosX = 0;
-		int m_mousePosY = 0;
-
-		float m_mouseNDCX = 0.0f;
-		float m_mouseNDCY = 0.0f;
+		bool m_useWireframe = false;
+		bool m_useVSync = true;
 
 		utils::Timer m_fpsTimer;
 		int          m_fpsCounter;
 		std::string  m_fpsString;
-
-		bool m_useWireframe = false;
-		bool m_useVSync = true;
-
-		bool m_dayNightCycle = false;
-		bool m_paused = false;
-		float m_dayProgress = 0.494f;
-		float m_gameTime = 0.0f;
-		XMFLOAT3 m_sunDirection;
-
-		bool        m_sceneLoaded = false;
-		std::string m_sceneLoadedName;
-
-		int               m_newObjectType;
-		bool              m_newObjectMenuOpen = false;
-		std::string       m_newObjectLabel = "";
-		std::string       m_newObjectModelPath = "";
-		const std::string m_defaultObjectModelFilepath = "res/models/";
 	};
 }

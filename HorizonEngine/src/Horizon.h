@@ -7,7 +7,7 @@
 
 #include "window_container.h"
 #include "utils/timer.h"
-#include "entities/utility/game_object_controller.h"
+#include "scene/entity/utils/game_object_controller.h"
 
 namespace hrzn
 {
@@ -18,6 +18,7 @@ namespace hrzn
 		Horizon(const Horizon&);
 
 		bool initialize(HINSTANCE hInstance, std::string windowTitle, std::string windowClass, int width, int height);
+
 		bool processMessages();
 		void update();
 		void renderFrame();
@@ -26,9 +27,12 @@ namespace hrzn
 		utils::Timer m_timer;
 		float        m_deltaTime;
 
-		AudioEngine* m_audioEngine;
-		SoundEffect* m_soundEffect;
+		AudioEngine*         m_audioEngine;
+		SoundEffect*         m_soundEffect;
 
-		entity::ControllerManager m_controllerManager;
+		gfx::GraphicsHandler m_graphicsHandler;
+		scene::SceneManager  m_sceneManager;
+
+		scene::entity::ControllerManager m_controllerManager;
 	};
 }

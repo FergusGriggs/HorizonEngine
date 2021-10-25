@@ -26,6 +26,8 @@ namespace hrzn
 
 			raw_input_initialized = true;
 		}
+
+		InputManager::it().setMouseAndKeyboardPtrs(&m_mouse, &m_keyboard);
 	}
 
 	LRESULT WindowContainer::windowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

@@ -2,22 +2,32 @@
 
 namespace hrzn::input
 {
-	struct MousePos
+	struct MousePosPixel
 	{
-		MousePos() :
-			x(0),
-			y(0)
+		MousePosPixel() : x(0), y(0)
 		{
 		}
 
-		MousePos(int x, int y) :
-			x(x),
-			y(y)
+		MousePosPixel(int x, int y) : x(x), y(y)
 		{
 		}
 
 		int x;
 		int y;
+	};
+
+	struct MousePosNDC
+	{
+		MousePosNDC() : x(0.0f), y(0.0f)
+		{
+		}
+
+		MousePosNDC(float x, float y) : x(x), y(y)
+		{
+		}
+
+		float x;
+		float y;
 	};
 
 	class MouseEvent

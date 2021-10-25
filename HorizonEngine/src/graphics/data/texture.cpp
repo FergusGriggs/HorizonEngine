@@ -26,7 +26,7 @@ namespace hrzn::gfx
 		initializeColourTexture(device, colourData, width, height, type);
 	}
 
-	Texture::Texture(ID3D11Device* device, std::string& filePath, aiTextureType type) :
+	Texture::Texture(ID3D11Device* device, const std::string& filePath, aiTextureType type) :
 		Texture()
 	{
 		m_type = type;
@@ -50,7 +50,7 @@ namespace hrzn::gfx
 		}
 	}
 
-	bool Texture::initialize(ID3D11Device* device, std::string& filePath, aiTextureType type)
+	bool Texture::initialize(ID3D11Device* device, const std::string& filePath, aiTextureType type)
 	{
 		m_type = type;
 		if (utils::string_helpers::getFileExtension(filePath) == ".dds")

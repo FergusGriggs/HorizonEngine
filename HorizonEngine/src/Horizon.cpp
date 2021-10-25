@@ -16,10 +16,10 @@ namespace hrzn
 
 		m_controllerManager(&m_keyboard)
 	{
-		/*audioEngine = new AudioEngine();
+		/*m_audioEngine = new AudioEngine(AudioEngine_Default);
 
-		soundEffect = new SoundEffect(audioEngine, L"/res/audio/music.wav");
-		auto effect = soundEffect->CreateInstance();
+		m_soundEffect = new SoundEffect(m_audioEngine, L"/res/audio/music.wav");
+		auto effect = m_soundEffect->CreateInstance();
 		effect->Play(true);*/
 	}
 
@@ -66,62 +66,6 @@ namespace hrzn
 		m_deltaTime = m_timer.getDeltaTime();
 		m_timer.restart();
 
-		while (!m_keyboard.isCharBufferEmpty())
-		{
-			unsigned char ch = m_keyboard.readChar();
-		}
-
-		while (!m_keyboard.isKeyBufferEmpty())
-		{
-			input::KeyboardEvent keyboardEvent = m_keyboard.readKey();
-			unsigned char keyCode = keyboardEvent.getKeyCode();
-		}
-		while (!m_mouse.isEventBufferEmpty())
-		{
-			input::MouseEvent mouseEvent = m_mouse.readEvent();
-			if (mouseEvent.getType() == input::MouseEvent::EventType::eRawMove)
-			{
-				if (m_mouse.isRightDown())
-				{
-					float moveFactor = m_graphicsHandler.getCamera().getFOV() / 90.0f;
-					if (moveFactor > 1.0f) moveFactor = 1.0f;
-					m_graphicsHandler.getCamera().getTransform().rotateUsingAxis(m_graphicsHandler.getCamera().getTransform().getRightVector(), (float)mouseEvent.getPos().y * 0.01f * moveFactor);
-					m_graphicsHandler.getCamera().getTransform().rotateUsingAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), (float)mouseEvent.getPos().x * 0.01f * moveFactor);
-				}
-			}
-
-			if (mouseEvent.getType() == input::MouseEvent::EventType::eScrollUp)
-			{
-				if (!(ImGui::IsAnyWindowHovered() || ImGui::IsAnyItemHovered()))
-				{
-					m_graphicsHandler.getCamera().zoom(-2.0f);
-				}
-			}
-
-			if (mouseEvent.getType() == input::MouseEvent::EventType::eScrollDown)
-			{
-				if (!(ImGui::IsAnyWindowHovered() || ImGui::IsAnyItemHovered()))
-				{
-					m_graphicsHandler.getCamera().zoom(2.0f);
-				}
-			}
-
-			if (mouseEvent.getType() == input::MouseEvent::EventType::eLeftPress)
-			{
-				if (!(ImGui::IsAnyWindowHovered() || ImGui::IsAnyItemHovered()))
-				{
-					m_graphicsHandler.checkSelectingObject();
-				}
-			}
-			if (mouseEvent.getType() == input::MouseEvent::EventType::eLeftRelease)
-			{
-				if (!(m_graphicsHandler.getAxisEditSubState() == gfx::AxisEditSubState::eEditNone))
-				{
-					m_graphicsHandler.stopAxisEdit();
-				}
-			}
-		}
-
 		m_graphicsHandler.setMouseX(m_mouse.getPos().x);
 		m_graphicsHandler.setMouseY(m_mouse.getPos().y);
 
@@ -132,6 +76,6 @@ namespace hrzn
 
 	void Horizon::renderFrame()
 	{
-		m_graphicsHandler.renderFrame(m_deltaTime);
+		m_graphicsHandler.renderActiveScene(m_sceneManager);
 	}
 }
