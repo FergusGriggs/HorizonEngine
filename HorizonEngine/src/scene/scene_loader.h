@@ -6,6 +6,14 @@
 #include "rapidjson/reader.h"
 #include "rapidjson/document.h"
 
+#include <DirectXMath.h>
+
+// fwd declarations
+namespace hrzn::scene
+{
+    class SceneManager;
+}
+
 namespace hrzn::scene
 {
     struct JSONHandler
@@ -98,12 +106,16 @@ namespace hrzn::scene
     class SceneLoader
     {
     public:
-        SceneLoader();
+        SceneLoader(SceneManager* sceneManager);
         ~SceneLoader();
 
-        void loadScene(std::string sceneName);
+        bool loadScene(std::string sceneName);
+
+        DirectX::XMFLOAT3 getFloat3FromArray(rapidjson::GenericValue<bool, rapidjson::Value>& jsonArray);
 
     private:
+        SceneManager*       m_sceneManager;
+
         rapidjson::Reader   m_reader;
         rapidjson::Document m_document;
         JSONHandler         m_handler;

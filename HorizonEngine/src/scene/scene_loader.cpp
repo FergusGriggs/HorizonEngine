@@ -6,9 +6,12 @@
 
 #include "../utils/error_logger.h"
 
+#include "scene_manager.h"
+
 namespace hrzn::scene
 {
-    SceneLoader::SceneLoader()
+    SceneLoader::SceneLoader(SceneManager* sceneManager) :
+        m_sceneManager(sceneManager)
     {
     }
 
@@ -16,7 +19,7 @@ namespace hrzn::scene
     {
     }
 
-    void SceneLoader::loadScene(std::string sceneName)
+    bool SceneLoader::loadScene(std::string sceneName)
     {
         std::string sceneFilePath = "res/scenes/";
         sceneFilePath += sceneName + ".hrzn";
@@ -46,38 +49,69 @@ namespace hrzn::scene
 
             int lineNumber = utils::string_helpers::getLineNumberFromOffset(sceneFileStr, errorOffset);
 
-            std::string finalErrorString = "Failed to load JSON\nCode: '" + std::to_string(error) + "'\nLine Num: '" + std::to_string(lineNumber) + "'\nError String: '" + errorString + "'\n";
+            std::string finalErrorString = "Parsing Scene JSON\nCode: '" + std::to_string(error) + "'\nLine Num: '" + std::to_string(lineNumber) + "'\nError String: '" + errorString + "'\n";
 
             utils::ErrorLogger::log(finalErrorString);
         }
 
-        for (auto itr = m_document.MemberBegin(); itr != m_document.MemberEnd(); ++itr)
+        if (!m_document.HasMember("Scene"))
         {
-            if (itr->value.IsString())
-            {
-                int cat = 12;
-            }
+            utils::ErrorLogger::log("Parsing Scene JSON\nNo scene tag found");
+            return false;
+        }
 
-            if (itr->value.IsBool())
-            {
-                int cat = 12;
-            }
+        auto& sceneObject = m_document["Scene"];
 
-            if (itr->value.IsNull())
-            {
-                int cat = 12;
-            }
+        if (!m_document.HasMember("GameObjects"))
+        {
+            utils::ErrorLogger::log("Parsing Scene JSON\nNo game object list found");
+            return false;
+        }
 
-            if (itr->value.IsInt())
-            {
-                int cat = 12;
-            }
+        auto& gameObjects = sceneObject["GameObjects"];
 
-            if (itr->value.IsFloat())
-            {
-                int cat = 12;
-            }
+        if (!gameObjects.IsArray())
+        {
+            utils::ErrorLogger::log("Parsing Scene JSON\n'GameObjects' tag was not a list");
+            return false;
+        }
 
+        for (auto gameObjItr = gameObjects.Begin(); gameObjItr != gameObjects.End(); ++gameObjItr)
+        {
+            // Grab the id
+            std::string id;
+            if (!gameObjItr->HasMember("id"))
+            {
+                utils::ErrorLogger::log("Parsing Scene JSON\nGame object had no id");
+                return false;
+            }
+            id = (*gameObjItr)["id"].GetString();
+
+            // Grab the type
+            std::string type;
+            if (!gameObjItr->HasMember("type"))
+            {
+                utils::ErrorLogger::log("Parsing Scene JSON\nGame object with id: '" + id + "' had no type");
+                return false;
+            }
+            type = (*gameObjItr)["type"].GetString();
+
+            // Grab the position
+            XMFLOAT3 position;
+            if (!gameObjItr->HasMember("position"))
+            {
+                utils::ErrorLogger::log("Parsing Scene JSON\nGame object with id: '" + id + "' had no position");
+                return false;
+            }
+            position = getFloat3FromArray((*gameObjItr)["position"].GetArray());
+
+
+            entity::RenderableGameObject* newObject = new entity::RenderableGameObject();
+            m_sceneManager->addGameObject(newObject);
+        }
+
+        /*for (auto itr = m_document.MemberBegin(); itr != m_document.MemberEnd(); ++itr)
+        {
             if (itr->value.IsArray())
             {
                 for (auto numIterator = itr->value.Begin(); numIterator != itr->value.End(); ++numIterator)
@@ -88,6 +122,22 @@ namespace hrzn::scene
                     }
                 }
             }
+        }*/
+    }
+
+    DirectX::XMFLOAT3 SceneLoader::getFloat3FromArray(rapidjson::GenericValue<bool, rapidjson::Value>& jsonArray)
+    {
+        XMFLOAT3 returnValue;
+        int index = 0;
+        for (auto itr = jsonArray.Begin(); itr != jsonArray.End(); ++itr)
+        {
+            if (index == 0) returnValue.x = itr->GetFloat();
+            else if (index == 0) returnValue.y = itr->GetFloat();
+            else if (index == 0) returnValue.z = itr->GetFloat();
+
+            ++index;
         }
+
+        return returnValue;
     }
 }

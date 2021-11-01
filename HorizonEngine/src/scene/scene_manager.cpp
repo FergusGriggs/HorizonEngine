@@ -15,6 +15,9 @@ namespace hrzn::scene
 {
 	SceneManager::SceneManager(entity::ControllerManager* controllerManager) :
 		m_sceneName("unloaded"),
+
+		m_sceneLoader(this),
+
 		m_sceneConfig(),
 
 		m_activeCamera(nullptr),
