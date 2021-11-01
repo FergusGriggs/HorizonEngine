@@ -165,7 +165,6 @@ namespace hrzn::gfx
 
 			hr = m_atmosphericPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'noLightPixelShader' constant buffer.");
-			XMStoreFloat3(&m_atmosphericPixelShaderCB.m_data.m_sunDirection, XMVector3Normalize(XMVectorSet(0.8f, 0.5f, 0.4f, 1.0f)));
 			m_atmosphericPixelShaderCB.m_data.m_sunSize = 75.0f;
 			m_atmosphericPixelShaderCB.m_data.m_density = 0.65f;
 			m_atmosphericPixelShaderCB.m_data.m_multiScatterPhase = 0.27f;
@@ -186,21 +185,11 @@ namespace hrzn::gfx
 			m_cloudsPixelShaderCB.m_data.m_stepSize = 85.0f; //
 			m_cloudsPixelShaderCB.m_data.m_cloudHeight = 2000.0f;
 
-			//LOAD AXIS MODELS
-			if (!m_axisTranslateModel.initialize("res/models/axis/translate2.obj", m_device.Get(), m_deviceContext.Get()))
-			{
-				return false;
-			}
+			// Load axis models
+			m_axisTranslateModel = ResourceManager::it().getModelPtr("res/models/axis/translate2.obj");
+			m_axisRotateModel = ResourceManager::it().getModelPtr("res/models/axis/rotate2.obj");
 
-			if (!m_axisRotateModel.initialize("res/models/axis/rotate2.obj", m_device.Get(), m_deviceContext.Get()))
-			{
-				return false;
-			}
-
-			if (!m_springModel.initialize("res/models/spring.obj", m_device.Get(), m_deviceContext.Get()))
-			{
-				return false;
-			}
+			m_springModel = ResourceManager::it().getModelPtr("res/models/spring.obj");
 
 			m_defaultDiffuseTexture = new Texture(m_device.Get(), "res/textures/scales/diffuse.jpg", aiTextureType::aiTextureType_DIFFUSE);
 			m_defaultSpecularTexture = new Texture(m_device.Get(), "res/textures/scales/specular.jpg", aiTextureType::aiTextureType_DIFFUSE);
@@ -209,16 +198,6 @@ namespace hrzn::gfx
 			m_highlightDiffuseTexture = new Texture(m_device.Get(), "res/textures/hrzn_statue/diffuse.jpg", aiTextureType::aiTextureType_DIFFUSE);
 			m_highlightSpecularTexture = new Texture(m_device.Get(), "res/textures/hrzn_statue/roughness.jpg", aiTextureType::aiTextureType_DIFFUSE);
 			m_highlightNormalTexture = new Texture(m_device.Get(), "res/textures/hrzn_statue/normal.png", aiTextureType::aiTextureType_DIFFUSE);
-
-			//SET TRANSLATE AXIS DEFAULT BOUNDS / EXTENTS
-			m_xAxisTranslateDefaultBounds = XMFLOAT3(0.45f, 0.05f, 0.05f);
-			m_yAxisTranslateDefaultBounds = XMFLOAT3(0.05f, 0.45f, 0.05f);
-			m_zAxisTranslateDefaultBounds = XMFLOAT3(0.05f, 0.05f, 0.45f);
-			
-			if (!loadScene("test.txt"))
-			{
-				return false;
-			}
 		}
 		catch (utils::COMException & exception)
 		{
@@ -228,36 +207,36 @@ namespace hrzn::gfx
 		return true;
 	}
 
-	void GraphicsHandler::renderActiveScene(const scene::SceneManager& sceneManager)
+	void GraphicsHandler::renderActiveScene(scene::SceneManager& sceneManager)
 	{
 		float blackColour[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), blackColour);
 
-		sceneManager.get
-		m_camera.updateView();
+		sceneManager.getWritableActiveCamera().updateView();
 
-		//Directional light shader variables
-		m_directionalLight.updateShaderVariables(m_pixelShaderCB);
+		sceneManager.getWritableDirectionalLight().updateShaderVariables(m_pixelShaderCB);
 
-		//Point light shader variables
-		size_t numPointLights = m_pointLights.size();
+		// Point light shader variables
+		const auto& pointLights = sceneManager.getPointLights();
+		size_t numPointLights = pointLights.size();
 		for (size_t i = 0; i < numPointLights; ++i)
 		{
-			m_pointLights.at(i)->updateShaderVariables(m_pixelShaderCB, i);
+			pointLights[i]->updateShaderVariables(m_pixelShaderCB, i);
 		}
 	
-		//Spot light shader variables
-		size_t numSpotLights = m_spotLights.size();
+		// Spot light shader variables
+		const auto& spotLights = sceneManager.getSpotLights();
+		size_t numSpotLights = spotLights.size();
 		for (size_t i = 0; i < numSpotLights; ++i)
 		{
-			m_spotLights.at(i)->updateShaderVariables(m_pixelShaderCB, i);
+			spotLights[i]->updateShaderVariables(m_pixelShaderCB, i);
 		}
 
 		//General shader variables
 		m_pixelShaderCB.m_data.m_numPointLights = numPointLights;
 		m_pixelShaderCB.m_data.m_numSpotLights = numSpotLights;
 
-		m_pixelShaderCB.m_data.m_cameraPosition = m_camera.getTransform().getPositionFloat3();
+		m_pixelShaderCB.m_data.m_cameraPosition = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
 
 		m_pixelShaderCB.m_data.m_objectMaterial.m_shininess = 4.0f;
 		m_pixelShaderCB.m_data.m_objectMaterial.m_specularity = 0.75f;
@@ -266,7 +245,7 @@ namespace hrzn::gfx
 		m_deviceContext->PSSetConstantBuffers(0, 1, m_pixelShaderCB.getAddressOf());
 
 		//CLEAR RENDER TARGET VIEW AND DEPTH STENCIL VIEW
-		float backgroundColour[] = { 0.62f * m_directionalLight.m_colour.x, 0.90 * m_directionalLight.m_colour.y, 1.0f * m_directionalLight.m_colour.z, 1.0f };
+		float backgroundColour[] = { 0.62f * sceneManager.getDirectionalLight().m_colour.x, 0.90 * sceneManager.getDirectionalLight().m_colour.y, 1.0f * sceneManager.getDirectionalLight().m_colour.z, 1.0f };
 		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), backgroundColour);
 		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -298,62 +277,22 @@ namespace hrzn::gfx
 	
 		UINT offset = 0;
 
-		XMMATRIX viewProjMat = m_camera.getViewMatrix() * m_camera.getProjectionMatrix();
+		XMMATRIX viewProjMat = sceneManager.getActiveCamera().getViewMatrix() * sceneManager.getActiveCamera().getProjectionMatrix();
 
 		{
-			//DRAW SKYBOX
+			// Draw skybox
 
 			m_deviceContext->PSSetShader(m_atmosphericPixelShader.getShader(), NULL, 0);
 			m_deviceContext->PSSetConstantBuffers(0, 1, m_atmosphericPixelShaderCB.getAddressOf());
 
-			m_atmosphericPixelShaderCB.m_data.m_cameraPosition = m_camera.getTransform().getPositionFloat3();
+			m_atmosphericPixelShaderCB.m_data.m_cameraPosition = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
 
-			float dayOrNight = 0.0f;
-			float zeroToOneDayOrNight = modf(m_dayProgress * 2.0f, &dayOrNight);
-			float split = 1.0f - abs(zeroToOneDayOrNight - 0.5f) * 2.0f;
-
-			if (dayOrNight == 0.0f)
-			{
-				float t = fmaxf(0.0f, fminf(1.0f, (split - 0.25f) / (0.1f - 0.25f)));
-				float densityMod = t * t * (3.0f - 2.0f * t);
-				m_atmosphericPixelShaderCB.m_data.m_density = 0.142f + densityMod * (0.65f - 0.142f);
-
-				XMFLOAT3 sunsetColour = XMFLOAT3(1.0f, 0.62f, 0.26f);
-				XMFLOAT3 daySunColour = XMFLOAT3(1.0f, 0.85f, 0.65f);
-
-				XMFLOAT3 sunColour = XMFLOAT3(0.0f, 0.0f, 0.0f);
-				XMStoreFloat3(&sunColour, XMVectorLerp(XMLoadFloat3(&daySunColour), XMLoadFloat3(&sunsetColour), t));
-				m_directionalLight.setColour(sunColour);
-			}
-			else
-			{
-				float density = fmaxf(0.0f, fminf(1.0f, (split - 0.35f) / (0.0f - 0.35f)));
-
-				float lightLerp = fmaxf(0.0f, fminf(1.0f, (split - 0.25f) / (0.0f - 0.25f)));
-				float smoothLightLerp = lightLerp * lightLerp * (3.0f - 2.0f * lightLerp);
-
-				XMFLOAT3 sunsetColour = XMFLOAT3(1.0f, 0.62f, 0.26f);
-				XMFLOAT3 nightSunColour = XMFLOAT3(0.025f, 0.025f, 0.0375f);
-
-				XMFLOAT3 sunColour = XMFLOAT3(0.0f, 0.0f, 0.0f);
-				XMStoreFloat3(&sunColour, XMVectorLerp(XMLoadFloat3(&nightSunColour), XMLoadFloat3(&sunsetColour), smoothLightLerp));
-				m_directionalLight.setColour(sunColour);
-
-				m_atmosphericPixelShaderCB.m_data.m_density = 0.25f + density * (0.65f - 0.25f);
-			}
-
-			XMVECTOR sunDirection = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), XMMatrixRotationAxis(XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f), m_dayProgress * sc_2PI));
-			m_directionalLight.getTransform().setPosition(sunDirection);
-			m_directionalLight.getTransform().lookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
-
-			XMStoreFloat3(&m_sunDirection, sunDirection);
-
-			m_atmosphericPixelShaderCB.m_data.m_sunDirection = m_sunDirection;
+			m_atmosphericPixelShaderCB.m_data.m_sunDirection = sceneManager.getDirectionalLight().getTransform().getBackFloat3();
 			
 			m_atmosphericPixelShaderCB.mapToGPU();
 
-			m_skybox.getTransform().setPosition(m_camera.getTransform().getPositionFloat3());
-			m_skybox.draw(viewProjMat, &m_vertexShaderCB);
+			sceneManager.getWritableSkybox().getWritableTransform().setPosition(sceneManager.getActiveCamera().getTransform().getPositionFloat3());
+			sceneManager.getSkybox().draw(viewProjMat, &m_vertexShaderCB);
 
 			m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		}
@@ -367,23 +306,19 @@ namespace hrzn::gfx
 			m_deviceContext->PSSetShaderResources(2, 1, m_defaultNormalTexture->getTextureResourceViewAddress());
 
 			//DRAW REGULAR GAME OBJECTS
-			size_t numRenderableGameObjects = m_renderableGameObjects.size();
-			for (size_t i = 0; i < numRenderableGameObjects; ++i)
+			const auto& renderables = sceneManager.getRenderables();
+			size_t numRenderables = renderables.size();
+			for (size_t i = 0; i < numRenderables; ++i)
 			{
-				entity::RenderableGameObject* renderableGameObject = m_renderableGameObjects.at(i);
+				entity::RenderableGameObject* renderable = renderables[i];
 
-				if (renderableGameObject->getFloating())
-				{
-					floatObject(renderableGameObject);
-				}
-
-				/*if (renderableGameObject == m_selectedObject)
+				/*if (renderable == m_selectedObject)
 				{
 					m_deviceContext->PSSetShaderResources(0, 1, m_highlightDiffuseTexture->getTextureResourceViewAddress());
 					m_deviceContext->PSSetShaderResources(1, 1, m_highlightSpecularTexture->getTextureResourceViewAddress());
 					m_deviceContext->PSSetShaderResources(2, 1, m_highlightNormalTexture->getTextureResourceViewAddress());
 
-					renderableGameObject->draw(viewProjMat, &m_vertexShaderCB, false);
+					renderable->draw(viewProjMat, &m_vertexShaderCB, false);
 
 					m_deviceContext->PSSetShaderResources(0, 1, m_defaultDiffuseTexture->getTextureResourceViewAddress());
 					m_deviceContext->PSSetShaderResources(1, 1, m_defaultSpecularTexture->getTextureResourceViewAddress());
@@ -393,19 +328,21 @@ namespace hrzn::gfx
 				{
 					renderableGameObject->draw(viewProjMat, &m_vertexShaderCB);
 				}*/
-				renderableGameObject->draw(viewProjMat, &m_vertexShaderCB);
+				renderable->draw(viewProjMat, &m_vertexShaderCB);
 			}
 
-			//Draw particles
-			//particleSystem->DrawParticles(viewProjMat, &cb_vs_vertexShader);
+			// Draw particles
+			sceneManager.getParticleSystem().drawParticles(viewProjMat, &m_vertexShaderCB);
 
 
-			//Draw Springs
+			// Draw Springs
 			XMMATRIX springModelMatrix;
-			for (int i = 0; i < m_springs.size(); ++i)
+
+			const auto& springs = sceneManager.getSprings();
+			for (int i = 0; i < springs.size(); ++i)
 			{
-				XMVECTOR springStart = m_springs[i]->getSpringStart()->getTransformReference()->getPositionVector();
-				XMVECTOR springEnd = m_springs[i]->getSpringEnd()->getTransformReference()->getPositionVector();
+				XMVECTOR springStart = springs[i]->getSpringStart()->getTransformReference()->getPositionVector();
+				XMVECTOR springEnd = springs[i]->getSpringEnd()->getTransformReference()->getPositionVector();
 
 				float scale = XMVectorGetX(XMVector3Length(springEnd - springStart)) / 5.0f;
 
@@ -420,40 +357,37 @@ namespace hrzn::gfx
 				else
 				{
 					springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMATRIX(up, right, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
-					//springModelMatrix = XMMatrixLookToLH(XMVectorZero(), front, up) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart)); //XMMatrixScaling(1.0f, scale, 1.0f) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart)) * 
 				}
 			
-				//springModelMatrix = XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
-
-				m_springModel.draw(springModelMatrix, viewProjMat, &m_vertexShaderCB);
+				m_springModel->draw(springModelMatrix, viewProjMat, &m_vertexShaderCB);
 			}
 
-			//DRAW WATER
+			// Draw water
 			m_deviceContext->VSSetShader(m_waterVertexShader.getShader(), NULL, 0);
 			m_deviceContext->PSSetShader(m_waterPixelShader.getShader(), NULL, 0);
 
 			m_waterVertexShaderCB.mapToGPU();
 			
 			// Put the centre a bit in front of the camera where the best fidelity is in the mesh
-			float fovDistMod = (1.0f - (fminf(70.0f, m_camera.getFOV()) / 70.0f)) * 150.0f;
-			XMVECTOR oceanPosition = m_camera.getTransform().getPositionVector() + m_camera.getTransform().getFrontVector() * (abs(m_camera.getTransform().getPositionFloat3().y) + 30.0f + fovDistMod) * 1.2f;
+			float fovDistMod = (1.0f - (fminf(70.0f, sceneManager.getActiveCamera().getFOV()) / 70.0f)) * 150.0f;
+			XMVECTOR oceanPosition = sceneManager.getActiveCamera().getTransform().getPositionVector() + sceneManager.getActiveCamera().getTransform().getFrontVector() * (abs(sceneManager.getActiveCamera().getTransform().getPositionFloat3().y) + 30.0f + fovDistMod) * 1.2f;
 
-			m_ocean.getTransform().setPosition(XMVectorGetX(oceanPosition), m_ocean.getTransform().getPositionFloat3().y, XMVectorGetZ(oceanPosition));
+			sceneManager.getWritableOcean().getWritableTransform().setPosition(XMVectorGetX(oceanPosition), sceneManager.getOcean().getTransform().getPositionFloat3().y, XMVectorGetZ(oceanPosition));
 
 			//float scaleMod = fmaxf(1.0f, m_camera.getTransform().getPositionFloat3().y * 0.01f);
 			//m_ocean.setScale(XMFLOAT3(scaleMod, scaleMod, scaleMod));
 
-			XMFLOAT3 cameraPosFloat = m_camera.getTransform().getPositionFloat3();
+			XMFLOAT3 cameraPosFloat = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
 			m_waterPixelShaderCB.m_data.m_cameraPosition = cameraPosFloat;
 
-			XMStoreFloat3(&m_waterPixelShaderCB.m_data.m_lightDirection, m_directionalLight.getTransform().getFrontVector());
+			XMStoreFloat3(&m_waterPixelShaderCB.m_data.m_lightDirection, sceneManager.getDirectionalLight().getTransform().getFrontVector());
 
 			m_waterPixelShaderCB.mapToGPU();
 
 			m_deviceContext->PSSetConstantBuffers(0, 1, m_waterPixelShaderCB.getAddressOf());
 			m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
 
-			m_ocean.draw(viewProjMat, &m_waterVertexShaderCB, false);
+			sceneManager.getOcean().draw(viewProjMat, &m_waterVertexShaderCB, false);
 
 			//DRAWCLOUDS
 			m_deviceContext->VSSetShader(m_vertexShader.getShader(), NULL, 0);
@@ -461,51 +395,34 @@ namespace hrzn::gfx
 
 			m_cloudsPixelShaderCB.m_data.m_cameraPosition = cameraPosFloat;
 
-			XMStoreFloat3(&m_cloudsPixelShaderCB.m_data.m_lightDirection, m_directionalLight.getTransform().getFrontVector());
+			XMStoreFloat3(&m_cloudsPixelShaderCB.m_data.m_lightDirection, sceneManager.getDirectionalLight().getTransform().getFrontVector());
 			m_cloudsPixelShaderCB.mapToGPU();
 
 			m_deviceContext->PSSetConstantBuffers(0, 1, m_cloudsPixelShaderCB.getAddressOf());
 			m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
 
-			m_clouds.getTransform().setPosition(cameraPosFloat.x, m_clouds.getTransform().getPositionFloat3().y, cameraPosFloat.z);
+			sceneManager.getWritableClouds().getWritableTransform().setPosition(cameraPosFloat.x, sceneManager.getClouds().getTransform().getPositionFloat3().y, cameraPosFloat.z);
 
-			m_clouds.draw(viewProjMat, &m_vertexShaderCB, false);
+			sceneManager.getClouds().draw(viewProjMat, &m_vertexShaderCB, false);
 		}
 	
 		{
-			//DRAW NO LIGHT OBJECTS
+			// Draw axis
 			m_deviceContext->PSSetShader(m_noLightPixelShader.getShader(), NULL, 0);
 
 			m_deviceContext->PSSetConstantBuffers(0, 1, m_noLightPixelShaderCB.getAddressOf());
 
-			for (size_t i = 0; i < numPointLights; ++i)
-			{
-				entity::PointLightGameObject* pointLight = m_pointLights.at(i);
-				m_noLightPixelShaderCB.m_data.m_colour = pointLight->m_colour;
-				m_noLightPixelShaderCB.mapToGPU();
-				pointLight->draw(viewProjMat, &m_vertexShaderCB);
-			}
-
-			size_t numSpotLights = m_spotLights.size();
-			for (size_t i = 0; i < numSpotLights; ++i)
-			{
-				entity::SpotLightGameObject* spotLight = m_spotLights.at(i);
-				m_noLightPixelShaderCB.m_data.m_colour = spotLight->m_colour;
-				m_noLightPixelShaderCB.mapToGPU();
-				spotLight->draw(viewProjMat, &m_vertexShaderCB);
-			}
-
 			m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-			if (m_selectingGameObject)
+			if (sceneManager.objectIsSelected())
 			{
 				m_noLightPixelShaderCB.m_data.m_colour = XMFLOAT3(1.0f, 1.0f, 1.0f);
 				m_noLightPixelShaderCB.mapToGPU();
-				drawAxisForObject(m_selectedObject, viewProjMat);
+				drawAxisForObject(*(sceneManager.getSelectedObject()), viewProjMat, sceneManager);
 			}
 		}
 
-		//UPDATE FPS TIMER
+		// Update FPS timer
 		m_fpsCounter++;
 
 		if (m_fpsTimer.getMicrosecondsElapsed() > 1000000)
@@ -515,26 +432,26 @@ namespace hrzn::gfx
 			m_fpsTimer.restart();
 		}
 
-		//RENDER UI (NOT IMGUI)
+		// Render UI (not ImGui)
 		m_spriteBatch->Begin();
 
 		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(1.0f, 0.5f), DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
 		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
 	
-		if (m_selectingGameObject)
+		if (sceneManager.objectIsSelected())
 		{
 			// Stop text being drawn behind camera
-			if (XMVectorGetX(XMVector3Dot(m_selectedObject->getTransform().getPositionVector() - m_camera.getTransform().getPositionVector(), m_camera.getTransform().getFrontVector())) >= 0.0f)
+			if (XMVectorGetX(XMVector3Dot(sceneManager.getSelectedObject()->getTransform().getPositionVector() - sceneManager.getActiveCamera().getTransform().getPositionVector(), sceneManager.getActiveCamera().getTransform().getFrontVector())) >= 0.0f)
 			{
-				XMFLOAT2 screenNDC = m_camera.getNDCFrom3DPos(m_selectedObject->getTransform().getPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f));//XMFLOAT2(-0.5,0.5);
-				XMFLOAT2 screenPos = DirectX::XMFLOAT2((screenNDC.x * 0.5f + 0.5f) * m_windowWidth, (1.0f - (screenNDC.y * 0.5f + 0.5f)) * m_windowHeight);
-				XMVECTOR size = m_spriteFont->MeasureString(utils::string_helpers::stringToWide(m_selectedObject->getLabel()).c_str());
+				XMFLOAT2 screenNDC = sceneManager.getActiveCamera().getNDCFrom3DPos(sceneManager.getSelectedObject()->getTransform().getPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f)); // XMFLOAT2(-0.5,0.5);
+				XMFLOAT2 screenPos = DirectX::XMFLOAT2((screenNDC.x * 0.5f + 0.5f) * UserConfig::it().getWindowWidth(), (1.0f - (screenNDC.y * 0.5f + 0.5f)) * UserConfig::it().getWindowHeight());
+				XMVECTOR size = m_spriteFont->MeasureString(utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str());
 				screenPos.x -= XMVectorGetX(size) * 0.5f;
 				screenPos.y -= XMVectorGetY(size) * 0.5f;
-				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_selectedObject->getLabel()).c_str(), screenPos, DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
 				screenPos.y -= 0.5f;
 				screenPos.x -= 1.0f;
-				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_selectedObject->getLabel()).c_str(), screenPos, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
 			}
 		}
 
@@ -622,15 +539,15 @@ namespace hrzn::gfx
 		COM_ERROR_IF_FAILED(hr, "Failed to create noise texture SRV");
 	}
 
-	void GraphicsHandler::updateImGui()
+	void GraphicsHandler::updateImGui(scene::SceneManager& sceneManager)
 	{
-		//START NEW FRAME
+		// Start new ImGui frame
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
-		//New Object Menu
-		if (m_newObjectMenuOpen)
+		//New object menu
+		/*if (m_newObjectMenuOpen)
 		{
 			if (ImGui::Button("Create Object"))
 			{
@@ -641,39 +558,44 @@ namespace hrzn::gfx
 			{
 				m_newObjectMenuOpen = false;
 			}
-		}
+		}*/
 
-		//SELECTED OBJECT MENU
-		if (m_selectingGameObject)
+		// Selected object menu
+		if (sceneManager.objectIsSelected())
 		{
-			ImGui::Begin("Game Object Settings"); //TITLE
-			ImGui::Text(("Label: " + m_selectedObject->getLabel()).c_str()); //OBJECT LABEL
-			ImGui::InputText("Object Label", &m_selectedObject->getLabelPtr()->at(0), 20);
-			XMFLOAT3 pos = m_selectedObject->getTransform().getPositionFloat3();
-			ImGui::Text(("X: " + std::to_string(pos.x) + "Y: " + std::to_string(pos.y) + "Z: " + std::to_string(pos.z)).c_str()); //POSITION
-			if (m_selectedObject->getObjectTrack() != nullptr)
-			{ //FOLLOW TRACK CHECKBOX
-				bool followingTrack = m_selectedObject->getFollowingObjectTrack();
-				ImGui::Checkbox("Follow Track", &followingTrack);
-				m_selectedObject->setFollowingObjectTrack(followingTrack);
-			}
-			bool floatingObject = m_selectedObject->getFloating();
-			ImGui::Checkbox("Float Object", &floatingObject);
-			m_selectedObject->setFloating(floatingObject);
+			ImGui::Begin("Game Object Settings");
 
-			if (m_selectedObject->getIsFollowingObject())
+			ImGui::Text(("Label: " + sceneManager.getSelectedObject()->getLabel()).c_str());
+
+			ImGui::InputText("Object Label", &sceneManager.getWritableSelectedObject()->getLabelPtr()->at(0), 20);
+
+			XMFLOAT3 pos = sceneManager.getSelectedObject()->getTransform().getPositionFloat3();
+			ImGui::Text(("X: " + std::to_string(pos.x) + "Y: " + std::to_string(pos.y) + "Z: " + std::to_string(pos.z)).c_str());
+
+			if (sceneManager.getSelectedObject()->hasObjectTrack())
+			{
+				bool followingTrack = sceneManager.getSelectedObject()->isFollowingObjectTrack();
+				ImGui::Checkbox("Follow Track", &followingTrack);
+				sceneManager.getWritableSelectedObject()->setFollowingObjectTrack(followingTrack);
+			}
+
+			bool floatingObject = sceneManager.getSelectedObject()->getFloating();
+			ImGui::Checkbox("Float Object", &floatingObject);
+			sceneManager.getWritableSelectedObject()->setFloating(floatingObject);
+
+			if (sceneManager.getSelectedObject()->isFollowingObject())
 			{
 				if (ImGui::Button("Stop Following Object"))
 				{
-					m_selectedObject->setIsFollowingObject(false);
-					m_selectedObject->setObjectToFollow(nullptr);
+					sceneManager.getWritableSelectedObject()->setObjectToFollow(nullptr);
 				}
 			}
-			else {
+			else
+			{
 				if (ImGui::TreeNode("Followable Objects"))
 				{
-					std::unordered_map<std::string, entity::GameObject*>::iterator mapIterator = m_gameObjectMap.begin();
-					while (mapIterator != m_gameObjectMap.end())
+					auto mapIterator = sceneManager.getObjectMap().begin();
+					while (mapIterator != sceneManager.getObjectMap().end())
 					{
 						entity::RenderableGameObject* gameObject = dynamic_cast<entity::RenderableGameObject*>(mapIterator->second);
 
@@ -681,8 +603,7 @@ namespace hrzn::gfx
 
 						if (ImGui::Button(label.c_str()))
 						{
-							m_selectedObject->setObjectToFollow(gameObject);
-							m_selectedObject->setIsFollowingObject(true);
+							sceneManager.getWritableSelectedObject()->setObjectToFollow(gameObject);
 						}
 						mapIterator++;
 					}
@@ -692,41 +613,46 @@ namespace hrzn::gfx
 		
 			if (ImGui::Button("Edit Translation"))
 			{
-				m_axisEditState = AxisEditState::eEditTranslate;
+				sceneManager.setAxisEditState(scene::AxisEditState::eEditTranslate);
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Edit Rotation"))
 			{
-				m_axisEditState = AxisEditState::eEditRotate;
+				sceneManager.setAxisEditState(scene::AxisEditState::eEditRotate);
 			}
+
 			if (ImGui::Button("Reset Rotation"))
 			{
-				m_selectedObject->getTransform().setOrientationQuaternion(XMQuaternionIdentity());
+				sceneManager.getWritableSelectedObject()->getWritableTransform().setOrientationQuaternion(XMQuaternionIdentity());
 			}
 			static XMFLOAT3 axis = XMFLOAT3(0.0f, 1.0f, 0.0f);
 			ImGui::DragFloat3("Rotation Axis", &axis.x, 0.1f, -1.0f, 1.0f);
 			if (ImGui::Button("Rotate 90 degrees about axis"))
 			{
-				m_selectedObject->getTransform().rotateUsingAxis(XMLoadFloat3(&axis), 1.5707963f);
+				sceneManager.getWritableSelectedObject()->getWritableTransform().rotateUsingAxis(XMLoadFloat3(&axis), 1.5707963f);
 			}
 
-			entity::GameObjectType type = m_selectedObject->getType();
+			entity::GameObjectType type = sceneManager.getSelectedObject()->getType();
+
+			// If it's a renderable, allow scaling
 			if (type == entity::GameObjectType::eRenderable)
-			{//IF IT IS A RENDERABLE, ALLOW SCALING
-				XMFLOAT3 scale = m_selectedObject->getScale();
+			{
+				XMFLOAT3 scale = sceneManager.getSelectedObject()->getScale();
 				ImGui::DragFloat3("Scale", &scale.x, 0.05f, 0.1f, 10.0f);
-				m_selectedObject->setScale(scale);
+				sceneManager.getWritableSelectedObject()->setScale(scale);
 			}
+
+			// If it's a light, allow light property changing and moving to camera
 			else if (type == entity::GameObjectType::ePointLight || type == entity::GameObjectType::eSpotLight)
-			{ // IF IT IS A LIGHT, ALLOW COLOUR CHANGE AND MOVE TO CAMERA
-				entity::LightGameObject* lightObj = reinterpret_cast<entity::LightGameObject*>(m_selectedObject);
+			{ 
+				entity::LightGameObject* lightObj = reinterpret_cast<entity::LightGameObject*>(sceneManager.getWritableSelectedObject());
 				ImGui::ColorEdit3("Colour", &(lightObj->m_colour.x));
 				if (ImGui::Button("Move to Camera"))
 				{
-					XMVECTOR lightPosition = m_camera.getTransform().getPositionVector();
-					lightPosition += m_camera.getTransform().getFrontVector();
-					lightObj->getTransform().setPosition(lightPosition);
-					lightObj->getTransform().copyOrientationFrom(m_camera.getTransform());
+					XMVECTOR lightPosition = sceneManager.getActiveCamera().getTransform().getPositionVector();
+					lightPosition += sceneManager.getActiveCamera().getTransform().getFrontVector();
+					lightObj->getWritableTransform().setPosition(lightPosition);
+					lightObj->getWritableTransform().copyOrientationFrom(sceneManager.getActiveCamera().getTransform());
 					lightObj->setFollowingObjectTrack(false);
 				}
 
@@ -743,7 +669,7 @@ namespace hrzn::gfx
 				}
 			}
 
-			size_t numRelativeCameras = m_selectedObject->getRelativePositions()->size();
+			size_t numRelativeCameras = sceneManager.getSelectedObject()->getRelativePositions().size();
 			if (numRelativeCameras != 0)
 			{
 				ImGui::Text("Relative Cameras");
@@ -752,8 +678,8 @@ namespace hrzn::gfx
 			{
 				if (ImGui::Button(("Camera " + std::to_string(i + 1)).c_str()))
 				{
-					m_camera.setRelativeObject(m_selectedObject, m_selectedObject->getRelativePositions()->at(i));
-					m_camera.setFollowingObjectTrack(false);
+					sceneManager.getWritableActiveCamera().setRelativeObject(sceneManager.getSelectedObject(), sceneManager.getSelectedObject()->getRelativePositions()[i]);
+					sceneManager.getWritableActiveCamera().setFollowingObjectTrack(false);
 				}
 				if (i < numRelativeCameras - 1)
 				{
@@ -761,14 +687,14 @@ namespace hrzn::gfx
 				}
 			}
 
-			if (m_selectedObject->getController() != nullptr)
+			if (sceneManager.getSelectedObject()->getController() != nullptr)
 			{
-				ImGui::Checkbox("Control Object", m_selectedObject->getController()->isActivePtr());
+				ImGui::Checkbox("Control Object", sceneManager.getWritableSelectedObject()->getWritableController()->isActivePtr());
 			}
 
 			if (type == entity::GameObjectType::ePhysics)
 			{
-				entity::physics::PhysicsGameObject* object = dynamic_cast<entity::physics::PhysicsGameObject*>(m_selectedObject);
+				entity::PhysicsGameObject* object = dynamic_cast<entity::PhysicsGameObject*>(sceneManager.getWritableSelectedObject());
 				ImGui::Checkbox("Static", object->getRigidBody()->isStaticPtr());
 				if (ImGui::Button("Apply Upwards Thrust"))
 				{
@@ -776,31 +702,29 @@ namespace hrzn::gfx
 				}
 				if (ImGui::Button("Apply Forward Thrust"))
 				{
-					object->getRigidBody()->addThrust(XMVector3Normalize(object->getTransform().getPositionVector() - m_camera.getTransform().getPositionVector()) * 800.0f, 0.5f);
+					object->getRigidBody()->addThrust(XMVector3Normalize(object->getTransform().getPositionVector() - sceneManager.getActiveCamera().getTransform().getPositionVector()) * 800.0f, 0.5f);
 				}
 				if (ImGui::Button("Apply Torque"))
 				{
-					XMVECTOR worldPos = (object->getTransform().getPositionVector() + m_camera.getTransform().getPositionVector()) * 0.5f;
+					XMVECTOR worldPos = (object->getTransform().getPositionVector() + sceneManager.getActiveCamera().getTransform().getPositionVector()) * 0.5f;
 					object->getRigidBody()->addTorque(worldPos - object->getTransform().getPositionVector(), XMVectorSet(0.0f, 100.0f, 0.0f, 0.0f));
 				}
 				if (ImGui::Button("Apply Split Force"))
 				{
-					XMVECTOR worldPos = m_camera.getTransform().getPositionVector();
-					object->getRigidBody()->addForceSplit(worldPos, m_camera.getTransform().getFrontVector() * 10000.0f);
+					XMVECTOR worldPos = sceneManager.getActiveCamera().getTransform().getPositionVector();
+					object->getRigidBody()->addForceSplit(worldPos, sceneManager.getActiveCamera().getTransform().getFrontVector() * 10000.0f);
 				}
 			}
 
 			if (ImGui::Button("Delete Object"))
 			{
-				removeGameObject(m_selectedObject->getLabel());
-				m_selectedObject = nullptr;
-				m_selectingGameObject = false;
+				sceneManager.removeGameObject(sceneManager.getSelectedObject()->getLabel());
+				sceneManager.setSelectedObject(nullptr);
 			}
 
 			if (ImGui::Button("Close"))
 			{
-				m_selectedObject = nullptr;
-				m_selectingGameObject = false;
+				sceneManager.setSelectedObject(nullptr);
 			}
 		
 			ImGui::End();
@@ -808,68 +732,23 @@ namespace hrzn::gfx
 
 		ImGui::Begin("Object Selection");
 	
-		/*if (ImGui::BeginMenu("Objects"))
-		{*/
-		std::unordered_map<std::string, entity::GameObject*>::iterator mapIterator = m_gameObjectMap.begin();
-		while (mapIterator != m_gameObjectMap.end())
+		auto mapIterator = sceneManager.getObjectMap().begin();
+		while (mapIterator != sceneManager.getObjectMap().end())
 		{
 			entity::RenderableGameObject* gameObject = dynamic_cast<entity::RenderableGameObject*>(mapIterator->second);
 
 			std::string label = gameObject->getLabel();
 
-			if (m_selectedObject == gameObject)
+			if (sceneManager.getSelectedObject() == gameObject)
 			{
 				ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), ("> " + label).c_str());
 			}
 			else if (ImGui::MenuItem(label.c_str()))
 			{
-				m_selectedObject = gameObject;
-				m_selectingGameObject = true;
+				sceneManager.setSelectedObject(gameObject);
 			}
-			mapIterator++;
-		}
-		//ImGui::EndMenu();
-		//}
-	
 
-		if (m_selectingGameObject)
-		{
-			if (ImGui::Button("Previous Object"))
-			{
-				std::unordered_map<std::string, entity::GameObject*>::iterator mapIterator = m_gameObjectMap.begin();
-				while (++mapIterator != m_gameObjectMap.end())
-				{
-					if (mapIterator->second == m_selectedObject)
-					{
-						if (--mapIterator == m_gameObjectMap.begin())
-						{
-							m_selectedObject = dynamic_cast<entity::RenderableGameObject*>((--m_gameObjectMap.end())->second);
-						}
-						else {
-							m_selectedObject = dynamic_cast<entity::RenderableGameObject*>(mapIterator->second);
-						}
-						break;
-					}
-				}
-			}
-			if (ImGui::Button("Next Object"))
-			{
-				std::unordered_map<std::string, entity::GameObject*>::iterator mapIterator = m_gameObjectMap.begin();
-				while (++mapIterator != m_gameObjectMap.end())
-				{
-					if (mapIterator->second == m_selectedObject)
-					{
-						if (++mapIterator == m_gameObjectMap.end())
-						{
-							m_selectedObject = dynamic_cast<entity::RenderableGameObject*>((++m_gameObjectMap.begin())->second);
-						}
-						else {
-							m_selectedObject = dynamic_cast<entity::RenderableGameObject*>(mapIterator->second);
-						}
-						break;
-					}
-				}
-			}
+			mapIterator++;
 		}
 
 		ImGui::End();
@@ -878,22 +757,17 @@ namespace hrzn::gfx
 	
 		if (ImGui::Button("Save Scene"))
 		{
-			saveScene();
+			sceneManager.saveScene(sceneManager.getSceneName().c_str());
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Export Scene"))
+		if (ImGui::Button("Load Scene"))
 		{
-			saveSceneTGP();
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Load city.txt"))
-		{
-			loadScene("city.txt");
+			sceneManager.loadScene("test.txt");
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Unload Scene"))
 		{
-			unloadScene();
+			sceneManager.unloadScene();
 		}
 		static char label[20] = "";
 		static char path[50] = "city/wall/frames/left/r.obj";
@@ -903,26 +777,23 @@ namespace hrzn::gfx
 		if (ImGui::Button("Spawn Object"))
 		{
 			std::string labelChosen = label;
-			if (labelChosen != "" && m_gameObjectMap.find(labelChosen) == m_gameObjectMap.end())
+			if (labelChosen != "" && sceneManager.getObjectMap().find(labelChosen) == sceneManager.getObjectMap().end())
 			{
 				entity::RenderableGameObject* newObject = new entity::RenderableGameObject();
 				std::string pathstr = path;
-				newObject->initialize(label, "res/models/environment/meshes/" + pathstr, m_device.Get(), m_deviceContext.Get());
+				newObject->initialize(label, "res/models/environment/meshes/" + pathstr);
 
-				newObject->getTransform().setPosition(m_camera.getTransform().getPositionVector() + m_camera.getTransform().getFrontVector() * 5.0f);
+				newObject->getWritableTransform().setPosition(sceneManager.getActiveCamera().getTransform().getPositionVector() + sceneManager.getActiveCamera().getTransform().getFrontVector() * 5.0f);
 
-				m_renderableGameObjects.push_back(newObject);
-				m_gameObjectMap.insert(std::make_pair(newObject->getLabel(), newObject));
-
-				m_selectedObject = newObject;
-				m_selectingGameObject = true;
+				sceneManager.addGameObject(newObject);
+				sceneManager.setSelectedObject(newObject);
 			}
 		}
 
 		//DIRECTIONAL LIGHT COLOUR
-		ImGui::ColorEdit3("Dir Light Colour", &(m_directionalLight.m_colour.x));
-		m_cloudsPixelShaderCB.m_data.m_lightColour = m_directionalLight.m_colour;
-		m_waterPixelShaderCB.m_data.m_lightColour = m_directionalLight.m_colour;
+		ImGui::ColorEdit3("Dir Light Colour", &(sceneManager.getWritableDirectionalLight().m_colour.x));
+		m_cloudsPixelShaderCB.m_data.m_lightColour = sceneManager.getDirectionalLight().m_colour;
+		m_waterPixelShaderCB.m_data.m_lightColour = sceneManager.getWritableDirectionalLight().m_colour;
 
 		//NORMAL MAPPING CHECKBOX
 		bool useNormalMapping = static_cast<bool>(m_pixelShaderCB.m_data.m_useNormalMapping);
@@ -984,12 +855,12 @@ namespace hrzn::gfx
 
 		ImGui::SameLine();
 
-		if (ImGui::Checkbox("Day/Night Cycle", &m_dayNightCycle));
+		ImGui::Checkbox("Day/Night Cycle", sceneManager.getDayNightCyclePtr());
 
 		ImGui::SameLine();
 
-		if (ImGui::Checkbox("Pause", &m_paused));
-		ImGui::SliderFloat("Day Progress", &m_dayProgress, 0.0f, 1.0f);
+		ImGui::Checkbox("Pause", sceneManager.getPausedPtr());
+		ImGui::SliderFloat("Day Progress", sceneManager.getDayProgressPtr(), 0.0f, 1.0f);
 		
 		if (ImGui::CollapsingHeader("Ocean Options"))
 		{
@@ -1042,245 +913,153 @@ namespace hrzn::gfx
 
 		ImGui::Begin("Particle System Settings");
 
-		ImGui::SliderFloat3("Position", &m_particleSystem->getEmitters()->at(0)->getPosition()->m128_f32[0], -10.0f, 10.0f);
+		physics::ParticleSystem& particleSystem = sceneManager.getWritableParticleSystem();
 
-		XMVECTOR* ParticleEmitterDirection = m_particleSystem->getEmitters()->at(0)->getDirection();
-		ImGui::SliderFloat3("Direction", &ParticleEmitterDirection->m128_f32[0], -1.0f, 1.0f);
-		*ParticleEmitterDirection = XMVector3Normalize(*ParticleEmitterDirection);
+		if (!particleSystem.getEmitters().empty())
+		{
+			static int emitterIndex = 0;
+			ImGui::SliderInt("Emitter Index", &emitterIndex, 0, particleSystem.getEmitters().size() - 1);
 
-		ImGui::SliderFloat("Direction Randomness", m_particleSystem->getEmitters()->at(0)->getDirectionRandomnessPtr(), 0.0f, 1.0f);
+			physics::ParticleSystemEmitter& particleEmitter = *(particleSystem.getEmitters()[emitterIndex]);
 
-		ImGui::SliderFloat("Power", m_particleSystem->getEmitters()->at(0)->getPowerPtr(), 0.0f, 10.0f);
-		ImGui::SliderFloat("Power Randomness", m_particleSystem->getEmitters()->at(0)->getPowerRandomModifierPtr(), 0.0f, 1.0f);
+			ImGui::Checkbox("Active", particleEmitter.getActiveWritablePtr());
 
-		ImGui::SliderFloat("Max Age", m_particleSystem->getEmitters()->at(0)->getMaxAgePtr(), 0.0f, 5.0f);
-		ImGui::SliderFloat("Max Age Randomness", m_particleSystem->getEmitters()->at(0)->getMaxAgeRandomModifierPtr(), 0.0f, 1.0f);
+			ImGui::SliderFloat3("Position", &particleEmitter.getPositionWritablePtr()->m128_f32[0], -10.0f, 10.0f);
 
-		ImGui::SliderFloat("Spawn Delay", m_particleSystem->getEmitters()->at(0)->getSpawnDelayPtr(), 0.0f, 0.5f);
-		ImGui::SliderFloat("Spawn Delay Rand", m_particleSystem->getEmitters()->at(0)->getSpawnDelayRandomModifierPtr(), 0.0f, 1.0f);
+			XMVECTOR* particleEmitterDirection = particleEmitter.getDirectionWritablePtr();
+			ImGui::SliderFloat3("Direction", &particleEmitterDirection->m128_f32[0], -1.0f, 1.0f);
+			*particleEmitterDirection = XMVector3Normalize(*particleEmitterDirection);
+
+			ImGui::SliderFloat("Direction Randomness", particleEmitter.getDirectionRandomnessWritablePtr(), 0.0f, 1.0f);
+
+			ImGui::SliderFloat("Power", particleEmitter.getPowerWritablePtr(), 0.0f, 10.0f);
+			ImGui::SliderFloat("Power Randomness", particleEmitter.getPowerRandomModifierWritablePtr(), 0.0f, 1.0f);
+
+			ImGui::SliderFloat("Max Age", particleEmitter.getMaxAgeWritablePtr(), 0.0f, 5.0f);
+			ImGui::SliderFloat("Max Age Randomness", particleEmitter.getMaxAgeRandomModifierWritablePtr(), 0.0f, 1.0f);
+
+			ImGui::SliderFloat("Spawn Delay", particleEmitter.getSpawnDelayWritablePtr(), 0.0f, 0.5f);
+			ImGui::SliderFloat("Spawn Delay Rand", particleEmitter.getSpawnDelayRandomModifierWritablePtr(), 0.0f, 1.0f);
+		}
+		else
+		{
+			ImGui::Text("No emitters to show/edit");
+		}
+		
 	
 		ImGui::End();
 
 
 		ImGui::Begin("Camera Settings");
 
-		m_camera.getTransform().editPositionImGui();
-		m_camera.getTransform().showAxisVectorsImGui();
+		sceneManager.getWritableActiveCamera().getWritableTransform().editPositionImGui();
+		sceneManager.getActiveCamera().getTransform().showAxisVectorsImGui();
 
 		ImGui::NewLine();
 
-		//CAMERA TRACK CHECKBOX
-		bool followTrack = m_camera.getFollowingObjectTrack();
-		ImGui::Checkbox("Camera Follow Track", &followTrack);
-		m_camera.setFollowingObjectTrack(followTrack);
+		if (sceneManager.getActiveCamera().hasObjectTrack())
+		{
+			// Camera track checkbox
+			bool followTrack = sceneManager.getActiveCamera().isFollowingObjectTrack();
+			ImGui::Checkbox("Camera Follow Track", &followTrack);
+			sceneManager.getWritableActiveCamera().setFollowingObjectTrack(followTrack);
 
-		//RELATIVE CAMERA CHECKBOX
+			if (followTrack)
+			{
+				// Camera track delta
+				float cameraTrackDelta = sceneManager.getActiveCamera().getObjectTrackDelta();
+				ImGui::DragFloat("Camera Track Delta", &cameraTrackDelta, 0.005f, -0.5f, 10.0f);
+				sceneManager.getWritableActiveCamera().setObjectTrackDelta(cameraTrackDelta);
+			}
+		}
+
+		// Relative camera checkbox
 		ImGui::SameLine();
 		if (ImGui::Button("Exit Relative Camera"))
 		{
-			*m_camera.getUsingRelativeCameraPtr() = false;
+			sceneManager.getWritableActiveCamera().unsetRelativeObject();
 		}
 
-		ImGui::Checkbox("Control Camera", m_controllerManager->getControllers().at(0).isActivePtr());
+		ImGui::Checkbox("Control Camera", sceneManager.getWritableControllerManager()->getControllers().at(0).isActivePtr());
 
-		//CAMERA TRACK DELTA
-		//float cameraTrackDelta = camera.GetObjectTrackDelta();
-		//ImGui::DragFloat("Camera Track Delta", &cameraTrackDelta, 0.005f, -0.5f, 10.0f);
-		//camera.SetObjectTrackDelta(cameraTrackDelta);
+		if (ImGui::CollapsingHeader("Camera List"))
+		{
+			auto& cameras = sceneManager.getWritableCameraList();
+			for (auto& camera : cameras)
+			{
+				ImGui::Text(camera->getLabel().c_str());
 
-		if (ImGui::Button("Static View One"))
-		{
-			*m_camera.getUsingRelativeCameraPtr() = false;
-			m_camera.setFollowingObjectTrack(false);
-			m_camera.getTransform().setPosition(XMFLOAT3(0.0f, 37.5f, 0.0f));
-			m_camera.getTransform().lookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.5f));
-			m_camera.setFOV(80.0f);
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Static View Two"))
-		{
-			*m_camera.getUsingRelativeCameraPtr() = false;
-			m_camera.setFollowingObjectTrack(false);
-			m_camera.getTransform().setPosition(XMFLOAT3(10.0f, 10.0f, 10.0f));
-			m_camera.getTransform().lookAtPosition(XMFLOAT3(3.0f, 2.5f, 3.0f));
-			m_camera.setFOV(70.0f);
+				ImGui::SameLine();
+
+				if (&(sceneManager.getActiveCamera()) != camera)
+				{
+					if (ImGui::Button("Make Active"))
+					{
+						sceneManager.setActiveCamera(camera);
+					}
+				}
+				else
+				{
+					ImGui::Text(" *Active*");
+				}
+			}
 		}
 
 		ImGui::End();
 	}
 
-	void GraphicsHandler::update(float deltaTime)
+	void GraphicsHandler::update(scene::SceneManager& sceneManager, float deltaTime)
 	{
-		if (!m_paused)
+		if (!sceneManager.isPaused())
 		{
-			m_gameTime += deltaTime;
-
-			m_vertexShaderCB.m_data.m_gameTime = m_gameTime;
-			m_waterVertexShaderCB.m_data.m_gameTime = m_gameTime;
-			m_cloudsPixelShaderCB.m_data.m_gameTime = m_gameTime;
-			m_waterPixelShaderCB.m_data.m_gameTime = m_gameTime;
+			float gameTime = sceneManager.getGameTime();
+			m_vertexShaderCB.m_data.m_gameTime = gameTime;
+			m_waterVertexShaderCB.m_data.m_gameTime = gameTime;
+			m_cloudsPixelShaderCB.m_data.m_gameTime = gameTime;
+			m_waterPixelShaderCB.m_data.m_gameTime = gameTime;
 		}
 
-		if (m_dayNightCycle)
+		// Update atmosphere stuff
+		float dayOrNight = 0.0f;
+		float zeroToOneDayOrNight = modf(sceneManager.getDayProgress() * 2.0f, &dayOrNight);
+		float split = 1.0f - abs(zeroToOneDayOrNight - 0.5f) * 2.0f;
+
+		if (dayOrNight == 0.0f)
 		{
-			m_dayProgress += deltaTime * 0.0166666; // 1 day = 60 seconds
+			float t = fmaxf(0.0f, fminf(1.0f, (split - 0.25f) / (0.1f - 0.25f)));
+			float densityMod = t * t * (3.0f - 2.0f * t);
+			m_atmosphericPixelShaderCB.m_data.m_density = 0.142f + densityMod * (0.65f - 0.142f);
+
+			XMFLOAT3 sunsetColour = XMFLOAT3(1.0f, 0.62f, 0.26f);
+			XMFLOAT3 daySunColour = XMFLOAT3(1.0f, 0.85f, 0.65f);
+
+			XMFLOAT3 sunColour = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			XMStoreFloat3(&sunColour, XMVectorLerp(XMLoadFloat3(&daySunColour), XMLoadFloat3(&sunsetColour), t));
+			sceneManager.getWritableDirectionalLight().setColour(sunColour);
+		}
+		else
+		{
+			float density = fmaxf(0.0f, fminf(1.0f, (split - 0.35f) / (0.0f - 0.35f)));
+
+			float lightLerp = fmaxf(0.0f, fminf(1.0f, (split - 0.25f) / (0.0f - 0.25f)));
+			float smoothLightLerp = lightLerp * lightLerp * (3.0f - 2.0f * lightLerp);
+
+			XMFLOAT3 sunsetColour = XMFLOAT3(1.0f, 0.62f, 0.26f);
+			XMFLOAT3 nightSunColour = XMFLOAT3(0.025f, 0.025f, 0.0375f);
+
+			XMFLOAT3 sunColour = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			XMStoreFloat3(&sunColour, XMVectorLerp(XMLoadFloat3(&nightSunColour), XMLoadFloat3(&sunsetColour), smoothLightLerp));
+			sceneManager.getWritableDirectionalLight().setColour(sunColour);
+
+			m_atmosphericPixelShaderCB.m_data.m_density = 0.25f + density * (0.65f - 0.25f);
 		}
 
-		if (m_dayProgress > 1.0f) m_dayProgress -= 1.0f;
+		XMVECTOR sunDirection = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), XMMatrixRotationAxis(XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f), sceneManager.getDayProgress() * sc_2PI));
+		sceneManager.getWritableDirectionalLight().getWritableTransform().setPosition(sunDirection);
+		sceneManager.getWritableDirectionalLight().getWritableTransform().lookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 
-		//UPDATE MOUSE NDC
-		computeMouseNDC();
-
-		//UPDATE MOUSE TO WORLD VECTOR
-		m_camera.computeMouseToWorldVectorDirection(m_mouseNDCX, m_mouseNDCY);
-
-		//UPDATE SELECTED OBJECT (TRANSLATION / ROTATION)
-		if (m_selectingGameObject)
-		{
-			updateSelectedObject();
-		}
-
-		//UPDATE GAME OBJECTS
-		m_camera.update(deltaTime);
-
-		// Update springs
-		for (int i = 0; i < m_springs.size(); ++i)
-		{
-			m_springs[i]->update();
-		}
-
-		size_t numRenderableGameObjects = m_renderableGameObjects.size();
-		for (size_t i = 0; i < numRenderableGameObjects; ++i)
-		{
-			m_renderableGameObjects.at(i)->update(deltaTime);
-		}
-
-		checkObjectCollisions(deltaTime);
-
-		size_t numPointLights = m_pointLights.size();
-		for (size_t i = 0; i < numPointLights; ++i)
-		{
-			m_pointLights.at(i)->update(deltaTime);
-		}
-
-		size_t numSpotLights = m_spotLights.size();
-		for (size_t i = 0; i < numSpotLights; ++i)
-		{
-			m_spotLights.at(i)->update(deltaTime);
-		}
-	
-		//particleSystem->Update(deltaTime);
-
-		//UPDATE IMGUI
-		updateImGui();
-	}
-
-	void GraphicsHandler::checkObjectCollisions(float deltaTime)
-	{
-		for (int i = 0; i < m_physicsGameObjects.size(); ++i)
-		{
-			if (!m_physicsGameObjects[i]->getRigidBody()->isStatic())
-			{
-				for (int j = i + 1; j < m_physicsGameObjects.size(); ++j)
-				{
-					if (m_physicsGameObjects[i]->getWorldSpaceBoundingBox().Intersects(m_physicsGameObjects[j]->getWorldSpaceBoundingBox()))
-					{
-						float velocityOne = std::max(XMVectorGetX(XMVector3Length(m_physicsGameObjects[i]->getRigidBody()->getVelocityVector())), 1.0f);
-						float velocityTwo = std::max(XMVectorGetX(XMVector3Length(m_physicsGameObjects[j]->getRigidBody()->getVelocityVector())), 1.0f);
-
-						float forceMagnitude = (m_physicsGameObjects[i]->getMass() * velocityOne + m_physicsGameObjects[j]->getMass() * velocityTwo) / deltaTime;
-						XMVECTOR force = XMVector3Normalize(m_physicsGameObjects[j]->getTransform().getPositionVector() - m_physicsGameObjects[i]->getTransform().getPositionVector()) * forceMagnitude * 0.15f; //remove force (coefficient of restitution)
-						m_physicsGameObjects[i]->getRigidBody()->addForce(-force);
-						m_physicsGameObjects[j]->getRigidBody()->addForce(force);
-
-						/*XMVECTOR relativeOne = 0.5f * (physicsGameObjects[j]->GetTransform()->GetPositionVector() - physicsGameObjects[i]->GetTransform()->GetPositionVector());
-						XMVECTOR forceOne = physicsGameObjects[i]->GetRigidBody()->GetForceAtRelativePosition(relativeOne);
-
-						XMVECTOR relativeTwo = 0.5f * (physicsGameObjects[i]->GetTransform()->GetPositionVector() - physicsGameObjects[j]->GetTransform()->GetPositionVector());
-						XMVECTOR forceTwo = physicsGameObjects[j]->GetRigidBody()->GetForceAtRelativePosition(relativeTwo);
-
-						physicsGameObjects[i]->GetRigidBody()->AddForce(-force);
-						physicsGameObjects[j]->GetRigidBody()->AddForce(force);
-
-						physicsGameObjects[i]->GetRigidBody()->AddTorque(relativeOne, (forceTwo * 0.5f - forceOne * 0.5f) * 0.005f);
-						physicsGameObjects[j]->GetRigidBody()->AddTorque(relativeTwo, (forceOne * 0.5f - forceTwo * 0.5f) * 0.005f);*/
-					}
-				}
-
-				std::vector<XMFLOAT3>* vertices = m_physicsGameObjects[i]->getModel()->getVertices();
-				XMFLOAT3 objectPosition = m_physicsGameObjects[i]->getTransform().getPositionFloat3();
-				for (int j = 0; j < vertices->size(); ++j)
-				{
-					XMFLOAT3 vertexPosition = vertices->at(j);
-					XMVECTOR rotatedPosition = XMVector3Transform(XMLoadFloat3(&vertexPosition), m_physicsGameObjects[i]->getTransform().getRotationMatrix());
-					XMStoreFloat3(&vertexPosition, rotatedPosition);
-
-					float diff = objectPosition.y + vertexPosition.y + 2.0f;
-					if (diff < 0.0f)
-					{
-						m_physicsGameObjects[i]->getTransform().setPosition(m_physicsGameObjects[i]->getTransform().getPositionVector() + XMVectorSet(0.0f, -diff, 0.0f, 0.0f));
-						objectPosition = m_physicsGameObjects[i]->getTransform().getPositionFloat3();
-
-						float force = (XMVectorGetX(XMVector3Length(m_physicsGameObjects[i]->getRigidBody()->getVelocityVector())) * m_physicsGameObjects[i]->getRigidBody()->getMass()) / deltaTime;
-						//float force = XMVectorGetY(physicsGameObjects[i]->GetRigidBody()->GetForceAtRelativePosition(rotatedPosition));
-						m_physicsGameObjects[i]->getRigidBody()->addForce(XMVectorSet(0.0f, force * 0.8f, 0.0f, 0.0f));
-						m_physicsGameObjects[i]->getRigidBody()->addTorque(rotatedPosition, XMVectorSet(0.0f, force * 0.005f, 0.0f, 0.0f));
-						//float dot = XMVectorGetX(XMVector3Dot(XMVector3Normalize(force), XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f)));
-						//if (dot > 0.0f)
-						//{
-						//	physicsGameObjects[i]->GetRigidBody()->AddForce(force * dot);//physicsGameObjects[i]->GetTransform()->GetPositionVector() + rotatedPosition, 
-						//	//physicsGameObjects[i]->GetRigidBody()->AddTorque(rotatedPosition, -force * 0.005f);
-						//}
-					}
-				}
-
-				float upthrustMagnitude = (m_physicsGameObjects[i]->getRigidBody()->getMass() * 18.0f) / static_cast<float>(vertices->size());
-				for (int j = 0; j < vertices->size(); ++j)
-				{
-					XMFLOAT3 vertexPosition = vertices->at(j);
-					XMVECTOR rotatedPosition = XMVector3Transform(XMLoadFloat3(&vertexPosition), m_physicsGameObjects[i]->getTransform().getRotationMatrix());
-					XMStoreFloat3(&vertexPosition, rotatedPosition);
-
-					float diff = objectPosition.y + vertexPosition.y - getWaterHeightAt(objectPosition.x + vertexPosition.x, objectPosition.z + vertexPosition.z, true);
-					if (diff < 0.0f)
-					{
-						//Buoyancy forces
-						m_physicsGameObjects[i]->getRigidBody()->addForce(XMVectorSet(0.0f, upthrustMagnitude, 0.0f, 0.0f));
-						m_physicsGameObjects[i]->getRigidBody()->addTorque(rotatedPosition, XMVectorSet(0.0f, upthrustMagnitude * 0.001f, 0.0f, 0.0f));
-
-						//Water drag forces
-						XMVECTOR waterDragForce = m_physicsGameObjects[i]->getRigidBody()->getMass() * -m_physicsGameObjects[i]->getRigidBody()->getVelocityVector() * 0.1f;
-						m_physicsGameObjects[i]->getRigidBody()->addForce(waterDragForce);
-					}
-				}
-			}
-		}
-	}
-
-	void GraphicsHandler::adjustMouseX(int xPos)
-	{
-		m_mousePosX += xPos;
-	}
-
-	void GraphicsHandler::adjustMouseY(int yPos)
-	{
-		m_mousePosY += yPos;
-	}
-
-	void GraphicsHandler::setMouseX(int xPos)
-	{
-		m_mousePosX = xPos;
-	}
-
-	void GraphicsHandler::setMouseY(int yPos)
-	{
-		m_mousePosY = yPos;
-	}
-
-	void GraphicsHandler::computeMouseNDC()
-	{
-		m_mouseNDCX = (2.0f * static_cast<float>(m_mousePosX)) / (static_cast<float>(UserConfig::it().getWindowWidth())) - 1.0f;
-		m_mouseNDCY = 1.0f - (2.0f * static_cast<float>(m_mousePosY)) / static_cast<float>(UserConfig::it().getWindowHeight());
+		// Update ImGui
+		updateImGui(sceneManager);
 	}
 
 	bool GraphicsHandler::initializeDirectX(HWND hwnd)
@@ -1438,55 +1217,27 @@ namespace hrzn::gfx
 		return true;
 	}
 
-	void GraphicsHandler::drawAxisForObject(scene::entity::GameObject* gameObject, const XMMATRIX& viewProjection)
+	void GraphicsHandler::drawAxisForObject(const entity::RenderableGameObject& gameObject, const XMMATRIX& viewProjection, const scene::SceneManager& sceneManager)
 	{
-		XMFLOAT3 gameObjectPosition = gameObject->getTransform().getPositionFloat3();
+		XMFLOAT3 gameObjectPosition = gameObject.getTransform().getPositionFloat3();
 		XMMATRIX translationMatrix = XMMatrixTranslation(gameObjectPosition.x, gameObjectPosition.y, gameObjectPosition.z);
 
-		float scale = m_selectedObject->getModel()->getHitRadius();
+		float scale = gameObject.getModel().getHitRadius();
 
-		//CLAMP SCALE
+		// Clamp scale
 		if (scale < 0.75f) scale = 0.75f;
 
-		float distance = XMVectorGetX(XMVector3Length(m_selectedObject->getTransform().getPositionVector() - m_camera.getTransform().getPositionVector()));
+		float distance = XMVectorGetX(XMVector3Length(gameObject.getTransform().getPositionVector() - sceneManager.getActiveCamera().getTransform().getPositionVector()));
 		scale *= distance * 0.5;
 
-		if (m_axisEditState == AxisEditState::eEditTranslate)
+		if (sceneManager.getAxisEditState() == scene::AxisEditState::eEditTranslate)
 		{
-			m_axisTranslateModel.draw(XMMatrixScaling(scale, scale, scale) * translationMatrix, viewProjection, &m_vertexShaderCB);
+			m_axisTranslateModel->draw(XMMatrixScaling(scale, scale, scale) * translationMatrix, viewProjection, &m_vertexShaderCB);
 		}
-		else if (m_axisEditState == AxisEditState::eEditRotate)
-		{ //Multiply by rotation matrix when rotating
-			m_axisRotateModel.draw(XMMatrixScaling(scale * 0.5f, scale * 0.5f, scale * 0.5f) * m_selectedObject->getTransform().getRotationMatrix() * translationMatrix, viewProjection, &m_vertexShaderCB);
-		}
-	}
-
-	AxisEditSubState GraphicsHandler::getAxisEditSubState()
-	{
-		return m_axisEditSubState;
-	}
-
-	void GraphicsHandler::stopAxisEdit()
-	{
-		m_axisEditSubState = AxisEditSubState::eEditNone;
-		m_lastAxisGrabOffset = FLT_MAX;
-	}
-
-	XMVECTOR GraphicsHandler::rayPlaneIntersect(XMVECTOR rayPoint, XMVECTOR rayDirection, XMVECTOR planeNormal, XMVECTOR planePoint)
-	{
-		XMVECTOR diff = rayPoint - planePoint;
-		return (diff + planePoint) + rayDirection * (-XMVector3Dot(diff, planeNormal) / XMVector3Dot(rayDirection, planeNormal));
-	}
-
-	float GraphicsHandler::getWaterHeightAt(float posX, float posZ, bool exact)
-	{
-		float value = 0.0f;
-		value += sin(-posX * 0.4f + m_gameTime * 1.2f) * 0.15f + sin(posZ * 0.5f + m_gameTime * 1.3f) * 0.15f;
-		value += sin(posX * 0.2f + m_gameTime * 0.6f) * 0.5f + sin(-posZ * 0.22f + m_gameTime * 0.4f) * 0.45f;
-		if (exact)
+		else if (sceneManager.getAxisEditState() == scene::AxisEditState::eEditRotate)
 		{
-			value += sin(posX * 1.5f + m_gameTime * 0.0017f) * 0.05f + sin(posZ * 1.5f + m_gameTime * 0.0019f) * 0.05f;
+			// Multiply by rotation matrix when rotating
+			m_axisRotateModel->draw(XMMatrixScaling(scale * 0.5f, scale * 0.5f, scale * 0.5f) * gameObject.getTransform().getRotationMatrix() * translationMatrix, viewProjection, &m_vertexShaderCB);
 		}
-		return value * m_vertexShaderCB.m_data.m_padding;
 	}
 }

@@ -18,12 +18,12 @@ namespace hrzn::scene
     {
     }
 
-    void SceneConfig::saveConfigs(rapidjson::Writer<rapidjson::StringBuffer>& JSONWriter)
+    void SceneConfig::saveConfigs(rapidjson::Writer<rapidjson::StringBuffer>& JSONWriter) const
     {
 
     }
 
-    const config::MetaConfig& SceneConfig::getMetaConfig()
+    const config::MetaConfig& SceneConfig::getMetaConfig() const
     {
         return m_metaConfig;
     }
@@ -33,7 +33,7 @@ namespace hrzn::scene
         return m_metaConfig;
     }
 
-    const config::OceanConfig& SceneConfig::getOceanConfig()
+    const config::OceanConfig& SceneConfig::getOceanConfig() const
     {
         return m_oceanConfig;
     }
@@ -43,7 +43,7 @@ namespace hrzn::scene
         return m_oceanConfig;
     }
 
-    const config::CloudConfig& SceneConfig::getCloudConfig()
+    const config::CloudConfig& SceneConfig::getCloudConfig() const
     {
         return m_cloudConfig;
     }
@@ -53,7 +53,7 @@ namespace hrzn::scene
         return m_cloudConfig;
     }
 
-    const config::AtmosphereConfig& SceneConfig::getAtmosphereConfig()
+    const config::AtmosphereConfig& SceneConfig::getAtmosphereConfig() const
     {
         return m_atmosphereConfig;
     }

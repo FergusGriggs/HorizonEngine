@@ -154,17 +154,22 @@ float4 main(PS_INPUT input) : SV_TARGET
     float3 tangent = normalize(input.tangent);
     float3 bitangent = normalize(input.bitangent);
 
-    /*{
-        float3 dx = ddx(normal);
-        float3 dy = ddy(normal);
-        float3 xneg = normal - dx;
-        float3 xpos = normal + dx;
-        float3 yneg = normal - dy;
-        float3 ypos = normal + dy;
-        float depth = length(vertex);
-        float curvature = (cross(xneg, xpos).y - cross(yneg, ypos).x) * 4.0 / depth;
-        return float4(curvature, curvature, curvature, 1.0f);
-    }*/
+    {
+        //float3 dx = ddx_coarse(normal);
+        //float3 dy = ddy_coarse(normal);
+        //float3 xneg = normal - dx;
+        //float3 xpos = normal + dx;
+        //float3 yneg = normal - dy;
+        //float3 ypos = normal + dy;
+        ////float depth = length(input.worldPos);
+        //float curvature = (cross(xneg, xpos).y - cross(yneg, ypos).x);
+        
+        //curvature *= 100.0f;
+        //curvature = saturate(curvature);
+        //return float4(curvature, curvature, curvature, 1.0f);
+        /*float3 test = fwidth(normal);
+        return float4(test, 1.0f);*/
+    }
     
     //float3 tangent = normalize(input.tangent - dot(input.tangent, normal) * normal);
 
@@ -175,6 +180,9 @@ float4 main(PS_INPUT input) : SV_TARGET
 
     if (useParallaxOcclusionMapping)
     {
+        //float texDepth = depthTexture.Sample(samplerState, input.texCoord).r;
+        //return float4(texDepth, texDepth, texDepth, 1.0f);
+
         float3 tangentViewDir = mul(viewDirection, worldToTangent);
         input.texCoord = getParallaxTextureCoords(tangentViewDir, input.texCoord);
 

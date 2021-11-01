@@ -30,47 +30,19 @@ namespace hrzn::gfx
 	static const float sc_PI = 3.1415926f;
 	static const float sc_2PI = 6.2831853f;
 
-	enum class AxisEditState
-	{
-		eEditNone,
-		eEditTranslate,
-		eEditRotate,
-		eEditScale,
-	};
-
-
-	enum class AxisEditSubState
-	{
-		eEditNone,
-		eEditX,
-		eEditY,
-		eEditZ,
-	};
-
 	class GraphicsHandler
 	{
 	public:
 		bool initialize(HWND hwnd);
 
-		void update(float deltaTime);
-		void renderActiveScene(const scene::SceneManager& sceneManager);
-
-		void adjustMouseX(int xPos);
-		void adjustMouseY(int yPos);
-		void setMouseX(int xPos);
-		void setMouseY(int yPos);
-		void computeMouseNDC();
+		void update(scene::SceneManager& sceneManager, float deltaTime);
+		void renderActiveScene(scene::SceneManager& sceneManager);
 
 		void create3DNoiseTexture();
 
-		void updateImGui();
+		void updateImGui(scene::SceneManager& sceneManager);
 
-		void drawAxisForObject(scene::entity::GameObject* gameObject, const XMMATRIX& viewProjection);
-
-		AxisEditSubState getAxisEditSubState();
-		void             stopAxisEdit();
-
-		static XMVECTOR  rayPlaneIntersect(XMVECTOR rayPoint, XMVECTOR rayDirection, XMVECTOR planeNormal, XMVECTOR planePoint);
+		void drawAxisForObject(const entity::RenderableGameObject& gameObject, const XMMATRIX& viewProjection, const scene::SceneManager& sceneManager);
 
 	private:
 		bool  initializeDirectX(HWND hwnd);
@@ -80,15 +52,13 @@ namespace hrzn::gfx
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Device>           m_device;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext>    m_deviceContext;
+
 		Microsoft::WRL::ComPtr<IDXGISwapChain>         m_swapChain;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_renderTargetView;
 
 		Model* m_axisTranslateModel;
 		Model* m_axisRotateModel;
 		Model* m_springModel;
-
-		XMFLOAT3 m_axisTranslateDefaultBounds[3];
-		BoundingBox m_axisTranslateBoudingBoxes[3];
 
 		gfx::Texture* m_defaultDiffuseTexture;
 		gfx::Texture* m_defaultSpecularTexture;
@@ -135,12 +105,6 @@ namespace hrzn::gfx
 		std::unique_ptr<DirectX::SpriteFont>  m_spriteFont;
 
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerState;
-
-		AxisEditState    m_axisEditState = AxisEditState::eEditTranslate;
-		AxisEditSubState m_axisEditSubState = AxisEditSubState::eEditNone;
-
-		float    m_lastAxisGrabOffset = FLT_MAX;
-		XMVECTOR m_lastGrabPos;
 
 		bool m_useWireframe = false;
 		bool m_useVSync = true;

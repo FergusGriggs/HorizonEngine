@@ -80,12 +80,12 @@ namespace hrzn::gfx
 		COM_ERROR_IF_FAILED(hr, "Failed to create texture from memory.");
 	}
 
-	aiTextureType Texture::getType()
+	aiTextureType Texture::getType() const
 	{
 		return m_type;
 	}
 
-	ID3D11ShaderResourceView* Texture::getTextureResourceView()
+	ID3D11ShaderResourceView* Texture::getTextureResourceView() const
 	{
 		return m_textureView.Get();
 	}

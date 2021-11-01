@@ -38,8 +38,8 @@ namespace hrzn::gfx
 
 		bool initialize(ID3D11Device* device, const std::string& filePath, aiTextureType type);
 
-		aiTextureType              getType();
-		ID3D11ShaderResourceView*  getTextureResourceView();
+		aiTextureType              getType() const;
+		ID3D11ShaderResourceView*  getTextureResourceView() const;
 		ID3D11ShaderResourceView** getTextureResourceViewAddress();
 
 	private:

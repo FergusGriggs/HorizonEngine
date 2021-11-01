@@ -30,6 +30,8 @@ namespace hrzn::input
 		bool isRightDown() const;
 		bool isMiddleDown() const;
 
+		void updateNDCPos();
+
 		const MousePosPixel& getPos() const;
 		const MousePosNDC&   getPosNDC() const;
 

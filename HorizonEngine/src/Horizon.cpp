@@ -4,6 +4,7 @@
 #include "horizon.h"
 
 #include "user_config.h"
+#include "input/input_manager.h"
 
 namespace hrzn
 {
@@ -16,7 +17,9 @@ namespace hrzn
 		m_audioEngine(nullptr),
 		m_soundEffect(nullptr),
 
-		m_controllerManager(&m_keyboard)
+		m_graphicsHandler(),
+		m_controllerManager(),
+		m_sceneManager(&m_controllerManager)
 	{
 		/*m_audioEngine = new AudioEngine(AudioEngine_Default);
 
@@ -34,7 +37,9 @@ namespace hrzn
 		m_audioEngine(nullptr),
 		m_soundEffect(nullptr),
 		
-		m_controllerManager(&m_keyboard)
+		m_graphicsHandler(),
+		m_controllerManager(),
+		m_sceneManager(&m_controllerManager)
 	{
 	}
 
@@ -42,18 +47,20 @@ namespace hrzn
 	{
 		m_timer.start();
 
-		m_controllerManager.addController(&m_graphicsHandler.getCamera(), entity::ControllerType::eCamera, 0.005f);
-		m_controllerManager.getControllers().at(0).setActive(true);
-
 		if (!m_renderWindow.initialize(this, hInstance, UserConfig::it().getWindowName(), windowClass, UserConfig::it().getWindowWidth(), UserConfig::it().getWindowHeight()))
 		{
 			return false;
 		}
 
-		if (!m_graphicsHandler.initialize(m_renderWindow.getHWND(), &m_controllerManager))
+		if (!m_graphicsHandler.initialize(m_renderWindow.getHWND()))
 		{
 			return false;
 		}
+
+		m_sceneManager.initialise();
+
+		m_controllerManager.addController(&m_sceneManager.getWritableActiveCamera(), entity::ControllerType::eCamera, 0.005f);
+		m_controllerManager.getControllers().at(0).setActive(true);
 
 		return true;
 	}
@@ -68,12 +75,12 @@ namespace hrzn
 		m_deltaTime = m_timer.getDeltaTime();
 		m_timer.restart();
 
-		m_graphicsHandler.setMouseX(m_mouse.getPos().x);
-		m_graphicsHandler.setMouseY(m_mouse.getPos().y);
+		InputManager::it().update(m_deltaTime);
 
 		m_controllerManager.updateControllers(m_deltaTime);
 
-		m_graphicsHandler.update(m_deltaTime);
+		m_sceneManager.update(m_deltaTime);
+		m_graphicsHandler.update(m_sceneManager, m_deltaTime);
 	}
 
 	void Horizon::renderFrame()

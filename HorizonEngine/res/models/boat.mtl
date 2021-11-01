@@ -12,7 +12,8 @@ d 1.000000
 illum 2
 map_Kd ../textures/wood/diffuse.jpg
 map_Ks ../textures/wood/specular.jpg
-bump ../textures/wood/normal.jpg
+map_Kn ../textures/wood/normals_flatter.jpg
+disp ../textures/wood/depth.png
 
 newmtl Material.002
 Ns 96.078443
@@ -25,7 +26,8 @@ d 1.000000
 illum 2
 map_Kd ../textures/wood_clean/diffuse.jpg
 map_Ks ../textures/wood_clean/specular.jpg
-bump ../textures/wood_clean/normal.jpg
+map_Kn ../textures/wood_clean/normal.jpg
+disp ../textures/wood_clean/depth.png
 
 newmtl Material.003
 Ns 96.078443
@@ -48,4 +50,4 @@ d 1.000000
 illum 2
 map_Kd ../textures/sail/diffuse.jpg
 map_Ks ../textures/sail/specular.jpg
-bump ../textures/sail/normal.jpg
+map_Kn ../textures/sail/normal.jpg

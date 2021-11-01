@@ -57,7 +57,7 @@ namespace hrzn
 
 		if (m_handle == NULL)
 		{
-			utils::ErrorLogger::log(GetLastError(), "CreateWindowEX Failed for: " + windowTitle);
+			utils::ErrorLogger::log(GetLastError(), std::string("CreateWindowEX Failed for: ") + windowTitle);
 			return false;
 		}
 

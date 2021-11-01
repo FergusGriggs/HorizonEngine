@@ -12,5 +12,5 @@ d 1.000000
 illum 2
 map_Kd ../../textures/gems/diffuse.jpg
 map_Ks ../../textures/gems/roughness.jpg
-map_Bump ../../textures/gems/normal.jpg
+map_Kn ../../textures/gems/normal.jpg
 disp ../../textures/gems/depth.jpg

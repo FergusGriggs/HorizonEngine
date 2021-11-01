@@ -12,4 +12,4 @@ d 1.000000
 illum 2
 map_Kd ../textures/hrzn_statue/diffuse.jpg
 map_Ks ../textures/hrzn_statue/roughness.jpg
-map_Bump ../textures/hrzn_statue/normal.png
+map_Kn ../textures/hrzn_statue/normal.png

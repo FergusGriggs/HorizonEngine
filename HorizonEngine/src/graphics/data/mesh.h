@@ -24,8 +24,8 @@ namespace hrzn::gfx
 		Mesh(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::vector<Vertex>& vertices, std::vector<DWORD>& indices, std::vector<Texture*>& textures, const DirectX::XMMATRIX& transformMatrix);
 		Mesh(const Mesh& mesh);
 
-		void draw(bool bindTextures = true);
-		const DirectX::XMMATRIX& getTransformMatrix();
+		void draw(bool bindTextures = true) const;
+		const DirectX::XMMATRIX& getTransformMatrix() const;
 
 	private:
 		VertexBuffer<Vertex>  m_vertexBuffer;

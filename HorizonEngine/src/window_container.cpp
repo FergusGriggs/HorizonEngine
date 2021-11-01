@@ -1,6 +1,7 @@
 #include "window_container.h"
 
 #include "utils/error_logger.h"
+#include "input/input_manager.h"
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 

@@ -8,7 +8,7 @@
 
 namespace hrzn::utils::string_helpers
 {
-	static std::wstring stringToWide(std::string str)
+	static std::wstring stringToWide(const std::string& str)
 	{
 		std::wstring wide_string(str.begin(), str.end());
 		return wide_string;

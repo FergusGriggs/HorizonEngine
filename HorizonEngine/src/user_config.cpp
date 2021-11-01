@@ -1,5 +1,9 @@
 #include "user_config.h"
 
+UserConfig::UserConfig()
+{
+}
+
 UserConfig::~UserConfig()
 {
 }

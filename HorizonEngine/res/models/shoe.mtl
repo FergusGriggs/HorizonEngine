@@ -11,4 +11,4 @@ Tr 1.000000
 illum 2
 Ns 0.000000
 map_Kd ../textures/shoe/diffuse.jpg
-map_Bump ../textures/shoe/normals_flatter.jpg
+map_Kn ../textures/shoe/normals_flatter.jpg
