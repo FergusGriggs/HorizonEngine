@@ -2,6 +2,9 @@
 
 #include "config/scene_config.h"
 
+// Scene
+#include "scene_loader.h"
+
 // Entities
 #include "../entity/camera_game_object.h"
 #include "../entity/renderable_game_object.h"
@@ -29,7 +32,6 @@ namespace hrzn::scene
         eEditScale,
     };
 
-
     enum class AxisEditSubState
     {
         eEditX,
@@ -50,6 +52,7 @@ namespace hrzn::scene
 
         // Load/save/unload funcs
         bool loadScene(const char* sceneName);
+        bool loadSceneStaticObjects();
         bool saveScene(const char* sceneName);
         void unloadScene();
 
@@ -144,6 +147,8 @@ namespace hrzn::scene
 
     private:
         std::string m_sceneName;
+
+        SceneLoader m_sceneLoader;
 
         SceneConfig m_sceneConfig;
 

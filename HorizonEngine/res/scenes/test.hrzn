@@ -9,7 +9,7 @@
 	"SceneSettings": {
 		"TimeSettings": {
 			"start_time": 0.25,
-			"progress_time: false,
+			"progress_time": false,
 			"day_duration": 60.0
 		},
 		
@@ -52,15 +52,15 @@
 				{
 					"position": [0.0, 0.0, 0.0],
 					"look_at_position": [1.0, 0.0, 0.0]
-				}
+				},
 				{
 					"position": [1.0, 0.0, 0.0],
 					"look_at_position": [2.0, 0.0, 0.0]
-				}
+				},
 				{
 					"position": [0.0, 1.0, 0.0],
 					"look_at_position": [1.0, 1.0, 0.0]
-				}
+				},
 				{
 					"position": [-1.0, 0.0, 0.0],
 					"look_at_position": [0.0, 0.0, 0.0]
@@ -82,7 +82,7 @@
 				"active": true,
 				"contoller_type": "player",
 				"move_speed": 1.0
-			}
+			},
 			
 			"ObjectTracks": [
 				{

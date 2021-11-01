@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "rapidjson/reader.h"
+#include "rapidjson/document.h"
 
 namespace hrzn::scene
 {
@@ -103,7 +104,8 @@ namespace hrzn::scene
         void loadScene(std::string sceneName);
 
     private:
-        rapidjson::Reader m_reader;
-        JSONHandler       m_handler;
+        rapidjson::Reader   m_reader;
+        rapidjson::Document m_document;
+        JSONHandler         m_handler;
     };
 }

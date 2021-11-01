@@ -69,17 +69,6 @@ namespace hrzn::scene
 
 	bool SceneManager::initialise()
 	{
-		//dynamic_cast<RenderableGameObject*>(gameObjectMap.at("floor1"))->SetScale(XMFLOAT3(5.0f, 1.0f, 5.0f));
-
-			//springs.push_back(new Spring(XMVectorSet(0.0f, 10.0f, 5.0f, 0.0f), physicsGameObjects.at(0)->GetRigidBody(), 5.0f, 150.0f));
-			//springs.push_back(new Spring(physicsGameObjects.at(3)->GetRigidBody(), physicsGameObjects.at(4)->GetRigidBody(), 10.0f, 150.0f));
-
-			//dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box1"))->GetRigidBody()->SetIsStatic(false);
-			//dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box2"))->GetRigidBody()->SetIsStatic(false);
-			//dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box3"))->GetRigidBody()->SetIsStatic(false);
-			//dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box4"))->GetRigidBody()->SetIsStatic(false);
-			//dynamic_cast<PhysicsGameObject*>(gameObjectMap.at("box5"))->GetRigidBody()->SetIsStatic(false);
-
 		m_particleSystem = new physics::ParticleSystem();
 		m_particleSystem->addEmitter(XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), 0.25f, 5.0f, 0.25f, 1.5f, 0.25f, 0.005f, 0.25f);
 
@@ -114,41 +103,12 @@ namespace hrzn::scene
 		m_axisTranslateDefaultBounds[1] = XMFLOAT3(0.05f, 0.45f, 0.05f);
 		m_axisTranslateDefaultBounds[2] = XMFLOAT3(0.05f, 0.05f, 0.45f);
 
-		// Standard Camera
-		entity::CameraGameObject* mainCamera = new entity::CameraGameObject();
-		mainCamera->setLabel("main_cam");
-
-		mainCamera->getWritableTransform().setPosition(-12.0f, 3.0f, 7.0f);
-		mainCamera->getWritableTransform().lookAtPosition(XMFLOAT3(-12.0f, 0.0f, -3.6f));
-		//m_camera.getTransform().lookAtPosition(XMVectorSet(0.0f, 7.0f, 0.0f, 1.0f));
-		mainCamera->setProjectionValues(90.0f, static_cast<float>(UserConfig::it().getWindowWidth()) / static_cast<float>(UserConfig::it().getWindowHeight()), 0.1f, 1000.0f);
-		//camera.SetObjectTrack(objectTracks.at("camera_track"));
-		//camera.SetFollowingObjectTrack(true);
-		m_cameras.push_back(mainCamera);
-		m_activeCamera = mainCamera;
-
-		// Preset static cameras
-		entity::CameraGameObject* staticCam1 = new entity::CameraGameObject();
-		staticCam1->setLabel("static_cam_1");
-		staticCam1->getWritableTransform().setPosition(XMFLOAT3(0.0f, 37.5f, 0.0f));
-		staticCam1->getWritableTransform().lookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.5f));
-		staticCam1->setFOV(80.0f);
-		m_cameras.push_back(staticCam1);
-
-		entity::CameraGameObject* staticCam2 = new entity::CameraGameObject();
-		staticCam2->setLabel("static_cam_2");
-		staticCam2->getWritableTransform().setPosition(XMFLOAT3(10.0f, 10.0f, 10.0f));
-		staticCam2->getWritableTransform().lookAtPosition(XMFLOAT3(3.0f, 2.5f, 3.0f));
-		staticCam2->setFOV(70.0f);
-		m_cameras.push_back(staticCam2);
-
-
 		// Register input delegates
 		InputManager::it().registerMouseButtonDelegate(std::bind(&SceneManager::mouseButtonDelegate, this, std::placeholders::_1, std::placeholders::_2));
 		InputManager::it().registerMouseScrollDelegate(std::bind(&SceneManager::mouseScrollDelegate, this, std::placeholders::_1, std::placeholders::_2));
 		InputManager::it().registerMouseMoveDelegate(std::bind(&SceneManager::mouseMoveDelegate, this, std::placeholders::_1, std::placeholders::_2));
 
-		if (!loadScene("test.txt"))
+		if (!loadScene("test"))
 		{
 			return false;
 		}
@@ -162,6 +122,10 @@ namespace hrzn::scene
 	bool SceneManager::loadScene(const char* sceneName)
 	{
 		unloadScene();
+
+		loadSceneStaticObjects();
+
+		m_sceneLoader.loadScene(sceneName);
 
 		m_sceneName = sceneName;
 
@@ -401,6 +365,54 @@ namespace hrzn::scene
 		return false;
 	}
 
+	bool SceneManager::loadSceneStaticObjects()
+	{
+		/*entity::PhysicsGameObject* physicsObject = new entity::PhysicsGameObject();
+		physicsObject->initialize("box1", "res/models/test_cubes/bricks.obj");
+
+		entity::PhysicsGameObject* physicsObject2 = new entity::PhysicsGameObject();
+		physicsObject2->initialize("box2", "res/models/test_cubes/bricks.obj");
+
+		addGameObject(physicsObject);
+		addGameObject(physicsObject2);
+
+		m_springs.push_back(new physics::Spring(XMVectorSet(0.0f, 10.0f, 5.0f, 0.0f), m_physicsObjects.at(0)->getRigidBody(), 5.0f, 150.0f));
+		m_springs.push_back(new physics::Spring(m_physicsObjects.at(0)->getRigidBody(), m_physicsObjects.at(1)->getRigidBody(), 10.0f, 150.0f));
+
+		dynamic_cast<entity::PhysicsGameObject*>(m_gameObjectMap.at("box1"))->getRigidBody()->setIsStatic(false);
+		dynamic_cast<entity::PhysicsGameObject*>(m_gameObjectMap.at("box2"))->getRigidBody()->setIsStatic(false);*/
+
+		// Standard Camera
+		entity::CameraGameObject* mainCamera = new entity::CameraGameObject();
+		mainCamera->setLabel("main_cam");
+
+		mainCamera->getWritableTransform().setPosition(-12.0f, 3.0f, 7.0f);
+		mainCamera->getWritableTransform().lookAtPosition(XMFLOAT3(-12.0f, 0.0f, -3.6f));
+		//m_camera.getTransform().lookAtPosition(XMVectorSet(0.0f, 7.0f, 0.0f, 1.0f));
+		mainCamera->setProjectionValues(90.0f, static_cast<float>(UserConfig::it().getWindowWidth()) / static_cast<float>(UserConfig::it().getWindowHeight()), 0.1f, 1000.0f);
+		//camera.SetObjectTrack(objectTracks.at("camera_track"));
+		//camera.SetFollowingObjectTrack(true);
+		m_cameras.push_back(mainCamera);
+		m_activeCamera = mainCamera;
+
+		// Preset static cameras
+		entity::CameraGameObject* staticCam1 = new entity::CameraGameObject();
+		staticCam1->setLabel("static_cam_1");
+		staticCam1->getWritableTransform().setPosition(XMFLOAT3(0.0f, 37.5f, 0.0f));
+		staticCam1->getWritableTransform().lookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.5f));
+		staticCam1->setFOV(80.0f);
+		m_cameras.push_back(staticCam1);
+
+		entity::CameraGameObject* staticCam2 = new entity::CameraGameObject();
+		staticCam2->setLabel("static_cam_2");
+		staticCam2->getWritableTransform().setPosition(XMFLOAT3(10.0f, 10.0f, 10.0f));
+		staticCam2->getWritableTransform().lookAtPosition(XMFLOAT3(3.0f, 2.5f, 3.0f));
+		staticCam2->setFOV(70.0f);
+		m_cameras.push_back(staticCam2);
+
+		return true;
+	}
+
 	bool SceneManager::saveScene(const char* sceneName)
 	{
 		std::string sceneFilePath = "res/scenes/";
@@ -556,12 +568,6 @@ namespace hrzn::scene
 		}
 
 		m_gameObjectMap.clear();
-
-		m_renderables.clear();
-		m_physicsObjects.clear();
-		m_pointLights.clear();
-		m_spotLights.clear();
-		m_springs.clear();
 
 		if (objectIsSelected())
 		{
