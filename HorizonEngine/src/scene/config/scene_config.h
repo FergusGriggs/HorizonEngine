@@ -15,20 +15,24 @@ namespace hrzn::scene
         void loadConfigs();
         void saveConfigs(rapidjson::Writer<rapidjson::StringBuffer>& JSONWriter) const;
 
-        const config::MetaConfig&       getMetaConfig() const;
-        config::MetaConfig&             getWritableMetaConfig();
+        const config::TimeConfig&       getTimeConfig() const;
+        config::TimeConfig&             getWritableTimeConfig();
+        void                            setTimeConfig(const config::TimeConfig& timeConfig);
 
         const config::OceanConfig&      getOceanConfig() const;
         config::OceanConfig&            getWritableOceanConfig();
+        void                            setOceanConfig(const config::OceanConfig& oceanConfig);
 
         const config::CloudConfig&      getCloudConfig() const;
         config::CloudConfig&            getWritableCloudConfig();
+        void                            setCloudConfig(const config::CloudConfig& cloudConfig);
 
         const config::AtmosphereConfig& getAtmosphereConfig() const;
         config::AtmosphereConfig&       getWritableAtmosphereConfig();
+        void                            setAtmosphereConfig(const config::AtmosphereConfig& atmosphereConfig);
 
     private:
-        config::MetaConfig       m_metaConfig;
+        config::TimeConfig       m_timeConfig;
         config::OceanConfig      m_oceanConfig;
         config::CloudConfig      m_cloudConfig;
         config::AtmosphereConfig m_atmosphereConfig;

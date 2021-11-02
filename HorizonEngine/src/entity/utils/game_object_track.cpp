@@ -8,7 +8,7 @@
 namespace hrzn::entity
 {
 	GameObjectTrack::GameObjectTrack() :
-		m_label("null"),
+		m_id("null"),
 		m_trackNodes(),
 		m_midPoints(),
 
@@ -34,7 +34,15 @@ namespace hrzn::entity
 			XMFLOAT3 lookPoint = lerpFloat3(m_trackNodes[i].m_lookPoint, m_trackNodes[i + 1].m_lookPoint, 0.5f);
 			m_midPoints.push_back(ObjectTrackNode(position, lookPoint));
 		}
-		m_maxDelta = static_cast<float>(m_trackNodes.size() - 1);
+
+		//if (m_loopTrack)
+		//{
+		//	XMFLOAT3 position = lerpFloat3(m_trackNodes[0].m_position, m_trackNodes[m_trackNodes.size() - 1].m_position, 0.5f);
+		//	XMFLOAT3 lookPoint = lerpFloat3(m_trackNodes[0].m_lookPoint, m_trackNodes[m_trackNodes.size() - 1].m_lookPoint, 0.5f);
+		//	m_midPoints.push_back(ObjectTrackNode(position, lookPoint));
+		//}
+
+		m_maxDelta = static_cast<float>(m_midPoints.size());
 	}
 
 	float GameObjectTrack::lerpFloat(float start, float end, float delta)
@@ -54,7 +62,7 @@ namespace hrzn::entity
 
 	void GameObjectTrack::follow(GameObject* gameObject, float deltaTime, bool lookTo)
 	{
-		m_delta += m_trackSpeed * deltaTime * 0.001f;
+		m_delta += m_trackSpeed * deltaTime;
 
 		if (m_delta < 0.0f)
 		{
@@ -66,7 +74,7 @@ namespace hrzn::entity
 		}
 
 		int trackSize = m_trackNodes.size();
-		if (trackSize == 0)
+		if (trackSize == 1)
 		{
 			gameObject->getWritableTransform().setPosition(m_trackNodes[0].m_position);
 			if (lookTo) gameObject->getWritableTransform().lookAtPosition(m_trackNodes[0].m_lookPoint);
@@ -83,20 +91,20 @@ namespace hrzn::entity
 			{
 				if (m_delta < 0.5f)
 				{
-					gameObject->getWritableTransform().setPosition(lerpFloat3Quadratic(m_trackNodes[trackSize - 2].m_position, m_trackNodes[0].m_position, m_trackNodes[0].m_position, 0.5f + m_delta));
+					gameObject->getWritableTransform().setPosition(lerpFloat3Quadratic(m_midPoints[trackSize - 2].m_position, m_trackNodes[0].m_position, m_midPoints[0].m_position, 0.5f + m_delta));
 					if (lookTo) gameObject->getWritableTransform().lookAtPosition(lerpFloat3Quadratic(m_midPoints[trackSize - 2].m_lookPoint, m_trackNodes[0].m_lookPoint, m_midPoints[0].m_lookPoint, 0.5f + m_delta));
 				}
 				else if (m_delta < upperDelta)
 				{
 					int splineIndex = floor(m_delta - 0.5f);
 					float splineDelta = m_delta - 0.5f - (float)splineIndex;
-					gameObject->getWritableTransform().setPosition(lerpFloat3Quadratic(m_trackNodes[splineIndex].m_position, m_trackNodes[splineIndex + 1].m_position, m_trackNodes[splineIndex + 1].m_position, splineDelta));
+					gameObject->getWritableTransform().setPosition(lerpFloat3Quadratic(m_midPoints[splineIndex].m_position, m_trackNodes[splineIndex + 1].m_position, m_midPoints[splineIndex + 1].m_position, splineDelta));
 					if (lookTo) gameObject->getWritableTransform().lookAtPosition(lerpFloat3Quadratic(m_midPoints[splineIndex].m_lookPoint, m_trackNodes[splineIndex + 1].m_lookPoint, m_midPoints[splineIndex + 1].m_lookPoint, splineDelta));
 				}
 				else if (m_delta > upperDelta)
 				{
 					float splineDelta = m_delta - upperDelta;
-					gameObject->getWritableTransform().setPosition(lerpFloat3Quadratic(m_trackNodes[trackSize - 2].m_position, m_trackNodes[0].m_position, m_trackNodes[0].m_position, splineDelta));
+					gameObject->getWritableTransform().setPosition(lerpFloat3Quadratic(m_midPoints[trackSize - 2].m_position, m_trackNodes[0].m_position, m_midPoints[0].m_position, splineDelta));
 					if (lookTo) gameObject->getWritableTransform().lookAtPosition(lerpFloat3Quadratic(m_midPoints[trackSize - 2].m_lookPoint, m_trackNodes[0].m_lookPoint, m_midPoints[0].m_lookPoint, splineDelta));
 				}
 			}
@@ -132,17 +140,27 @@ namespace hrzn::entity
 
 	void GameObjectTrack::setDelta(float delta)
 	{
-		delta = delta;
+		m_delta = delta;
 	}
 
-	const std::string& GameObjectTrack::getLabel() const
+	void GameObjectTrack::setSpeed(float speed)
 	{
-		return m_label;
+		m_trackSpeed = speed;
 	}
 
-	void GameObjectTrack::setLabel(std::string label)
+	float GameObjectTrack::getSpeed()
 	{
-		label = label;
+		return m_trackSpeed;
+	}
+
+	const std::string& GameObjectTrack::getId() const
+	{
+		return m_id;
+	}
+
+	void GameObjectTrack::setId(std::string id)
+	{
+		m_id = id;
 	}
 
 	const std::vector<ObjectTrackNode>& GameObjectTrack::getTrackNodes() const

@@ -80,7 +80,7 @@ namespace hrzn::utils::string_helpers
 
 	static int getLineNumberFromOffset(std::string& string, size_t charOffset)
 	{
-		int lineNumber = 1;
+		int lineNumber = 0;
 		size_t numIterations = std::min(string.length(), charOffset);
 		for (size_t i = 0; i < numIterations; ++i)
 		{

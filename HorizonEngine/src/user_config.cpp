@@ -1,6 +1,13 @@
 #include "user_config.h"
 
-UserConfig::UserConfig()
+UserConfig::UserConfig() :
+	m_windowWidth(1728),
+	m_windowHeight(972),
+
+	m_windowWidthFloat(static_cast<float>(m_windowWidth)),
+	m_windowHeightFloat(static_cast<float>(m_windowHeight)),
+
+	m_windowName("HorizonEngine")
 {
 }
 
@@ -22,6 +29,21 @@ int UserConfig::getWindowWidth() const
 int UserConfig::getWindowHeight() const
 {
 	return m_windowHeight;
+}
+
+float UserConfig::getWindowWidthFloat() const
+{
+	return m_windowWidthFloat;
+}
+
+float UserConfig::getWindowHeightFloat() const
+{
+	return m_windowHeightFloat;
+}
+
+float UserConfig::getWindowAspectRatio() const
+{
+	return m_windowWidthFloat / m_windowHeightFloat;
 }
 
 const char* UserConfig::getWindowName() const

@@ -7,7 +7,7 @@ namespace hrzn::entity
 		m_rigidBody(),
 		m_worldSpaceBoundingBox()
 	{
-		m_type = GameObjectType::ePhysics;
+		m_type = GameObject::Type::ePhysics;
 
 		m_rigidBody.setTransformReference(&m_transform);
 	}

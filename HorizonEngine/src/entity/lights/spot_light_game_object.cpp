@@ -11,7 +11,7 @@ namespace hrzn::entity
 		m_innerCutoff(45.0f),
 		m_outerCutoff(35.0f)
 	{
-		m_type = GameObjectType::eSpotLight;
+		m_type = GameObject::Type::eSpotLight;
 	}
 
 	void SpotLightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& pixelShaderCB, int lightIndex)

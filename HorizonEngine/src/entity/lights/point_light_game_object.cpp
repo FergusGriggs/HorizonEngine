@@ -13,7 +13,7 @@ namespace hrzn::entity
 		m_attenuationQuadratic(0.001f)
 
 	{
-		m_type = GameObjectType::ePointLight;
+		m_type = GameObject::Type::ePointLight;
 	}
 
 	void PointLightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& pixelShaderCB, int lightIndex)
@@ -40,5 +40,20 @@ namespace hrzn::entity
 	float* PointLightGameObject::getAttenuationQuadraticPtr()
 	{
 		return &m_attenuationQuadratic;
+	}
+
+	void PointLightGameObject::setAttenuationConstant(float attenuationConstant)
+	{
+		m_attenuationConstant = attenuationConstant;
+	}
+
+	void PointLightGameObject::setAttenuationLinear(float attenuationLinear)
+	{
+		m_attenuationLinear = attenuationLinear;
+	}
+
+	void PointLightGameObject::setAttenuationQuadratic(float attenuationQuadratic)
+	{
+		m_attenuationQuadratic = attenuationQuadratic;
 	}
 }

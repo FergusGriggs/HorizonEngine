@@ -10,19 +10,14 @@ namespace hrzn::entity
 		m_colour(DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f)),
 		m_ambientStrength(0.2f)
 	{
-		m_type = GameObjectType::eLight;
+		m_type = GameObject::Type::eLight;
 	}
 
-	bool LightGameObject::initialize(std::string label)
+	bool LightGameObject::initialize()
 	{
-		m_label = label;
-
 		m_model = gfx::ResourceManager::it().getModelPtr("res/models/light.obj");
 		if (m_model == nullptr) return false;
-
-		m_transform.setPosition(XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
-		m_transform.setOrientationQuaternion(XMQuaternionIdentity());
-
+		
 		return true;
 	}
 

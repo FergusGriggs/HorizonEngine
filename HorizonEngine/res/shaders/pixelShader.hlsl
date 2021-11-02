@@ -186,10 +186,13 @@ float4 main(PS_INPUT input) : SV_TARGET
         float3 tangentViewDir = mul(viewDirection, worldToTangent);
         input.texCoord = getParallaxTextureCoords(tangentViewDir, input.texCoord);
 
-        /*if (input.texCoord.x < 0.0f || input.texCoord.x > 1.0f || input.texCoord.y < 0.0f || input.texCoord.y > 1.0f)
+        if (miscToggleA)
         {
-            discard;
-        }*/
+            if (input.texCoord.x < 0.0f || input.texCoord.x > 1.0f || input.texCoord.y < 0.0f || input.texCoord.y > 1.0f)
+            {
+                discard;
+            }
+        }
     }
 
     if (showUVs)
@@ -320,10 +323,10 @@ float4 main(PS_INPUT input) : SV_TARGET
 
     cumulativeColour = lerp(cumulativeColour, directionalLight.colour, fresnelFactor);
 
-    if (miscToggleA)
+    /*if (miscToggleA)
     {
         cumulativeColour = pow(cumulativeColour, 1.0f / 2.2f);
-    }
+    }*/
 
     return float4(cumulativeColour, 1.0f);
 }

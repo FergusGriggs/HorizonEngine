@@ -44,10 +44,10 @@ namespace hrzn::entity
 
 		if (m_floating)
 		{
-			objectPosition = m_floatOffset;
+			objectPosition = XMFLOAT3(objectPosition.x + m_floatOffset.x, m_floatOffset.y, objectPosition.z + m_floatOffset.z);
 		}
 
-		if (m_type == GameObjectType::eRenderable)
+		if (m_type == GameObject::Type::eRenderable)
 		{
 			m_model->draw(XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z) * m_transform.getRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z), viewProjectionMatrix, vertexShaderCB, bindTextures);
 		}

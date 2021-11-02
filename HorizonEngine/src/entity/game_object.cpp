@@ -9,7 +9,7 @@ namespace hrzn::entity
 {
 	GameObject::GameObject() :
 		m_label("null"),
-		m_type(GameObjectType::eBase),
+		m_type(Type::eBase),
 
 		m_transform(),
 
@@ -61,7 +61,7 @@ namespace hrzn::entity
 		}
 	}
 
-	GameObjectType GameObject::getType() const
+	GameObject::Type GameObject::getType() const
 	{
 		return m_type;
 	}
@@ -109,6 +109,16 @@ namespace hrzn::entity
 	float GameObject::getObjectTrackDelta() const
 	{
 		return m_objectTrack->getDelta();
+	}
+
+	void GameObject::setObjectTrackSpeed(float trackSpeed)
+	{
+		m_objectTrack->setSpeed(trackSpeed);
+	}
+
+	float GameObject::getObjectTrackSpeed() const
+	{
+		return m_objectTrack->getSpeed();
 	}
 
 	void GameObject::setFloating(bool floating)

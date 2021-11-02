@@ -1,25 +1,20 @@
 {"Scene": {
 	"SceneMeta": {
 		"scene_name": "test_scene",
-		"author": "fergus",
+		"author_name": "Fergus Griggs",
+		"author_email": "fbob987 at gmail dot com",
 		"date_created": "15:40:23;14/10/2021",
 		"date_modified": "15:40:23;14/10/2021"
 	},
 
-	"SceneSettings": {
-		"TimeSettings": {
+	"SceneConfig": {
+		"TimeConfig": {
 			"start_time": 0.25,
 			"progress_time": false,
 			"day_duration": 60.0
 		},
-		
-		"SkySettings": {
-			"sun_size": 75.0,
-			"anisotropic_intenisty": 1.0,
-			"zenith_offset": -0.06
-		},
-		
-		"CloudSettings": {
+
+		"CloudConfig": {
 			"enabled": true,
 			"light_absorbtion_through_clouds": 0.084,
 			"light_absorbtion_towards_sun": 0.392,
@@ -31,85 +26,115 @@
 			"step_size": 85.0,
 			"cloud_height": 2000.0
 		},
-		
-		"WaterSettings": {
+
+		"OceanConfig": {
 			"enabled": true,
-			"wave_count": 20,
-			"wave_scale": 9.3,
-			"wave_period": 26.5,
-			"wave_speed": 21.0,
-			"wave_seed": 258.671,
-			"wave_scale_multiplier": 0.538,
-			"foam_start": 1.446,
-			"colour_change_start": 1.0
+			"wave_count": 30,
+			"wave_scale": 6.6,
+			"wave_period": 21.5,
+			"wave_speed": 12.0,
+			"wave_seed": 656.993,
+			"wave_scale_multiplier": 0.745,
+			"foam_start": 0.97,
+			"colour_change_start": 1.88
+		},
+
+		"AtmosphereConfig": {
+			"sun_size": 75.0,
+			"anisotropic_intenisty": 1.0,
+			"zenith_offset": -0.06
 		}
 	},
 	
-	"GameObjectTracks": [
+	"ObjectTracks": [
 		{
-			"name": "test_track",
-			"nodes": [
+			"id": "test_track",
+			"Nodes": [
 				{
-					"position": [0.0, 0.0, 0.0],
-					"look_at_position": [1.0, 0.0, 0.0]
+					"position": [ 10.0, 0.0, 0.0 ],
+					"look_position": [ 0.0, -1.0, 0.0 ]
 				},
 				{
-					"position": [1.0, 0.0, 0.0],
-					"look_at_position": [2.0, 0.0, 0.0]
+					"position": [ 0.0, 5.0, 10.0 ],
+					"look_position": [ 0.0, -1.0, 0.0 ]
 				},
 				{
-					"position": [0.0, 1.0, 0.0],
-					"look_at_position": [1.0, 1.0, 0.0]
+					"position": [ -10.0, 0.0, 0.0 ],
+					"look_position": [ 0.0, -1.0, 0.0 ]
 				},
 				{
-					"position": [-1.0, 0.0, 0.0],
-					"look_at_position": [0.0, 0.0, 0.0]
+					"position": [ 0.0, -5.0, -10.0 ],
+					"look_position": [ 0.0, -1.0, 0.0 ]
+				},
+				{
+					"position": [ 10.0, 0.0, 0.0 ],
+					"look_position": [ 0.0, -1.0, 0.0 ]
 				}
 			]
 		}
 	],
-	
+
 	"GameObjects": [
 		{
-			"id": "directional_light",
+			"id": "test_spot_light_1",
 			"type": "SpotLight",
-			"position": [0.0, 0.0, 0.0],
-			"orientation": [0.0, 0.0, 0.0, 1.0],
-			
+			"position": [ 0.0, 2.0, 0.0 ],
+			"orientation": [ 0.0, 0.0, 0.0, 1.0 ],
+
 			"floating": false,
-			
-			"Controller": {
-				"active": true,
-				"contoller_type": "player",
-				"move_speed": 1.0
-			},
-			
+
 			"ObjectTracks": [
 				{
 					"id": "test_track",
-					"is_following": false,
+					"is_following": true,
 					"track_delta": 0.0,
-					"track_speed": 1.0
+					"track_speed": 0.1
 				}
 			],
-			
-			"RelativeCameras": [
-				{ "relative_position": [0.0, 5.0, 0.0] }
-			],
-			
+
 			"LightData": {
-				"colour": [1.0, 0.0, 0.0],
-				
-				"PointLightData": {
-					"attenuation_constant": 0.2,
-					"attenuation_linear": 0.05,
-					"attenuation_quadratic": 0.001,
-					
-					"SpotLightData": {
-						"inner_cutoff": 0.45,
-						"outer_cutoff": 0.6
-					}
-				}
+				"colour": [ 0.095, 0.627, 0.062 ]
+			},
+
+			"PointLightData": {
+				"attenuation_constant": 0.2,
+				"attenuation_linear": 0.05,
+				"attenuation_quadratic": 0.001
+			},
+
+			"SpotLightData":  {
+				"inner_cutoff": 45.0,
+				"outer_cutoff": 60.0
+			}
+		},
+		{
+			"id": "test_cube_1",
+			"type": "Renderable",
+			"position": [0.0, -1.0, 0.0],
+
+			"Controller": {
+				"active": true,
+				"type": "player",
+				"move_speed": 1.0
+			},
+
+			"RelativeCameras": [
+				{ "relative_position": [ 0.0, 5.0, 0.0 ] }
+			],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/bricks.obj",
+				"scale": [ 1.5, 1.5, 1.5 ]
+			}
+		},
+		{
+			"id": "camera_test",
+			"type": "Camera",
+
+			"CameraData": {
+				"fov": 90.0,
+				"near_plane": 0.1,
+				"far_plane": 3000.0
 			}
 		}
 	]

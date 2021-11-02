@@ -10,14 +10,22 @@ public:
 	int getWindowWidth() const;
 	int getWindowHeight() const;
 
+	float getWindowWidthFloat() const;
+	float getWindowHeightFloat() const;
+
+	float getWindowAspectRatio() const;
+
 	const char* getWindowName() const;
 
 private:
 	UserConfig();
 
 private:
-	int m_windowWidth = 1728;
-	int m_windowHeight = 972;
+	int   m_windowWidth;
+	int   m_windowHeight;
 
-	const char* m_windowName = "HorizonEngine";
+	float m_windowWidthFloat;
+	float m_windowHeightFloat;
+
+	const char* m_windowName;
 };

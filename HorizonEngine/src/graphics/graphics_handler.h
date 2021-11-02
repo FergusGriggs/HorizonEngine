@@ -34,6 +34,7 @@ namespace hrzn::gfx
 	{
 	public:
 		bool initialize(HWND hwnd);
+		bool initializeScene(scene::SceneManager& sceneManager);
 
 		void update(scene::SceneManager& sceneManager, float deltaTime);
 		void renderActiveScene(scene::SceneManager& sceneManager);
@@ -47,7 +48,6 @@ namespace hrzn::gfx
 	private:
 		bool  initializeDirectX(HWND hwnd);
 		bool  initializeShaders();
-		bool  initializeScene();
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Device>           m_device;

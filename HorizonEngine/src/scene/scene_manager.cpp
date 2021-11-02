@@ -93,7 +93,9 @@ namespace hrzn::scene
 		}
 		m_ocean.getWritableTransform().setPosition(0.0f, -25.0f, 0.0f);
 
-		if (!m_directionalLight.initialize("Directional Light"))
+		m_directionalLight.setLabel("directional_light");
+
+		if (!m_directionalLight.initialize())
 		{
 			return false;
 		}
@@ -144,9 +146,9 @@ namespace hrzn::scene
 
 			for (int i = 0; i < numObjectTracks; ++i)
 			{
-				std::string trackName;
-				sceneFile >> trackName;
-				utils::string_helpers::replaceChars(trackName, '|', ' ');
+				std::string trackId;
+				sceneFile >> trackId;
+				utils::string_helpers::replaceChars(trackId, '|', ' ');
 
 				int numNodes;
 				sceneFile >> numNodes;
@@ -164,9 +166,9 @@ namespace hrzn::scene
 
 				track->generateMidPoints();
 
-				track->setLabel(trackName);
+				track->setId(trackId);
 
-				m_objectTracks.insert(std::make_pair(trackName, track));
+				m_objectTracks.insert(std::make_pair(trackId, track));
 			}
 
 			int numObjects;
@@ -178,7 +180,7 @@ namespace hrzn::scene
 
 				int intObjectType;
 				sceneFile >> intObjectType;
-				entity::GameObjectType objectType = static_cast<entity::GameObjectType>(intObjectType);
+				entity::GameObject::Type objectType = static_cast<entity::GameObject::Type>(intObjectType);
 
 				std::string label;
 				sceneFile >> label;
@@ -186,7 +188,7 @@ namespace hrzn::scene
 
 				switch (objectType)
 				{
-				case entity::GameObjectType::eRenderable:
+				case entity::GameObject::Type::eRenderable:
 				{
 					entity::RenderableGameObject* renderableGameObject = new entity::RenderableGameObject();
 					gameObject = dynamic_cast<entity::GameObject*>(renderableGameObject);
@@ -204,9 +206,9 @@ namespace hrzn::scene
 					
 					break;
 				}
-				case entity::GameObjectType::eLight:
+				case entity::GameObject::Type::eLight:
 				{
-					if (!m_directionalLight.initialize(label))
+					if (!m_directionalLight.initialize())
 					{
 						std::cout << "Failed to init directional light with label " << label << "\n";
 						return false;
@@ -217,12 +219,12 @@ namespace hrzn::scene
 					gameObject = dynamic_cast<entity::GameObject*>(&m_directionalLight);
 					break;
 				}
-				case entity::GameObjectType::ePointLight:
+				case entity::GameObject::Type::ePointLight:
 				{
 					entity::PointLightGameObject* pointLight = new entity::PointLightGameObject();
 					gameObject = dynamic_cast<entity::GameObject*>(pointLight);
 
-					if (!pointLight->initialize(label))
+					if (!pointLight->initialize())
 					{
 						std::cout << "Failed to init point light with label " << label << "\n";
 						return false;
@@ -231,12 +233,12 @@ namespace hrzn::scene
 					pointLight->setColour(utils::io_helpers::readFloat3(sceneFile));
 					break;
 				}
-				case entity::GameObjectType::eSpotLight:
+				case entity::GameObject::Type::eSpotLight:
 				{
 					entity::SpotLightGameObject* spotLight = new entity::SpotLightGameObject();
 					gameObject = dynamic_cast<entity::GameObject*>(spotLight);
 
-					if (!spotLight->initialize(label))
+					if (!spotLight->initialize())
 					{
 						std::cout << "Failed to init spot light with label " << label << "\n";
 						return false;
@@ -250,7 +252,7 @@ namespace hrzn::scene
 					spotLight->setOuterCutoff(outerCutoff);
 					break;
 				}
-				case entity::GameObjectType::ePhysics:
+				case entity::GameObject::Type::ePhysics:
 				{
 					entity::PhysicsGameObject* physicsGameObject = new entity::PhysicsGameObject();
 					gameObject = dynamic_cast<entity::GameObject*>(physicsGameObject);
@@ -392,26 +394,11 @@ namespace hrzn::scene
 		mainCamera->getWritableTransform().setPosition(-12.0f, 3.0f, 7.0f);
 		mainCamera->getWritableTransform().lookAtPosition(XMFLOAT3(-12.0f, 0.0f, -3.6f));
 		//m_camera.getTransform().lookAtPosition(XMVectorSet(0.0f, 7.0f, 0.0f, 1.0f));
-		mainCamera->setProjectionValues(90.0f, static_cast<float>(UserConfig::it().getWindowWidth()) / static_cast<float>(UserConfig::it().getWindowHeight()), 0.1f, 1000.0f);
+		mainCamera->setProjectionValues(90.0f, UserConfig::it().getWindowAspectRatio(), 0.1f, 1000.0f);
 		//camera.SetObjectTrack(objectTracks.at("camera_track"));
 		//camera.SetFollowingObjectTrack(true);
-		m_cameras.push_back(mainCamera);
+		addGameObject(mainCamera);
 		m_activeCamera = mainCamera;
-
-		// Preset static cameras
-		entity::CameraGameObject* staticCam1 = new entity::CameraGameObject();
-		staticCam1->setLabel("static_cam_1");
-		staticCam1->getWritableTransform().setPosition(XMFLOAT3(0.0f, 37.5f, 0.0f));
-		staticCam1->getWritableTransform().lookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.5f));
-		staticCam1->setFOV(80.0f);
-		m_cameras.push_back(staticCam1);
-
-		entity::CameraGameObject* staticCam2 = new entity::CameraGameObject();
-		staticCam2->setLabel("static_cam_2");
-		staticCam2->getWritableTransform().setPosition(XMFLOAT3(10.0f, 10.0f, 10.0f));
-		staticCam2->getWritableTransform().lookAtPosition(XMFLOAT3(3.0f, 2.5f, 3.0f));
-		staticCam2->setFOV(70.0f);
-		m_cameras.push_back(staticCam2);
 
 		return true;
 	}
@@ -456,7 +443,7 @@ namespace hrzn::scene
 				std::unordered_map<std::string, entity::GameObject*>::iterator objectMapIterator = m_gameObjectMap.begin();
 				while (objectMapIterator != m_gameObjectMap.end())
 				{
-					entity::GameObjectType objectType = objectMapIterator->second->getType();
+					entity::GameObject::Type objectType = objectMapIterator->second->getType();
 					int objectTypeInt = static_cast<int>(objectType);
 					sceneFile << objectTypeInt << ' ';
 
@@ -466,7 +453,7 @@ namespace hrzn::scene
 
 					switch (objectType)
 					{
-					case entity::GameObjectType::eRenderable:
+					case entity::GameObject::Type::eRenderable:
 					{
 						entity::RenderableGameObject* renderableGameObject = dynamic_cast<entity::RenderableGameObject*>(objectMapIterator->second);
 						std::string path = renderableGameObject->getModel().getPath();
@@ -474,19 +461,19 @@ namespace hrzn::scene
 						sceneFile << path;
 						break;
 					}
-					case entity::GameObjectType::eLight:
+					case entity::GameObject::Type::eLight:
 					{
 						entity::LightGameObject* directionalLight = dynamic_cast<entity::LightGameObject*>(objectMapIterator->second);
 						utils::io_helpers::writeFloat3(directionalLight->getColour(), sceneFile);
 						break;
 					}
-					case entity::GameObjectType::ePointLight:
+					case entity::GameObject::Type::ePointLight:
 					{
 						entity::PointLightGameObject* pointLight = dynamic_cast<entity::PointLightGameObject*>(objectMapIterator->second);
 						utils::io_helpers::writeFloat3(pointLight->getColour(), sceneFile);
 						break;
 					}
-					case entity::GameObjectType::eSpotLight:
+					case entity::GameObject::Type::eSpotLight:
 					{
 						entity::SpotLightGameObject* spotLight = dynamic_cast<entity::SpotLightGameObject*>(objectMapIterator->second);
 						utils::io_helpers::writeFloat3(spotLight->getColour(), sceneFile);
@@ -507,7 +494,7 @@ namespace hrzn::scene
 					const entity::GameObjectTrack* gameObjectTrack = objectMapIterator->second->getObjectTrack();
 					if (gameObjectTrack != nullptr)
 					{
-						sceneFile << 1 << ' ' << gameObjectTrack->getLabel() << ' ' << objectMapIterator->second->isFollowingObjectTrack() << ' ' << objectMapIterator->second->getObjectTrackDelta() << '\n';
+						sceneFile << 1 << ' ' << gameObjectTrack->getId() << ' ' << objectMapIterator->second->isFollowingObjectTrack() << ' ' << objectMapIterator->second->getObjectTrackDelta() << '\n';
 					}
 					else
 					{
@@ -884,6 +871,16 @@ namespace hrzn::scene
 		}
 	}
 
+	void SceneManager::addObjectTrack(entity::GameObjectTrack* objectTrack)
+	{
+		m_objectTracks.insert(std::make_pair(objectTrack->getId(), objectTrack));
+	}
+
+	std::unordered_map<std::string, entity::GameObjectTrack*>& SceneManager::getObjectTracks()
+	{
+		return m_objectTracks;
+	}
+
 	entity::GameObject& SceneManager::getWritableGameObject(const std::string& label)
 	{
 		if (m_gameObjectMap.find(label) != m_gameObjectMap.end())
@@ -952,6 +949,16 @@ namespace hrzn::scene
 
 			m_gameObjectMap.erase(iterator->first);
 		}
+	}
+
+	const SceneConfig& SceneManager::getSceneConfig() const
+	{
+		return m_sceneConfig;
+	}
+
+	SceneConfig& SceneManager::getWritableSceneConfig()
+	{
+		return m_sceneConfig;
 	}
 
 	void SceneManager::mouseButtonDelegate(const input::MouseEvent& mouseEvent, float deltaTime)
@@ -1126,13 +1133,16 @@ namespace hrzn::scene
 		// Iterate over the map using iterator
 		while (mapIterator != m_gameObjectMap.end())
 		{
-			entity::RenderableGameObject* gameObject = dynamic_cast<entity::RenderableGameObject*>(mapIterator->second);
-			distance = gameObject->getRayIntersectDist(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection());
-			if (distance < closestDist)
+			if (entity::RenderableGameObject* gameObject = dynamic_cast<entity::RenderableGameObject*>(mapIterator->second))
 			{
-				closestDist = distance;
-				m_selectedObject = gameObject;
+				distance = gameObject->getRayIntersectDist(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection());
+				if (distance < closestDist)
+				{
+					closestDist = distance;
+					m_selectedObject = gameObject;
+				}
 			}
+
 			mapIterator++;
 		}
 
@@ -1314,7 +1324,7 @@ namespace hrzn::scene
 
 		XMVECTOR windDir = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 
-		XMVECTOR flatPosition = XMVectorSet(x, 0.0f, x, 1.0f);
+		XMVECTOR flatPosition = XMVectorSet(x, 0.0f, z, 1.0f);
 		XMVECTOR finalOffset = XMVectorSet(0.0f, m_ocean.getTransform().getPositionFloat3().y, 0.0f, 1.0f);
 
 		float scale = 0.5f;
@@ -1394,18 +1404,26 @@ namespace hrzn::scene
 		XMVECTOR objectFront = object->getTransform().getFrontVector();
 		XMVECTOR objectRight = object->getTransform().getRightVector();
 
-		XMVECTOR flatTangent = XMVector3Normalize(XMVectorSet(XMVectorGetX(objectRight), 0.0f, XMVectorGetZ(objectRight), 0.0f));
-		XMVECTOR flatBitangent = XMVector3Normalize(XMVectorSet(XMVectorGetX(objectFront), 0.0f, XMVectorGetZ(objectFront), 0.0f));
+		//XMVECTOR flatTangent = XMVector3Normalize(XMVectorSet(XMVectorGetX(objectRight), 0.0f, XMVectorGetZ(objectRight), 0.0f));
+		//XMVECTOR flatBitangent = XMVector3Normalize(XMVectorSet(XMVectorGetX(objectFront), 0.0f, XMVectorGetZ(objectFront), 0.0f));
 
 		XMVECTOR displacedMainPosition = getFourierOffset(anchorPosition.x, anchorPosition.z);
-		XMVECTOR displacedTangentPosition = getFourierOffset(anchorPosition.x + XMVectorGetX(flatTangent), anchorPosition.z + XMVectorGetZ(flatTangent));
-		XMVECTOR displacedBitangentPosition = getFourierOffset(anchorPosition.x + XMVectorGetX(flatBitangent), anchorPosition.z + XMVectorGetZ(flatBitangent));
+		//XMVECTOR displacedTangentPosition = getFourierOffset(anchorPosition.x + XMVectorGetX(flatTangent), anchorPosition.z + XMVectorGetZ(flatTangent));
+		//XMVECTOR displacedBitangentPosition = getFourierOffset(anchorPosition.x + XMVectorGetX(flatBitangent), anchorPosition.z + XMVectorGetZ(flatBitangent));
+		XMVECTOR displacedTangentPosition = getFourierOffset(anchorPosition.x + 4.0f, anchorPosition.z);
+		XMVECTOR displacedBitangentPosition = getFourierOffset(anchorPosition.x , anchorPosition.z - 4.0f);
 
 		XMStoreFloat3(&(object->getWritableFloatOffset()), displacedMainPosition);
 
 		XMVECTOR tangent = XMVector3Normalize(displacedTangentPosition - displacedMainPosition);
 		XMVECTOR bitangent = XMVector3Normalize(displacedBitangentPosition - displacedMainPosition);
-		XMVECTOR normal = XMVector3Normalize(XMVector3Cross(bitangent, tangent));
+		XMVECTOR normal = XMVector3Normalize(XMVector3Cross(tangent, bitangent));
+
+		/*XMVECTOR tangent = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+		XMVECTOR bitangent = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+		XMVECTOR normal = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);*/
+
+		bitangent = XMVector3Normalize(XMVector3Cross(tangent, normal));
 
 		XMMATRIX rotationMatrix = XMMATRIX(tangent, normal, bitangent, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
 
@@ -1413,7 +1431,7 @@ namespace hrzn::scene
 		rotationMatrix.r[1].m128_f32[3] = 0.0f;
 		rotationMatrix.r[2].m128_f32[3] = 0.0f;
 
-		//object->getTransform().setOrientationRotationMatrix(rotationMatrix);
+		object->getWritableTransform().setOrientationRotationMatrix(rotationMatrix);
 	}
 
 	AxisEditState SceneManager::getAxisEditState() const

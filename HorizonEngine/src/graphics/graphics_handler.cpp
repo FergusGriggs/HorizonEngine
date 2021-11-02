@@ -26,12 +26,6 @@ namespace hrzn::gfx
 			return false;
 		}
 
-		//INIT SCENE OBJECTS
-		if (!initializeScene())
-		{
-			return false;
-		}
-
 		//INIT IMGUI
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -39,6 +33,88 @@ namespace hrzn::gfx
 		ImGui_ImplWin32_Init(hwnd);
 		ImGui_ImplDX11_Init(m_device.Get(), m_deviceContext.Get());
 		ImGui::StyleColorsDark();
+
+		return true;
+	}
+
+	bool GraphicsHandler::initializeScene(scene::SceneManager& sceneManager)
+	{
+		try
+		{
+			//CREATE CONSTANT BUFFERS
+			HRESULT hr = m_vertexShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+
+			hr = m_waterVertexShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterVertexShader' constant buffer.");
+			m_waterVertexShaderCB.m_data.m_waveCount = sceneManager.getSceneConfig().getOceanConfig().m_waveCount;
+			m_waterVertexShaderCB.m_data.m_waveScale = sceneManager.getSceneConfig().getOceanConfig().m_waveScale;//14.3f
+			m_waterVertexShaderCB.m_data.m_wavePeriod = sceneManager.getSceneConfig().getOceanConfig().m_wavePeriod;//50.5f
+			m_waterVertexShaderCB.m_data.m_waveSpeed = sceneManager.getSceneConfig().getOceanConfig().m_waveSpeed;//25.0f
+			m_waterVertexShaderCB.m_data.m_waveSeed = sceneManager.getSceneConfig().getOceanConfig().m_waveSeed;
+			m_waterVertexShaderCB.m_data.m_waveScaleMultiplier = sceneManager.getSceneConfig().getOceanConfig().m_waveScaleMultiplier;
+			m_waterVertexShaderCB.m_data.m_iscolateWaveNum = -1;
+
+			hr = m_waterPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterPixelShader' constant buffer.");
+			m_waterPixelShaderCB.m_data.m_waveCount = m_waterVertexShaderCB.m_data.m_waveCount;
+			m_waterPixelShaderCB.m_data.m_waveScale = m_waterVertexShaderCB.m_data.m_waveScale;
+			m_waterPixelShaderCB.m_data.m_wavePeriod = m_waterVertexShaderCB.m_data.m_wavePeriod;
+			m_waterPixelShaderCB.m_data.m_waveSpeed = m_waterVertexShaderCB.m_data.m_waveSpeed;
+			m_waterPixelShaderCB.m_data.m_waveSeed = m_waterVertexShaderCB.m_data.m_waveSeed;
+			m_waterPixelShaderCB.m_data.m_waveScaleMultiplier = m_waterVertexShaderCB.m_data.m_waveScaleMultiplier;
+			m_waterPixelShaderCB.m_data.m_iscolateWaveNum = m_waterVertexShaderCB.m_data.m_iscolateWaveNum;
+			m_waterPixelShaderCB.m_data.m_foamStart = sceneManager.getSceneConfig().getOceanConfig().m_foamStart;
+			m_waterPixelShaderCB.m_data.m_colourChangeStart = sceneManager.getSceneConfig().getOceanConfig().m_colourChangeStart;//1.123f
+
+			hr = m_pixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'pixelShader' constant buffer.");
+			m_pixelShaderCB.m_data.m_useNormalMapping = true;
+			m_pixelShaderCB.m_data.m_useParallaxOcclusionMapping = true;
+
+			hr = m_noLightPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'noLightPixelShader' constant buffer.");
+
+			hr = m_atmosphericPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'noLightPixelShader' constant buffer.");
+			m_atmosphericPixelShaderCB.m_data.m_sunSize = sceneManager.getSceneConfig().getAtmosphereConfig().m_sunSize;
+			m_atmosphericPixelShaderCB.m_data.m_density = sceneManager.getSceneConfig().getAtmosphereConfig().m_density;
+			m_atmosphericPixelShaderCB.m_data.m_multiScatterPhase = sceneManager.getSceneConfig().getAtmosphereConfig().m_multiScatterPhase;
+			m_atmosphericPixelShaderCB.m_data.m_anisotropicIntensity = sceneManager.getSceneConfig().getAtmosphereConfig().m_anisotropicIntensity;
+			m_atmosphericPixelShaderCB.m_data.m_zenithOffset = sceneManager.getSceneConfig().getAtmosphereConfig().m_zenithOffset;
+			m_atmosphericPixelShaderCB.m_data.m_nightDensity = sceneManager.getSceneConfig().getAtmosphereConfig().m_nightDensity;
+			m_atmosphericPixelShaderCB.m_data.m_nightZenithYClamp = sceneManager.getSceneConfig().getAtmosphereConfig().m_nightZenithYClamp;
+
+			hr = m_cloudsPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'cloudsPixelShader' constant buffer."); //                                                           Fluffy 1 // Fluffy 2 // Bulky bois
+			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionThroughClouds = sceneManager.getSceneConfig().getCloudConfig().m_lightAbsorbtionThroughClouds; // 0.084f      0.084f      0.338f
+			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionTowardsSun = sceneManager.getSceneConfig().getCloudConfig().m_lightAbsorbtionTowardsSun; //       0.273f      0.392f      0.559f
+			m_cloudsPixelShaderCB.m_data.m_phaseFactor = sceneManager.getSceneConfig().getCloudConfig().m_phaseFactor; //                                   0.208f      0.266f      0.428f
+			m_cloudsPixelShaderCB.m_data.m_darknessThreshold = sceneManager.getSceneConfig().getCloudConfig().m_darknessThreshold; //                       0.09f       0.073f      0.09f
+			m_cloudsPixelShaderCB.m_data.m_cloudCoverage = sceneManager.getSceneConfig().getCloudConfig().m_cloudCoverage; //                               0.465f      0.497f      0.446f
+			m_cloudsPixelShaderCB.m_data.m_cloudSpeed = sceneManager.getSceneConfig().getCloudConfig().m_cloudSpeed;
+			m_cloudsPixelShaderCB.m_data.m_numSteps = sceneManager.getSceneConfig().getCloudConfig().m_numSteps;
+			m_cloudsPixelShaderCB.m_data.m_stepSize = sceneManager.getSceneConfig().getCloudConfig().m_stepSize;
+			m_cloudsPixelShaderCB.m_data.m_cloudHeight = sceneManager.getSceneConfig().getCloudConfig().m_cloudHeight;
+
+			// Load axis models
+			m_axisTranslateModel = ResourceManager::it().getModelPtr("res/models/axis/translate2.obj");
+			m_axisRotateModel = ResourceManager::it().getModelPtr("res/models/axis/rotate2.obj");
+
+			m_springModel = ResourceManager::it().getModelPtr("res/models/spring.obj");
+
+			m_defaultDiffuseTexture = new Texture(m_device.Get(), "res/textures/scales/diffuse.jpg", aiTextureType::aiTextureType_DIFFUSE);
+			m_defaultSpecularTexture = new Texture(m_device.Get(), "res/textures/scales/specular.jpg", aiTextureType::aiTextureType_DIFFUSE);
+			m_defaultNormalTexture = new Texture(m_device.Get(), "res/textures/scales/normal.jpg", aiTextureType::aiTextureType_DIFFUSE);
+
+			m_highlightDiffuseTexture = new Texture(m_device.Get(), "res/textures/hrzn_statue/diffuse.jpg", aiTextureType::aiTextureType_DIFFUSE);
+			m_highlightSpecularTexture = new Texture(m_device.Get(), "res/textures/hrzn_statue/roughness.jpg", aiTextureType::aiTextureType_DIFFUSE);
+			m_highlightNormalTexture = new Texture(m_device.Get(), "res/textures/hrzn_statue/normal.png", aiTextureType::aiTextureType_DIFFUSE);
+		}
+		catch (utils::COMException& exception)
+		{
+			utils::ErrorLogger::log(exception);
+			return false;
+		}
 
 		return true;
 	}
@@ -124,86 +200,7 @@ namespace hrzn::gfx
 		HRESULT hr = m_noiseTextureComputeShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 		COM_ERROR_IF_FAILED(hr, "Failed to create 'noiseTextureComputeShader' constant buffer.");
 		create3DNoiseTexture();
-	}
 
-	bool GraphicsHandler::initializeScene()
-	{
-		try
-		{
-			//CREATE CONSTANT BUFFERS
-			HRESULT hr = m_vertexShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
-
-			hr = m_waterVertexShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterVertexShader' constant buffer.");
-			m_waterVertexShaderCB.m_data.m_waveCount = 30;
-			m_waterVertexShaderCB.m_data.m_waveScale = 6.6f;//14.3f
-			m_waterVertexShaderCB.m_data.m_wavePeriod = 21.5f;//50.5f
-			m_waterVertexShaderCB.m_data.m_waveSpeed = 12.0f;//25.0f
-			m_waterVertexShaderCB.m_data.m_waveSeed = 656.993f;
-			m_waterVertexShaderCB.m_data.m_waveScaleMultiplier = 0.745f;
-			m_waterVertexShaderCB.m_data.m_iscolateWaveNum = -1;
-
-			hr = m_waterPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterPixelShader' constant buffer.");
-			m_waterPixelShaderCB.m_data.m_waveCount = m_waterVertexShaderCB.m_data.m_waveCount;
-			m_waterPixelShaderCB.m_data.m_waveScale = m_waterVertexShaderCB.m_data.m_waveScale;
-			m_waterPixelShaderCB.m_data.m_wavePeriod = m_waterVertexShaderCB.m_data.m_wavePeriod;
-			m_waterPixelShaderCB.m_data.m_waveSpeed = m_waterVertexShaderCB.m_data.m_waveSpeed;
-			m_waterPixelShaderCB.m_data.m_waveSeed = m_waterVertexShaderCB.m_data.m_waveSeed;
-			m_waterPixelShaderCB.m_data.m_waveScaleMultiplier = m_waterVertexShaderCB.m_data.m_waveScaleMultiplier;
-			m_waterPixelShaderCB.m_data.m_iscolateWaveNum = m_waterVertexShaderCB.m_data.m_iscolateWaveNum;
-			m_waterPixelShaderCB.m_data.m_foamStart = 0.97f;
-			m_waterPixelShaderCB.m_data.m_colourChangeStart = 1.88f;//1.123f
-
-			hr = m_pixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'pixelShader' constant buffer.");
-			m_pixelShaderCB.m_data.m_useNormalMapping = true;
-			m_pixelShaderCB.m_data.m_useParallaxOcclusionMapping = true;
-
-			hr = m_noLightPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'noLightPixelShader' constant buffer.");
-
-			hr = m_atmosphericPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'noLightPixelShader' constant buffer.");
-			m_atmosphericPixelShaderCB.m_data.m_sunSize = 75.0f;
-			m_atmosphericPixelShaderCB.m_data.m_density = 0.65f;
-			m_atmosphericPixelShaderCB.m_data.m_multiScatterPhase = 0.27f;
-			m_atmosphericPixelShaderCB.m_data.m_anisotropicIntensity = 1.0f;
-			m_atmosphericPixelShaderCB.m_data.m_zenithOffset = -0.06f;
-			m_atmosphericPixelShaderCB.m_data.m_nightDensity = 1.2f;
-			m_atmosphericPixelShaderCB.m_data.m_nightZenithYClamp = 0.1f;
-
-			hr = m_cloudsPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'cloudsPixelShader' constant buffer."); // Fluffy 1 // Fluffy 2 // Bulky bois
-			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionThroughClouds = 0.084f; //             0.084f      0.084f      0.338f
-			m_cloudsPixelShaderCB.m_data.m_lightAbsorbtionTowardsSun = 0.392f; //                0.273f      0.392f      0.559f
-			m_cloudsPixelShaderCB.m_data.m_phaseFactor = 0.266f; //                              0.208f      0.266f      0.428f
-			m_cloudsPixelShaderCB.m_data.m_darknessThreshold = 0.073f; //                        0.09f       0.073f      0.09f
-			m_cloudsPixelShaderCB.m_data.m_cloudCoverage = 0.497f; //                            0.465f      0.497f      0.446f
-			m_cloudsPixelShaderCB.m_data.m_cloudSpeed = 0.02f; // 
-			m_cloudsPixelShaderCB.m_data.m_numSteps = 40; //
-			m_cloudsPixelShaderCB.m_data.m_stepSize = 85.0f; //
-			m_cloudsPixelShaderCB.m_data.m_cloudHeight = 2000.0f;
-
-			// Load axis models
-			m_axisTranslateModel = ResourceManager::it().getModelPtr("res/models/axis/translate2.obj");
-			m_axisRotateModel = ResourceManager::it().getModelPtr("res/models/axis/rotate2.obj");
-
-			m_springModel = ResourceManager::it().getModelPtr("res/models/spring.obj");
-
-			m_defaultDiffuseTexture = new Texture(m_device.Get(), "res/textures/scales/diffuse.jpg", aiTextureType::aiTextureType_DIFFUSE);
-			m_defaultSpecularTexture = new Texture(m_device.Get(), "res/textures/scales/specular.jpg", aiTextureType::aiTextureType_DIFFUSE);
-			m_defaultNormalTexture = new Texture(m_device.Get(), "res/textures/scales/normal.jpg", aiTextureType::aiTextureType_DIFFUSE);
-
-			m_highlightDiffuseTexture = new Texture(m_device.Get(), "res/textures/hrzn_statue/diffuse.jpg", aiTextureType::aiTextureType_DIFFUSE);
-			m_highlightSpecularTexture = new Texture(m_device.Get(), "res/textures/hrzn_statue/roughness.jpg", aiTextureType::aiTextureType_DIFFUSE);
-			m_highlightNormalTexture = new Texture(m_device.Get(), "res/textures/hrzn_statue/normal.png", aiTextureType::aiTextureType_DIFFUSE);
-		}
-		catch (utils::COMException & exception)
-		{
-			utils::ErrorLogger::log(exception);
-			return false;
-		}
 		return true;
 	}
 
@@ -597,14 +594,13 @@ namespace hrzn::gfx
 					auto mapIterator = sceneManager.getObjectMap().begin();
 					while (mapIterator != sceneManager.getObjectMap().end())
 					{
-						entity::RenderableGameObject* gameObject = dynamic_cast<entity::RenderableGameObject*>(mapIterator->second);
-
-						std::string label = "Follow " + gameObject->getLabel();
+						std::string label = "Follow " + mapIterator->second->getLabel();
 
 						if (ImGui::Button(label.c_str()))
 						{
-							sceneManager.getWritableSelectedObject()->setObjectToFollow(gameObject);
+							sceneManager.getWritableSelectedObject()->setObjectToFollow(mapIterator->second);
 						}
+
 						mapIterator++;
 					}
 					ImGui::TreePop();
@@ -632,10 +628,10 @@ namespace hrzn::gfx
 				sceneManager.getWritableSelectedObject()->getWritableTransform().rotateUsingAxis(XMLoadFloat3(&axis), 1.5707963f);
 			}
 
-			entity::GameObjectType type = sceneManager.getSelectedObject()->getType();
+			entity::GameObject::Type type = sceneManager.getSelectedObject()->getType();
 
 			// If it's a renderable, allow scaling
-			if (type == entity::GameObjectType::eRenderable)
+			if (type == entity::GameObject::Type::eRenderable)
 			{
 				XMFLOAT3 scale = sceneManager.getSelectedObject()->getScale();
 				ImGui::DragFloat3("Scale", &scale.x, 0.05f, 0.1f, 10.0f);
@@ -643,7 +639,7 @@ namespace hrzn::gfx
 			}
 
 			// If it's a light, allow light property changing and moving to camera
-			else if (type == entity::GameObjectType::ePointLight || type == entity::GameObjectType::eSpotLight)
+			else if (type == entity::GameObject::Type::ePointLight || type == entity::GameObject::Type::eSpotLight)
 			{ 
 				entity::LightGameObject* lightObj = reinterpret_cast<entity::LightGameObject*>(sceneManager.getWritableSelectedObject());
 				ImGui::ColorEdit3("Colour", &(lightObj->m_colour.x));
@@ -661,7 +657,7 @@ namespace hrzn::gfx
 				ImGui::SliderFloat("Att. Lin.", pointLightObj->getAttenuationLinearPtr(), 0.0f, 0.2f);
 				ImGui::SliderFloat("Att. Quad.", pointLightObj->getAttenuationQuadraticPtr(), 0.0f, 0.05f);
 
-				if (type == entity::GameObjectType::eSpotLight)
+				if (type == entity::GameObject::Type::eSpotLight)
 				{
 					entity::SpotLightGameObject* spotLightObj = reinterpret_cast<entity::SpotLightGameObject*>(lightObj);
 					ImGui::SliderFloat("Inn. Cut.", spotLightObj->getInnerCutoffPtr(), 0.0f, 90.0f);
@@ -692,7 +688,7 @@ namespace hrzn::gfx
 				ImGui::Checkbox("Control Object", sceneManager.getWritableSelectedObject()->getWritableController()->isActivePtr());
 			}
 
-			if (type == entity::GameObjectType::ePhysics)
+			if (type == entity::GameObject::Type::ePhysics)
 			{
 				entity::PhysicsGameObject* object = dynamic_cast<entity::PhysicsGameObject*>(sceneManager.getWritableSelectedObject());
 				ImGui::Checkbox("Static", object->getRigidBody()->isStaticPtr());
@@ -735,17 +731,18 @@ namespace hrzn::gfx
 		auto mapIterator = sceneManager.getObjectMap().begin();
 		while (mapIterator != sceneManager.getObjectMap().end())
 		{
-			entity::RenderableGameObject* gameObject = dynamic_cast<entity::RenderableGameObject*>(mapIterator->second);
-
-			std::string label = gameObject->getLabel();
-
-			if (sceneManager.getSelectedObject() == gameObject)
+			if (entity::RenderableGameObject* gameObject = dynamic_cast<entity::RenderableGameObject*>(mapIterator->second))
 			{
-				ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), ("> " + label).c_str());
-			}
-			else if (ImGui::MenuItem(label.c_str()))
-			{
-				sceneManager.setSelectedObject(gameObject);
+				std::string label = gameObject->getLabel();
+
+				if (sceneManager.getSelectedObject() == gameObject)
+				{
+					ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), ("> " + label).c_str());
+				}
+				else if (ImGui::MenuItem(label.c_str()))
+				{
+					sceneManager.setSelectedObject(gameObject);
+				}
 			}
 
 			mapIterator++;

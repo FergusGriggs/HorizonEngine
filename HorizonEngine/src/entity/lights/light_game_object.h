@@ -13,7 +13,7 @@ namespace hrzn::entity
 	public:
 		LightGameObject();
 
-		bool initialize(std::string label);
+		bool initialize();
 		void virtual updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& cb_ps_pixelShader, int lightIndex = 0);
 
 		void setColour(DirectX::XMFLOAT3 colour);

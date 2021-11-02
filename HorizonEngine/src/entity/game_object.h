@@ -11,20 +11,22 @@
 
 namespace hrzn::entity
 {
-	enum class GameObjectType {
-		eBase,
-		eRenderable,
-		eCamera,
-		eLight,
-		ePointLight,
-		eSpotLight,
-		ePhysics,
-	};
-
 	class GameObjectController;
 
 	class GameObject
 	{
+	public:
+		enum class Type
+		{
+			eBase,
+			eRenderable,
+			eCamera,
+			eLight,
+			ePointLight,
+			eSpotLight,
+			ePhysics,
+		};
+
 	public:
 		// Constructors
 		GameObject();
@@ -45,6 +47,9 @@ namespace hrzn::entity
 	
 		void  setObjectTrackDelta(float trackDelta);
 		float getObjectTrackDelta() const;
+
+		void  setObjectTrackSpeed(float trackSpeed);
+		float getObjectTrackSpeed() const;
 
 		// Float functions
 		void            setFloating(bool floating);
@@ -69,7 +74,7 @@ namespace hrzn::entity
 		virtual void update(float deltaTime);
 
 		// Identification
-		GameObjectType     getType() const;
+		Type               getType() const;
 		const std::string& getLabel() const;
 		std::string*       getLabelPtr();
 		void               setLabel(const std::string& newLabel);
@@ -79,7 +84,7 @@ namespace hrzn::entity
 
 	protected:
 		std::string        m_label;
-		GameObjectType     m_type;
+		Type               m_type;
 
 		physics::Transform m_transform;
 
@@ -100,5 +105,15 @@ namespace hrzn::entity
 
 		// Controller
 		GameObjectController* m_controller;
+	};
+
+	static const std::unordered_map<std::string, GameObject::Type> sc_gameObjectTypeStrings = {
+		{ "Base",       GameObject::Type::eBase },
+		{ "Renderable", GameObject::Type::eRenderable },
+		{ "Camera",     GameObject::Type::eCamera },
+		{ "Light",      GameObject::Type::eLight },
+		{ "PointLight", GameObject::Type::ePointLight },
+		{ "SpotLight",  GameObject::Type::eSpotLight },
+		{ "Physics",    GameObject::Type::ePhysics },
 	};
 }

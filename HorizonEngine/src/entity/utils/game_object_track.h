@@ -45,15 +45,18 @@ namespace hrzn::entity
 		float getDelta() const;
 		void  setDelta(float delta);
 
-		const std::string& getLabel() const;
-		void               setLabel(std::string label);
+		void  setSpeed(float speed);
+		float getSpeed();
+
+		const std::string& getId() const;
+		void               setId(std::string label);
 
 		const std::vector<ObjectTrackNode>& getTrackNodes() const;
 
 		void follow(GameObject* gameObject, float deltaTime, bool lookTo = true);
 
 	private:
-		std::string m_label;
+		std::string m_id;
 
 		std::vector<ObjectTrackNode> m_trackNodes;
 		std::vector<ObjectTrackNode> m_midPoints;

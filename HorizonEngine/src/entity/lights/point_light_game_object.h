@@ -13,14 +13,16 @@ namespace hrzn::entity
 		PointLightGameObject();
 
 		void   updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& pixelShaderCB, int lightIndex = 0) override;
+
 		float* getAttenuationConstantPtr();
 		float* getAttenuationLinearPtr();
 		float* getAttenuationQuadraticPtr();
 
-		/*float attenuationConstant = 1.0f;
-		float attenuationLinear = 0.09f;
-		float attenuationQuadratic = 0.032f;*/
+		void setAttenuationConstant(float attenuationConstant);
+		void setAttenuationLinear(float attenuationLinear);
+		void setAttenuationQuadratic(float attenuationQuadratic);
 
+	protected:
 		float m_attenuationConstant;
 		float m_attenuationLinear;
 		float m_attenuationQuadratic;

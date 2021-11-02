@@ -24,7 +24,7 @@ namespace hrzn::entity
 		m_relativePosition(XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f))
 	{
 		m_label = "Camera";
-		m_type = GameObjectType::eCamera;
+		m_type = GameObject::Type::eCamera;
 		m_relativeObject = nullptr;
 	}
 

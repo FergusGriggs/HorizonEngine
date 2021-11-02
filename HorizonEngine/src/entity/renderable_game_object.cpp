@@ -6,9 +6,14 @@
 namespace hrzn::entity
 {
 	RenderableGameObject::RenderableGameObject() :
-		GameObject()
+		GameObject(),
+
+		m_model(nullptr),
+		m_axisModel(nullptr),
+
+		m_scale(XMFLOAT3(1.0f, 1.0f, 1.0f))
 	{
-		m_type = GameObjectType::eRenderable;
+		m_type = GameObject::Type::eRenderable;
 	}
 
 	bool RenderableGameObject::initialize(std::string label, const std::string& filePath)
@@ -21,10 +26,6 @@ namespace hrzn::entity
 		{
 			return false;
 		}
-
-		m_transform.setPosition(DEFAULT_POSITION);
-
-		m_scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 
 		return true;
 	}

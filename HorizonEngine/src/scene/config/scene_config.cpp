@@ -3,7 +3,7 @@
 namespace hrzn::scene
 {
     SceneConfig::SceneConfig() :
-        m_metaConfig(),
+        m_timeConfig(),
         m_oceanConfig(),
         m_cloudConfig(),
         m_atmosphereConfig()
@@ -23,14 +23,19 @@ namespace hrzn::scene
 
     }
 
-    const config::MetaConfig& SceneConfig::getMetaConfig() const
+    const config::TimeConfig& SceneConfig::getTimeConfig() const
     {
-        return m_metaConfig;
+        return m_timeConfig;
     }
 
-    config::MetaConfig& SceneConfig::getWritableMetaConfig()
+    config::TimeConfig& SceneConfig::getWritableTimeConfig()
     {
-        return m_metaConfig;
+        return m_timeConfig;
+    }
+
+    void SceneConfig::setTimeConfig(const config::TimeConfig& timeConfig)
+    {
+        m_timeConfig = timeConfig;
     }
 
     const config::OceanConfig& SceneConfig::getOceanConfig() const
@@ -43,6 +48,11 @@ namespace hrzn::scene
         return m_oceanConfig;
     }
 
+    void SceneConfig::setOceanConfig(const config::OceanConfig& oceanConfig)
+    {
+        m_oceanConfig = oceanConfig;
+    }
+
     const config::CloudConfig& SceneConfig::getCloudConfig() const
     {
         return m_cloudConfig;
@@ -53,6 +63,11 @@ namespace hrzn::scene
         return m_cloudConfig;
     }
 
+    void SceneConfig::setCloudConfig(const config::CloudConfig& cloudConfig)
+    {
+        m_cloudConfig = cloudConfig;
+    }
+
     const config::AtmosphereConfig& SceneConfig::getAtmosphereConfig() const
     {
         return m_atmosphereConfig;
@@ -61,5 +76,9 @@ namespace hrzn::scene
     config::AtmosphereConfig& SceneConfig::getWritableAtmosphereConfig()
     {
         return m_atmosphereConfig;
+    }
+    void SceneConfig::setAtmosphereConfig(const config::AtmosphereConfig& atmosphereConfig)
+    {
+        m_atmosphereConfig = atmosphereConfig;
     }
 }

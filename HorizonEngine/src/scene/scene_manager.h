@@ -109,8 +109,14 @@ namespace hrzn::scene
         const entity::GameObject& getGameObject(const std::string& label) const;
         void                      addGameObject(entity::GameObject* gameObject);
 
+        void                      addObjectTrack(entity::GameObjectTrack* objectTrack);
+        std::unordered_map<std::string, entity::GameObjectTrack*>& getObjectTracks();
+
         entity::GameObject&       getWritableGameObject(const std::string& label);
         void                      removeGameObject(const std::string& gameObjectLabel);
+
+        const SceneConfig&        getSceneConfig() const;
+        SceneConfig&              getWritableSceneConfig();
 
         void mouseButtonDelegate(const input::MouseEvent& mouseEvent, float deltaTime);
         void mouseScrollDelegate(const input::MouseEvent& mouseEvent, float deltaTime);

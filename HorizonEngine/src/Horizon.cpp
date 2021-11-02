@@ -59,6 +59,11 @@ namespace hrzn
 
 		m_sceneManager.initialise();
 
+		if (!m_graphicsHandler.initializeScene(m_sceneManager))
+		{
+			return false;
+		}
+
 		m_controllerManager.addController(&m_sceneManager.getWritableActiveCamera(), entity::ControllerType::eCamera, 0.005f);
 		m_controllerManager.getControllers().at(0).setActive(true);
 
