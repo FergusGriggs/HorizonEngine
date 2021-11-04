@@ -88,7 +88,7 @@ namespace hrzn::physics
 
 	void Transform::setOrientationQuaternion(const XMVECTOR& orientation, bool updateAll)
 	{
-		XMStoreFloat4(&m_orientation, orientation);
+		XMStoreFloat4(&m_orientation, XMQuaternionNormalize(orientation));
 		if (updateAll)
 		{
 			XMMATRIX rotationMatrix = XMMatrixRotationQuaternion(orientation);

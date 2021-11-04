@@ -677,7 +677,7 @@ namespace hrzn::scene
             if (index == 0) returnValue.x = itr->GetFloat();
             else if (index == 1) returnValue.y = itr->GetFloat();
             else if (index == 2) returnValue.z = itr->GetFloat();
-            else if (index == 3) returnValue.z = itr->GetFloat();
+            else if (index == 3) returnValue.w = itr->GetFloat();
             else return returnValue;
 
             ++index;

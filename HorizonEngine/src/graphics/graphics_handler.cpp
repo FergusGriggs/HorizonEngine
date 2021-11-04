@@ -568,7 +568,10 @@ namespace hrzn::gfx
 			ImGui::InputText("Object Label", &sceneManager.getWritableSelectedObject()->getLabelPtr()->at(0), 20);
 
 			XMFLOAT3 pos = sceneManager.getSelectedObject()->getTransform().getPositionFloat3();
-			ImGui::Text(("X: " + std::to_string(pos.x) + "Y: " + std::to_string(pos.y) + "Z: " + std::to_string(pos.z)).c_str());
+			ImGui::Text(("Pos -> x: " + std::to_string(pos.x) + " y: " + std::to_string(pos.y) + " z: " + std::to_string(pos.z)).c_str());
+
+			XMFLOAT4 orient = sceneManager.getSelectedObject()->getTransform().getOrientationFloat4();
+			ImGui::Text(("Orient -> x: " + std::to_string(orient.x) + " y: " + std::to_string(orient.y) + " z: " + std::to_string(orient.z) + " w: " + std::to_string(orient.w)).c_str());
 
 			if (sceneManager.getSelectedObject()->hasObjectTrack())
 			{

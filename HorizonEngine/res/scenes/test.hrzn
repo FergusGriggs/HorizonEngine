@@ -77,44 +77,89 @@
 			"id": "drapes_light_track",
 			"Nodes": [
 				{
-					"position": [ -15.0, 4.5, -3.0 ],
-					"look_position": [ -15.0, -1.0, -3.0 ]
+					"position": [ -15.0, 3.0, -3.0 ],
+					"look_position": [ -15.0, -1.0, -1.5 ]
 				},
 				{
-					"position": [ -15.0, 4.5, 6.0 ],
-					"look_position": [ -15.0, -1.0, 6.0 ]
+					"position": [ -15.0, 3.0, 6.0 ],
+					"look_position": [ -15.0, -1.0, 7.5 ]
 				},
 				{
-					"position": [ -15.0, 4.5, 12.0 ],
-					"look_position": [ -15.0, -1.0, 12.0 ]
+					"position": [ -15.0, 3.0, 12.0 ],
+					"look_position": [ -15.0, -1.0, 13.5 ]
 				},
 				{
-					"position": [ -15.0, 4.5, 18.0 ],
-					"look_position": [ -15.0, -1.0, 18.0 ]
+					"position": [ -15.0, 3.0, 18.0 ],
+					"look_position": [ -15.0, -1.0, 19.5 ]
 				},
 				{
-					"position": [ -15.0, 4.5, 24.0 ],
-					"look_position": [ -15.0, -1.0, 24.0 ]
+					"position": [ -15.0, 3.0, 24.0 ],
+					"look_position": [ -15.0, -1.0, 25.5 ]
 				},
 				{
-					"position": [ -15.0, 4.5, 30.0 ],
-					"look_position": [ -15.0, -1.0, 30.0 ]
+					"position": [ -15.0, 3.0, 30.0 ],
+					"look_position": [ -15.0, -1.0, 31.5 ]
 				},
 				{
-					"position": [ -15.0, 4.5, 36.0 ],
-					"look_position": [ -15.0, -1.0, 36.0 ]
+					"position": [ -15.0, 3.0, 36.0 ],
+					"look_position": [ -15.0, -1.0, 37.5 ]
 				},
 				{
-					"position": [ -15.0, 4.5, 42.0 ],
-					"look_position": [ -15.0, -1.0, 42.0 ]
+					"position": [ -15.0, 3.0, 42.0 ],
+					"look_position": [ -15.0, -1.0, 43.5 ]
 				},
 				{
-					"position": [ -15.0, 4.5, 51.0 ],
-					"look_position": [ -15.0, -1.0, 51.0 ]
+					"position": [ -15.0, 3.0, 51.0 ],
+					"look_position": [ -15.0, -1.0, 52.5 ]
 				},
 				{
-					"position": [ -15.0, 4.5, -3.0 ],
-					"look_position": [ -15.0, -1.0, -3.0 ]
+					"position": [ -15.0, 3.0, -3.0 ],
+					"look_position": [ -15.0, -1.0, -1.5 ]
+				}
+			]
+		},
+		{
+			"id": "drapes_camera_track",
+			"Nodes": [
+				{
+					"position": [ -11.0, -1.5, -6.0 ],
+					"look_position": [ -15.0, -0.5, -3.0 ]
+				},
+				{
+					"position": [ -11.0, -1.5, 3.0 ],
+					"look_position": [ -15.0, -0.5, 6.0 ]
+				},
+				{
+					"position": [ -11.0, -1.5, 9.0 ],
+					"look_position": [ -15.0, -0.5, 12.0 ]
+				},
+				{
+					"position": [ -11.0, -1.5, 15.0 ],
+					"look_position": [ -15.0, -0.5, 18.0 ]
+				},
+				{
+					"position": [ -11.0, -1.5, 21.0 ],
+					"look_position": [ -15.0, -0.5, 24.0 ]
+				},
+				{
+					"position": [ -11.0, -1.5, 27.0 ],
+					"look_position": [ -15.0, -0.5, 30.0 ]
+				},
+				{
+					"position": [ -11.0, -1.5, 33.0 ],
+					"look_position": [ -15.0, -0.5, 36.0 ]
+				},
+				{
+					"position": [ -11.0, -1.5, 39.0 ],
+					"look_position": [ -15.0, -0.5, 42.0 ]
+				},
+				{
+					"position": [ -11.0, -1.5, 48.0 ],
+					"look_position": [ -15.0, -0.5, 51.0 ]
+				},
+				{
+					"position": [ -11.0, -1.5, -6.0 ],
+					"look_position": [ -15.0, -0.5, -3.0 ]
 				}
 			]
 		}
@@ -124,19 +169,10 @@
 		{
 			"id": "test_spot_light_1",
 			"type": "SpotLight",
-			"position": [ 0.0, 2.0, 0.0 ],
-			"orientation": [ 0.0, 0.0, 0.0, 1.0 ],
+			"position": [ -15, 4.5, -2.0 ],
+			"orientation": [ 0.707107, 0.0, 0.0, 0.707107 ],
 
 			"floating": false,
-
-			"ObjectTracks": [
-				{
-					"id": "drapes_light_track",
-					"is_following": true,
-					"track_delta": 0.0,
-					"track_speed": 0.1
-				}
-			],
 
 			"LightData": {
 				"colour": [ 1.0, 0.9, 0.75 ]
@@ -149,14 +185,23 @@
 			},
 
 			"SpotLightData": {
-				"inner_cutoff": 57.0,
-				"outer_cutoff": 84.0
+				"inner_cutoff": 50.0,
+				"outer_cutoff": 71.0
 			}
 		},
 		{
 			"id": "test_point_light_1",
 			"type": "PointLight",
 			"position": [ -15.0, 1.0, -2.0 ],
+
+			"ObjectTracks": [
+				{
+					"id": "drapes_light_track",
+					"is_following": true,
+					"track_delta": 0.0,
+					"track_speed": 0.1
+				}
+			],
 
 			"LightData": {
 				"colour": [ 0.6, 0.5, 0.45 ]
@@ -351,18 +396,19 @@
 		{
 			"id": "camera_test",
 			"type": "Camera",
+			"position": [ -15.0, -1.25, -3.0 ],
 
 			"ObjectTracks": [
 				{
-					"id": "test_track",
-					"is_following": false,
+					"id": "drapes_camera_track",
+					"is_following": true,
 					"track_delta": 0.0,
-					"track_speed": 0.1
+					"track_speed": 0.2
 				}
 			],
 
 			"CameraData": {
-				"fov": 90.0,
+				"fov": 52.5,
 				"near_plane": 0.1,
 				"far_plane": 3000.0
 			}
