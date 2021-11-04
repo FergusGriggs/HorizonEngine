@@ -1058,6 +1058,18 @@ namespace hrzn::scene
 						{
 							closestDist = distance;
 							m_axisEditSubState = static_cast<AxisEditSubState>(axisIndex);
+
+							// Only used by X and Z axis
+							if (axisIndex == 0 || axisIndex == 2)
+							{
+								XMVECTOR planeTest1 = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+								XMVECTOR planeTest2;
+								if (axisIndex == 0) planeTest2 = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+								else planeTest2 = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+
+								m_axisEditPlaneNormal = getMostAllignedVector(planeTest1, planeTest2, m_activeCamera->getMouseToWorldVectorDirection());
+							}
 						}
 					}
 				}
@@ -1073,7 +1085,7 @@ namespace hrzn::scene
 			else if (m_axisEditState == AxisEditState::eEditRotate)
 			{
 				XMMATRIX modelRotationMatrix = m_selectedObject->getTransform().getRotationMatrix();
-				objectHitRadius *= 0.5f;
+				objectHitRadius *= 0.75f;
 				{
 					//GET TRANSFORMED AXIS VECTOR (PLANE NORMAL)
 					XMVECTOR planeNormal = XMVector3Normalize(XMVector4Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), modelRotationMatrix));
@@ -1169,12 +1181,13 @@ namespace hrzn::scene
 			if (m_axisEditState == AxisEditState::eEditTranslate)
 			{
 				XMFLOAT3 objectPos = m_selectedObject->getTransform().getPositionFloat3();
+
 				switch (m_axisEditSubState)
 				{
 				case AxisEditSubState::eEditX:
 				{
 					//GET INTERSECT POINT WITH MOUSE RAY
-					XMVECTOR intersect = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+					XMVECTOR intersect = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), m_axisEditPlaneNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
 					float currentAxisGrabOffset = XMVectorGetX(intersect); //GET RELEVANT VECTOR COMPONENT
 					if (m_lastAxisGrabOffset != FLT_MAX)
 					{ //CHECK IF FIRST ITERATION
@@ -1198,7 +1211,7 @@ namespace hrzn::scene
 				}
 				case AxisEditSubState::eEditZ:
 				{
-					XMVECTOR intersect = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+					XMVECTOR intersect = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), m_axisEditPlaneNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
 					float currentAxisGrabOffset = XMVectorGetZ(intersect);
 					if (m_lastAxisGrabOffset != FLT_MAX)
 					{
@@ -1399,6 +1412,15 @@ namespace hrzn::scene
 	bool* SceneManager::getPausedPtr()
 	{
 		return &m_paused;
+	}
+
+	const XMVECTOR& SceneManager::getMostAllignedVector(const XMVECTOR& testVec1, const XMVECTOR& testVec2, const XMVECTOR& dir)
+	{
+		float vecAllignment1 = fabsf(XMVectorGetX(XMVector3Dot(testVec1, dir)));
+		float vecAllignment2 = fabsf(XMVectorGetX(XMVector3Dot(testVec2, dir)));
+
+		if (vecAllignment1 > vecAllignment2) return testVec1;
+		else return testVec2;
 	}
 
 	void SceneManager::floatObject(entity::GameObject* object) const

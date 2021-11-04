@@ -126,7 +126,7 @@ float2 getParallaxTextureCoords(float3 viewDir, float2 texCoords)
     float2 currentTexCoords = texCoords;
     float currentDepthMapValue = depthTexture.Sample(samplerState, currentTexCoords).r;
      
-    [unroll(256)]
+    [unroll(32)]
     while(currentLayerDepth < currentDepthMapValue)
     {
         // shift texture coordinates along direction of P
@@ -157,7 +157,7 @@ float getShadowFactorForLightAtCoord(float3 toLight, float2 texCoord, bool softS
 
     float shadowFactor = 0.0f;
     int minLayers = 8;
-    int maxLayers = 32;
+    int maxLayers = 16;
 
     float2 dx = ddx(texCoord);
     float2 dy = ddy(texCoord);
@@ -184,7 +184,7 @@ float getShadowFactorForLightAtCoord(float3 toLight, float2 texCoord, bool softS
         int stepIndex = 1;
         int numIter = 0;
 
-        [unroll(32)]
+        [unroll(16)]
         while (currLayerDepth > 0.0f)
         {
             // If under surface at sample
@@ -354,16 +354,19 @@ float4 main(PS_INPUT input) : SV_TARGET
             float3 specular = specularFloat * pointLights[i].colour;
 
             float pointLightDistance = distance(pointLights[i].position, input.worldPos);
-            float pointLightAttenuation = 1.0f / (pointLights[i].attenuationConstant + pointLights[i].attenuationLinear * pointLightDistance + pointLights[i].attenuationQuadratic * pow(pointLightDistance, 2.0f));
-
-            float lightShadowFactor = 1.0f;
-            if (selfShadowing)
+            if (pointLightDistance < 25.0f)
             {
-                float3 toLightTangent = mul(toLight, worldToTangent);
-                lightShadowFactor = getShadowFactorForLightAtCoord(toLightTangent, input.texCoord, true);
-            }
+                float pointLightAttenuation = 1.0f / (pointLights[i].attenuationConstant + pointLights[i].attenuationLinear * pointLightDistance + pointLights[i].attenuationQuadratic * pow(pointLightDistance, 2.0f));
 
-            cumulativeColour += (diffuse + specular) * pointLightAttenuation * lightShadowFactor;
+                float lightShadowFactor = 1.0f;
+                if (selfShadowing)
+                {
+                    float3 toLightTangent = mul(toLight, worldToTangent);
+                    lightShadowFactor = getShadowFactorForLightAtCoord(toLightTangent, input.texCoord, true);
+                }
+
+                cumulativeColour += (diffuse + specular) * pointLightAttenuation * lightShadowFactor;
+            }
         }
     }
     // SPOT LIGHT
@@ -381,20 +384,25 @@ float4 main(PS_INPUT input) : SV_TARGET
             float3 specular = specularFloat * spotLights[i].colour;
 
             float spotLightDistance = distance(spotLights[i].position, input.worldPos);
-            float spotLightAttenuation = 1.0f / (spotLights[i].attenuationConstant + spotLights[i].attenuationLinear * spotLightDistance + spotLights[i].attenuationQuadratic * pow(spotLightDistance, 2.0f));
-
-            float lightAngle = (acos(dot(-toLight, spotLights[i].direction)) * 180.0) / 3.141592f;
-            float lightCutoffAmount = 1.0 - smoothstep(spotLights[i].innerCutoff, spotLights[i].outerCutoff, lightAngle);
-
-            float lightShadowFactor = 1.0f;
-            if (selfShadowing)
+            if (spotLightDistance < 25.0f)
             {
-                float3 toLightTangent = mul(toLight, worldToTangent);
-                lightShadowFactor = getShadowFactorForLightAtCoord(toLightTangent, input.texCoord, true);
-            }
+                float spotLightAttenuation = 1.0f / (spotLights[i].attenuationConstant + spotLights[i].attenuationLinear * spotLightDistance + spotLights[i].attenuationQuadratic * pow(spotLightDistance, 2.0f));
 
-            //cumulativeColour += (ambient + diffuse + specular) * spotLightAttenuation;
-            cumulativeColour += (diffuse + specular) * spotLightAttenuation * lightCutoffAmount * lightShadowFactor;
+                float lightAngle = (acos(dot(-toLight, spotLights[i].direction)) * 180.0) / 3.141592f;
+                float lightCutoffAmount = 1.0 - smoothstep(spotLights[i].innerCutoff, spotLights[i].outerCutoff, lightAngle);
+                if (lightCutoffAmount > 0.001f)
+                {
+                    float lightShadowFactor = 1.0f;
+                    if (selfShadowing)
+                    {
+                        float3 toLightTangent = mul(toLight, worldToTangent);
+                        lightShadowFactor = getShadowFactorForLightAtCoord(toLightTangent, input.texCoord, true);
+                    }
+
+                    //cumulativeColour += (ambient + diffuse + specular) * spotLightAttenuation;
+                    cumulativeColour += (diffuse + specular) * spotLightAttenuation * lightCutoffAmount * lightShadowFactor;
+                }
+            }
         }
     }
 

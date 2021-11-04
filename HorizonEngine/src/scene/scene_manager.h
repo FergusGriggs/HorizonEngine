@@ -141,6 +141,8 @@ namespace hrzn::scene
         bool   isPaused() const;
         bool*  getPausedPtr();
 
+        const XMVECTOR&  getMostAllignedVector(const XMVECTOR& testVec1, const XMVECTOR& testVec2, const XMVECTOR& dir);
+
         AxisEditState    getAxisEditState() const;
         void             setAxisEditState(AxisEditState axisEditState);
 
@@ -187,6 +189,7 @@ namespace hrzn::scene
 
         float    m_lastAxisGrabOffset = FLT_MAX;
         XMVECTOR m_lastGrabPos;
+        XMVECTOR m_axisEditPlaneNormal;
 
         physics::ParticleSystem* m_particleSystem;
 

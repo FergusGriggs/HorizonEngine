@@ -138,6 +138,9 @@ namespace hrzn::gfx
 	{
 		DirectX::XMFLOAT3 m_colour;
 		int               m_justColour;
+
+		DirectX::XMFLOAT3 m_cameraPos;
+		float             m_padding1;
 	};
 
 	struct AtmosphericPixelShaderCB

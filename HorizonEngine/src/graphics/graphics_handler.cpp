@@ -98,7 +98,7 @@ namespace hrzn::gfx
 			m_cloudsPixelShaderCB.m_data.m_cloudHeight = sceneManager.getSceneConfig().getCloudConfig().m_cloudHeight;
 
 			// Load axis models
-			m_axisTranslateModel = ResourceManager::it().getModelPtr("res/models/axis/translate2.obj");
+			m_axisTranslateModel = ResourceManager::it().getModelPtr("res/models/axis/fancy_translate.obj");
 			m_axisRotateModel = ResourceManager::it().getModelPtr("res/models/axis/rotate2.obj");
 
 			m_springModel = ResourceManager::it().getModelPtr("res/models/spring.obj");
@@ -326,7 +326,26 @@ namespace hrzn::gfx
 				{
 					renderableGameObject->draw(viewProjMat, &m_vertexShaderCB);
 				}*/
-				renderable->draw(viewProjMat, &m_vertexShaderCB);
+
+				if (auto* light = dynamic_cast<entity::LightGameObject*>(renderable))
+				{
+					m_noLightPixelShaderCB.m_data.m_colour = light->getColour();
+
+					m_noLightPixelShaderCB.mapToGPU();
+
+					m_deviceContext->PSSetConstantBuffers(0, 1, m_noLightPixelShaderCB.getAddressOf());
+
+					m_deviceContext->PSSetShader(m_noLightPixelShader.getShader(), NULL, 0);
+
+					renderable->draw(viewProjMat, &m_vertexShaderCB);
+
+					m_deviceContext->PSSetShader(m_pixelShader.getShader(), NULL, 0);
+					m_deviceContext->PSSetConstantBuffers(0, 1, m_pixelShaderCB.getAddressOf());
+				}
+				else
+				{
+					renderable->draw(viewProjMat, &m_vertexShaderCB);
+				}
 			}
 
 			// Draw particles
@@ -415,6 +434,7 @@ namespace hrzn::gfx
 			if (sceneManager.objectIsSelected())
 			{
 				m_noLightPixelShaderCB.m_data.m_colour = XMFLOAT3(1.0f, 1.0f, 1.0f);
+				m_noLightPixelShaderCB.m_data.m_cameraPos = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
 				m_noLightPixelShaderCB.mapToGPU();
 				drawAxisForObject(*(sceneManager.getSelectedObject()), viewProjMat, sceneManager);
 			}
@@ -756,20 +776,20 @@ namespace hrzn::gfx
 
 		ImGui::Begin("Scene Settings");
 	
-		if (ImGui::Button("Save Scene"))
+		/*if (ImGui::Button("Save Scene"))
 		{
 			sceneManager.saveScene(sceneManager.getSceneName().c_str());
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Load Scene"))
 		{
-			sceneManager.loadScene("test.txt");
+			sceneManager.loadScene("test");
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Unload Scene"))
 		{
 			sceneManager.unloadScene();
-		}
+		}*/
 		static char label[20] = "";
 		static char path[50] = "city/wall/frames/left/r.obj";
 		ImGui::InputText("New Object Label", &label[0], 20);
@@ -1264,7 +1284,7 @@ namespace hrzn::gfx
 		else if (sceneManager.getAxisEditState() == scene::AxisEditState::eEditRotate)
 		{
 			// Multiply by rotation matrix when rotating
-			m_axisRotateModel->draw(XMMatrixScaling(scale * 0.5f, scale * 0.5f, scale * 0.5f) * gameObject.getTransform().getRotationMatrix() * translationMatrix, viewProjection, &m_vertexShaderCB);
+			m_axisRotateModel->draw(XMMatrixScaling(scale * 0.75f, scale * 0.75f, scale * 0.75f) * gameObject.getTransform().getRotationMatrix() * translationMatrix, viewProjection, &m_vertexShaderCB);
 		}
 	}
 }
