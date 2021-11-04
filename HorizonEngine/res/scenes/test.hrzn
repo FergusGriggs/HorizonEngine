@@ -9,7 +9,7 @@
 
 	"SceneConfig": {
 		"TimeConfig": {
-			"start_time": 0.25,
+			"start_time": 0.75,
 			"progress_time": false,
 			"day_duration": 60.0
 		},
@@ -42,7 +42,8 @@
 		"AtmosphereConfig": {
 			"sun_size": 75.0,
 			"anisotropic_intenisty": 1.0,
-			"zenith_offset": -0.06
+			"zenith_offset": -0.06,
+			"night_density": 0.75
 		}
 	},
 	
@@ -71,6 +72,51 @@
 					"look_position": [ 0.0, -1.0, 0.0 ]
 				}
 			]
+		},
+		{
+			"id": "drapes_light_track",
+			"Nodes": [
+				{
+					"position": [ -15.0, 4.5, -3.0 ],
+					"look_position": [ -15.0, -1.0, -3.0 ]
+				},
+				{
+					"position": [ -15.0, 4.5, 6.0 ],
+					"look_position": [ -15.0, -1.0, 6.0 ]
+				},
+				{
+					"position": [ -15.0, 4.5, 12.0 ],
+					"look_position": [ -15.0, -1.0, 12.0 ]
+				},
+				{
+					"position": [ -15.0, 4.5, 18.0 ],
+					"look_position": [ -15.0, -1.0, 18.0 ]
+				},
+				{
+					"position": [ -15.0, 4.5, 24.0 ],
+					"look_position": [ -15.0, -1.0, 24.0 ]
+				},
+				{
+					"position": [ -15.0, 4.5, 30.0 ],
+					"look_position": [ -15.0, -1.0, 30.0 ]
+				},
+				{
+					"position": [ -15.0, 4.5, 36.0 ],
+					"look_position": [ -15.0, -1.0, 36.0 ]
+				},
+				{
+					"position": [ -15.0, 4.5, 42.0 ],
+					"look_position": [ -15.0, -1.0, 42.0 ]
+				},
+				{
+					"position": [ -15.0, 4.5, 51.0 ],
+					"look_position": [ -15.0, -1.0, 51.0 ]
+				},
+				{
+					"position": [ -15.0, 4.5, -3.0 ],
+					"look_position": [ -15.0, -1.0, -3.0 ]
+				}
+			]
 		}
 	],
 
@@ -85,7 +131,7 @@
 
 			"ObjectTracks": [
 				{
-					"id": "test_track",
+					"id": "drapes_light_track",
 					"is_following": true,
 					"track_delta": 0.0,
 					"track_speed": 0.1
@@ -93,24 +139,39 @@
 			],
 
 			"LightData": {
-				"colour": [ 0.095, 0.627, 0.062 ]
+				"colour": [ 1.0, 0.9, 0.75 ]
 			},
 
 			"PointLightData": {
-				"attenuation_constant": 0.2,
-				"attenuation_linear": 0.05,
-				"attenuation_quadratic": 0.001
+				"attenuation_constant": 0.089,
+				"attenuation_linear": 0.036,
+				"attenuation_quadratic": 0.023
 			},
 
-			"SpotLightData":  {
-				"inner_cutoff": 45.0,
-				"outer_cutoff": 60.0
+			"SpotLightData": {
+				"inner_cutoff": 57.0,
+				"outer_cutoff": 84.0
 			}
 		},
 		{
-			"id": "test_cube_1",
+			"id": "test_point_light_1",
+			"type": "PointLight",
+			"position": [ -15.0, 1.0, -2.0 ],
+
+			"LightData": {
+				"colour": [ 0.6, 0.5, 0.45 ]
+			},
+
+			"PointLightData": {
+				"attenuation_constant": 0.089,
+				"attenuation_linear": 0.036,
+				"attenuation_quadratic": 0.023
+			}
+		},
+		{
+			"id": "wall_cube",
 			"type": "Renderable",
-			"position": [0.0, -1.0, 0.0],
+			"position": [ -12.0, -2.5, -6.0 ],
 
 			"Controller": {
 				"active": true,
@@ -123,13 +184,182 @@
 			],
 
 			"RenderableData": {
+				"model_path": "res/models/test_cubes/wall.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "brick_cube",
+			"type": "Renderable",
+			"position": [ -15.0, -2.5, -6.0 ],
+
+			"RenderableData": {
 				"model_path": "res/models/test_cubes/bricks.obj",
-				"scale": [ 1.5, 1.5, 1.5 ]
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "terracotta_cube",
+			"type": "Renderable",
+			"position": [ -18.0, -2.5, -6.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/terracotta.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "lego_cube",
+			"type": "Renderable",
+			"position": [ -12.0, 0.5, -6.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/legos.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "scale_cube",
+			"type": "Renderable",
+			"position": [ -15.0, 0.5, -6.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/scales.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "lava_cube",
+			"type": "Renderable",
+			"position": [ -18.0, 0.5, -6.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/lava.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "wood_cube",
+			"type": "Renderable",
+			"position": [ -12.0, 3.5, -6.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/wood_clean.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "metal_cube",
+			"type": "Renderable",
+			"position": [ -15.0, 3.5, -6.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/metal.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "wood_drape",
+			"type": "Renderable",
+			"position": [ -15.0, -3.0, 0.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/wood_drape.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "wall_drape",
+			"type": "Renderable",
+			"position": [ -15.0, -3.0, 6.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/wall_drape.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "terracotta_drape",
+			"type": "Renderable",
+			"position": [ -15.0, -3.0, 12.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/terracotta_drape.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "scale_drape",
+			"type": "Renderable",
+			"position": [ -15.0, -3.0, 18.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/scale_drape.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "brick_drape",
+			"type": "Renderable",
+			"position": [ -15.0, -3.0, 24.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/brick_drape.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "stone_drape",
+			"type": "Renderable",
+			"position": [ -15.0, -3.0, 30.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/stone_drape.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "lego_drape",
+			"type": "Renderable",
+			"position": [ -15.0, -3.0, 36.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/lego_drape.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "matter_drape",
+			"type": "Renderable",
+			"position": [ -15.0, -3.0, 42.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/matter_drape.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
+			"id": "mud_drape",
+			"type": "Renderable",
+			"position": [ -15.0, -3.0, 48.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/mud_drape.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
 			}
 		},
 		{
 			"id": "camera_test",
 			"type": "Camera",
+
+			"ObjectTracks": [
+				{
+					"id": "test_track",
+					"is_following": false,
+					"track_delta": 0.0,
+					"track_speed": 0.1
+				}
+			],
 
 			"CameraData": {
 				"fov": 90.0,

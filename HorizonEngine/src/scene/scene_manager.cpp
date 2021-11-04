@@ -132,6 +132,10 @@ namespace hrzn::scene
 
 		m_sceneLoader.loadScene(sceneName);
 
+		m_dayNightCycle = m_sceneConfig.getTimeConfig().m_dayNightCycle;
+		m_dayProgress = m_sceneConfig.getTimeConfig().m_startTime;
+		m_paused = m_sceneConfig.getTimeConfig().m_timePaused;
+
 		m_sceneName = sceneName;
 
 		std::string sceneFilePath = "res/scenes/";
@@ -576,7 +580,7 @@ namespace hrzn::scene
 
 		if (m_dayNightCycle)
 		{
-			m_dayProgress += deltaTime * 0.0166666; // 1 day = 60 seconds
+			m_dayProgress += deltaTime * (1.0f / m_sceneConfig.getTimeConfig().m_dayDuration); // 1 day = 60 seconds
 		}
 
 		if (m_dayProgress > 1.0f) m_dayProgress -= 1.0f;

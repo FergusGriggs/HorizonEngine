@@ -108,16 +108,21 @@ namespace hrzn::gfx
 		//PACK_SEAM
 		int                 m_useNormalMapping;
 		int                 m_useParallaxOcclusionMapping;
-		float               m_parallaxOcclusionMappingHeight;
+		float               m_depthScale;
 		int                 m_showWorldNormals;
 
 		int                 m_showUVs;
 		int                 m_cullBackNormals;
+		int                 m_selfShadowing;
+		int                 m_gammaCorrection;
+		                    
 		int                 m_miscToggleA;
 		int                 m_miscToggleB;
+		int                 m_miscToggleC;
+		int                 m_miscToggleD;
 
 		//PACK_SEAM
-		MaterialCB         m_objectMaterial;
+		MaterialCB          m_objectMaterial;
 
 		//PACK_SEAM
 		DirectionalLightCB  m_directionalLight;

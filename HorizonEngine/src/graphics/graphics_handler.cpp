@@ -70,6 +70,7 @@ namespace hrzn::gfx
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'pixelShader' constant buffer.");
 			m_pixelShaderCB.m_data.m_useNormalMapping = true;
 			m_pixelShaderCB.m_data.m_useParallaxOcclusionMapping = true;
+			m_pixelShaderCB.m_data.m_selfShadowing = true;
 
 			hr = m_noLightPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'noLightPixelShader' constant buffer.");
@@ -830,22 +831,48 @@ namespace hrzn::gfx
 
 		ImGui::SameLine();
 
-		// Misc Toggle A
+		// Self shadowing
+		bool selfShadowing = static_cast<bool>(m_pixelShaderCB.m_data.m_selfShadowing);
+		ImGui::Checkbox("Self Shadowing", &selfShadowing);
+		m_pixelShaderCB.m_data.m_selfShadowing = selfShadowing;
+
+		// Gamma correction
+		bool gammaCorrection = static_cast<bool>(m_pixelShaderCB.m_data.m_gammaCorrection);
+		ImGui::Checkbox("Gamma Corr", &gammaCorrection);
+		m_pixelShaderCB.m_data.m_gammaCorrection = gammaCorrection;
+
+		ImGui::SameLine();
+
+		// Misc toggle A
 		bool miscToggleA = static_cast<bool>(m_pixelShaderCB.m_data.m_miscToggleA);
 		ImGui::Checkbox("Misc A", &miscToggleA);
 		m_pixelShaderCB.m_data.m_miscToggleA = miscToggleA;
 
 		ImGui::SameLine();
 
-		// Misc Toggle B
+		// Misc toggle B
 		bool miscToggleB = static_cast<bool>(m_pixelShaderCB.m_data.m_miscToggleB);
 		ImGui::Checkbox("Misc B", &miscToggleB);
 		m_pixelShaderCB.m_data.m_miscToggleB = miscToggleB;
 
-		// Pom Height
-		static float parallaxOcclusionMappingHeight = 0.05f;
-		ImGui::DragFloat("PO Mapping Height", &parallaxOcclusionMappingHeight, 0.001f, 0.0f, 0.5f);
-		m_pixelShaderCB.m_data.m_parallaxOcclusionMappingHeight = parallaxOcclusionMappingHeight;
+		ImGui::SameLine();
+
+		// Misc toggle C
+		bool miscToggleC = static_cast<bool>(m_pixelShaderCB.m_data.m_miscToggleC);
+		ImGui::Checkbox("Misc C", &miscToggleC);
+		m_pixelShaderCB.m_data.m_miscToggleC = miscToggleC;
+
+		ImGui::SameLine();
+
+		// Misc toggle D
+		bool miscToggleD = static_cast<bool>(m_pixelShaderCB.m_data.m_miscToggleD);
+		ImGui::Checkbox("Misc D", &miscToggleD);
+		m_pixelShaderCB.m_data.m_miscToggleD = miscToggleD;
+
+		// Depth scale
+		static float depthScale = 0.05f;
+		ImGui::DragFloat("PO Mapping Height", &depthScale, 0.001f, 0.0f, 0.5f);
+		m_pixelShaderCB.m_data.m_depthScale = depthScale;
 
 		//VSYNC CHECKBOX
 		ImGui::Checkbox("Use VSync", &m_useVSync);
