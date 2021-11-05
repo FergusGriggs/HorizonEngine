@@ -6,8 +6,14 @@ namespace hrzn::entity
 {
 	enum class ControllerType
 	{
+		eInvalid,
 		eCamera,
 		eHorizontal,
+	};
+
+	static const std::unordered_map<std::string, ControllerType> sc_controllerTypeStrings = {
+		{ "Camera",      ControllerType::eCamera },
+		{ "Horizontal", ControllerType::eHorizontal },
 	};
 
 	class ControllerManager
@@ -15,19 +21,19 @@ namespace hrzn::entity
 	public:
 		ControllerManager();
 
-		void addController(GameObject* gameObject, ControllerType controllerType, float moveSpeed);
+		void addController(GameObject* gameObject, ControllerType controllerType, float moveSpeed, bool active);
 
 		void updateControllers(float deltaTime);
-		std::vector<GameObjectController>& getControllers();
+		std::vector<GameObjectController*>& getControllers();
 
 	private:
-		std::vector<GameObjectController>  m_controllers;
+		std::vector<GameObjectController*>  m_controllers;
 	};
 
 	class GameObjectController
 	{
 	public:
-		GameObjectController(GameObject* gameObject, ControllerType controllerType, float moveSpeed);
+		GameObjectController(GameObject* gameObject, ControllerType controllerType, float moveSpeed, bool active);
 
 		void  updateObject(float deltaTime);
 		bool  isActive() const;

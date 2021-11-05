@@ -9,42 +9,40 @@ namespace hrzn::entity
 	{
 	}
 
-	void ControllerManager::addController(GameObject* gameObject, ControllerType controllerType, float moveSpeed)
+	void ControllerManager::addController(GameObject* gameObject, ControllerType controllerType, float moveSpeed, bool active)
 	{
-		m_controllers.push_back(GameObjectController(gameObject, controllerType, moveSpeed));
-		gameObject->setController(&m_controllers.back());
+		m_controllers.push_back(new GameObjectController(gameObject, controllerType, moveSpeed, active));
+		gameObject->setController(m_controllers.back());
 	}
 
-	std::vector<GameObjectController>& ControllerManager::getControllers()
+	std::vector<GameObjectController*>& ControllerManager::getControllers()
 	{
 		return m_controllers;
 	}
 
 	void ControllerManager::updateControllers(float deltaTime)
 	{
-		size_t controllerSize = m_controllers.size();
-		for (size_t i = 0; i < controllerSize; ++i)
+		size_t controllerCount = m_controllers.size();
+		for (size_t i = 0; i < controllerCount; ++i)
 		{
-			if (m_controllers.at(i).isActive())
+			if (m_controllers[i]->isActive())
 			{
-				m_controllers.at(i).updateObject(deltaTime);
+				m_controllers[i]->updateObject(deltaTime);
 			}
 		}
 	}
 
-	GameObjectController::GameObjectController(GameObject* gameObject, ControllerType controllerType, float moveSpeed) :
+	GameObjectController::GameObjectController(GameObject* gameObject, ControllerType controllerType, float moveSpeed, bool active) :
 		m_gameObject(gameObject),
 		m_controllerType(controllerType),
 
 		m_moveSpeed(moveSpeed),
-		m_active(false)
+		m_active(active)
 	{
 	}
 
 	void GameObjectController::updateObject(float deltaTime)
 	{
-		deltaTime *= 1000.0;
-
 		float speedMod = 1.0f;
 
 		if (InputManager::it().isKeyPressed(VK_SHIFT))
@@ -92,11 +90,19 @@ namespace hrzn::entity
 			}
 			if (InputManager::it().isKeyPressed('A'))
 			{
-				m_gameObject->getWritableTransform().rotateUsingAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), -0.3f * m_moveSpeed * speedMod * deltaTime);
+				m_gameObject->getWritableTransform().rotateUsingAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), -0.9f * m_moveSpeed * speedMod * deltaTime);
 			}
 			if (InputManager::it().isKeyPressed('D'))
 			{
-				m_gameObject->getWritableTransform().rotateUsingAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), 0.3f * m_moveSpeed * speedMod * deltaTime);
+				m_gameObject->getWritableTransform().rotateUsingAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), 0.9f * m_moveSpeed * speedMod * deltaTime);
+			}
+			if (InputManager::it().isKeyPressed('E'))
+			{
+				m_gameObject->getWritableTransform().adjustPosition(0.0f, m_moveSpeed * speedMod * deltaTime, 0.0f);
+			}
+			if (InputManager::it().isKeyPressed('Q'))
+			{
+				m_gameObject->getWritableTransform().adjustPosition(0.0f, -m_moveSpeed * speedMod * deltaTime, 0.0f);
 			}
 			break;
 		}
@@ -114,7 +120,7 @@ namespace hrzn::entity
 
 	void GameObjectController::setActive(bool active)
 	{
-		active = active;
+		m_active = active;
 	}
 
 	float GameObjectController::getMoveSpeed() const

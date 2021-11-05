@@ -310,7 +310,8 @@ namespace hrzn::scene
         bool floating;
 
         // Controller vars
-        std::string controllerType;
+        std::string controllerTypeStr;
+        entity::ControllerType controllerType;
         bool controllerActive;
         float controllerMoveSpeed;
 
@@ -413,6 +414,8 @@ namespace hrzn::scene
             case entity::GameObject::Type::eCamera:
             {
                 entity::CameraGameObject* camera = new entity::CameraGameObject();
+
+                camera->setLabel(id);
 
                 fov = 90.0f;
                 nearPlane = 0.1f;
@@ -539,7 +542,8 @@ namespace hrzn::scene
 
             // Reset controller vars
             controllerActive = false;
-            controllerType = "";
+            controllerTypeStr = "";
+            controllerType = entity::ControllerType::eInvalid;
             controllerMoveSpeed = 1.0f;
 
             // Load controller if it has one
@@ -552,7 +556,15 @@ namespace hrzn::scene
                     utils::ErrorLogger::log("Parsing Scene JSON\nGame object with id: '" + id + "' had a controller with no type");
                     continue;
                 }
-                controllerType = controller["type"].GetString();
+                controllerTypeStr = controller["type"].GetString();
+
+                auto controllerTypeItr = entity::sc_controllerTypeStrings.find(controllerTypeStr);
+                if (controllerTypeItr == entity::sc_controllerTypeStrings.end())
+                {
+                    utils::ErrorLogger::log("Parsing Scene JSON\nGame object with id: '" + id + "' had a controller with an invalid type");
+                    continue;
+                }
+                controllerType = controllerTypeItr->second;
 
                 if (controller.HasMember("active"))
                 {
@@ -564,7 +576,7 @@ namespace hrzn::scene
                     controllerMoveSpeed = controller["move_speed"].GetFloat();
                 }
 
-                // TODO: SET OBJECT CONTROLLER
+                m_sceneManager->getWritableControllerManager()->addController(gameObject, controllerType, controllerMoveSpeed, controllerActive);
             }
 
             // Load any object tracks

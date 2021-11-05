@@ -64,8 +64,7 @@ namespace hrzn
 			return false;
 		}
 
-		m_controllerManager.addController(&m_sceneManager.getWritableActiveCamera(), entity::ControllerType::eCamera, 0.005f);
-		m_controllerManager.getControllers().at(0).setActive(true);
+		m_controllerManager.addController(&m_sceneManager.getWritableActiveCamera(), entity::ControllerType::eCamera, 5.0f, true);
 
 		return true;
 	}

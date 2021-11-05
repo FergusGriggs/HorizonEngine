@@ -359,7 +359,7 @@ namespace hrzn::scene
 					sceneFile >> moveSpeed;
 
 					entity::ControllerType controllerType = static_cast<entity::ControllerType>(controllerTypeInt);
-					m_controllerManager->addController(gameObject, controllerType, moveSpeed);
+					m_controllerManager->addController(gameObject, controllerType, moveSpeed, false);
 				}
 
 				bool floating;
@@ -594,7 +594,10 @@ namespace hrzn::scene
 			updateSelectedObject();
 		}
 
-		m_activeCamera->update(deltaTime);
+		for (auto it = m_gameObjectMap.begin(); it != m_gameObjectMap.end(); ++it)
+		{
+			it->second->update(deltaTime);
+		}
 
 		// Update springs
 		for (int i = 0; i < m_springs.size(); ++i)
@@ -605,8 +608,6 @@ namespace hrzn::scene
 		size_t numRenderableGameObjects = m_renderables.size();
 		for (size_t i = 0; i < numRenderableGameObjects; ++i)
 		{
-			m_renderables[i]->update(deltaTime);
-
 			if (m_renderables[i]->getFloating())
 			{
 				floatObject(m_renderables[i]);
@@ -614,18 +615,6 @@ namespace hrzn::scene
 		}
 
 		checkObjectCollisions(deltaTime);
-
-		size_t numPointLights = m_pointLights.size();
-		for (size_t i = 0; i < numPointLights; ++i)
-		{
-			m_pointLights[i]->update(deltaTime);
-		}
-
-		size_t numSpotLights = m_spotLights.size();
-		for (size_t i = 0; i < numSpotLights; ++i)
-		{
-			m_spotLights[i]->update(deltaTime);
-		}
 
 		m_particleSystem->update(deltaTime);
 	}
@@ -902,11 +891,12 @@ namespace hrzn::scene
 			//Remove controller
 			if (iterator->second->getController() != nullptr)
 			{
-				std::vector<entity::GameObjectController>& controllers = m_controllerManager->getControllers();
+				std::vector<entity::GameObjectController*>& controllers = m_controllerManager->getControllers();
 				for (size_t i = 0; i < controllers.size(); ++i)
 				{
-					if (iterator->second->getController() == &controllers[i])
+					if (iterator->second->getController() == controllers[i])
 					{
+						delete controllers[i];
 						controllers.erase(controllers.begin() + i);
 						break;
 					}

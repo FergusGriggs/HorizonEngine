@@ -9,7 +9,6 @@ namespace hrzn::entity
 		GameObject(),
 
 		m_model(nullptr),
-		m_axisModel(nullptr),
 
 		m_scale(XMFLOAT3(1.0f, 1.0f, 1.0f))
 	{

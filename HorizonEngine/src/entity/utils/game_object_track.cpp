@@ -66,11 +66,11 @@ namespace hrzn::entity
 
 		if (m_delta < 0.0f)
 		{
-			m_delta = m_maxDelta;
+			m_delta += m_maxDelta;
 		}
 		else if (m_delta > m_maxDelta)
 		{
-			m_delta = 0.0f;
+			m_delta -= m_maxDelta;
 		}
 
 		int trackSize = m_trackNodes.size();

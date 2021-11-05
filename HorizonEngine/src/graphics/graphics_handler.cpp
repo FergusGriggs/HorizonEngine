@@ -587,69 +587,85 @@ namespace hrzn::gfx
 
 			ImGui::InputText("Object Label", &sceneManager.getWritableSelectedObject()->getLabelPtr()->at(0), 20);
 
-			XMFLOAT3 pos = sceneManager.getSelectedObject()->getTransform().getPositionFloat3();
-			ImGui::Text(("Pos -> x: " + std::to_string(pos.x) + " y: " + std::to_string(pos.y) + " z: " + std::to_string(pos.z)).c_str());
-
-			XMFLOAT4 orient = sceneManager.getSelectedObject()->getTransform().getOrientationFloat4();
-			ImGui::Text(("Orient -> x: " + std::to_string(orient.x) + " y: " + std::to_string(orient.y) + " z: " + std::to_string(orient.z) + " w: " + std::to_string(orient.w)).c_str());
-
-			if (sceneManager.getSelectedObject()->hasObjectTrack())
+			if (ImGui::CollapsingHeader("Transform"))
 			{
-				bool followingTrack = sceneManager.getSelectedObject()->isFollowingObjectTrack();
-				ImGui::Checkbox("Follow Track", &followingTrack);
-				sceneManager.getWritableSelectedObject()->setFollowingObjectTrack(followingTrack);
-			}
+				XMFLOAT3 pos = sceneManager.getSelectedObject()->getTransform().getPositionFloat3();
+				ImGui::Text(("Pos -> x: " + std::to_string(pos.x) + " y: " + std::to_string(pos.y) + " z: " + std::to_string(pos.z)).c_str());
 
-			bool floatingObject = sceneManager.getSelectedObject()->getFloating();
-			ImGui::Checkbox("Float Object", &floatingObject);
-			sceneManager.getWritableSelectedObject()->setFloating(floatingObject);
-
-			if (sceneManager.getSelectedObject()->isFollowingObject())
-			{
-				if (ImGui::Button("Stop Following Object"))
+				XMFLOAT4 orient = sceneManager.getSelectedObject()->getTransform().getOrientationFloat4();
+				ImGui::Text(("Orient -> x: " + std::to_string(orient.x) + " y: " + std::to_string(orient.y) + " z: " + std::to_string(orient.z) + " w: " + std::to_string(orient.w)).c_str());
+				
+				if (ImGui::Button("Edit Translation"))
 				{
-					sceneManager.getWritableSelectedObject()->setObjectToFollow(nullptr);
+					sceneManager.setAxisEditState(scene::AxisEditState::eEditTranslate);
 				}
-			}
-			else
-			{
-				if (ImGui::TreeNode("Followable Objects"))
+				ImGui::SameLine();
+				if (ImGui::Button("Edit Rotation"))
 				{
-					auto mapIterator = sceneManager.getObjectMap().begin();
-					while (mapIterator != sceneManager.getObjectMap().end())
+					sceneManager.setAxisEditState(scene::AxisEditState::eEditRotate);
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Reset Rotation"))
+				{
+					sceneManager.getWritableSelectedObject()->getWritableTransform().setOrientationQuaternion(XMQuaternionIdentity());
+				}
+				if (ImGui::CollapsingHeader("Custom Rotate"))
+				{
+					static XMFLOAT3 axis = XMFLOAT3(0.0f, 1.0f, 0.0f);
+					static float angle = 1.5707963f;
+					ImGui::DragFloat3("Rotation Axis", &axis.x, 0.1f, -1.0f, 1.0f);
+					if (ImGui::Button("Normalise Axis"))
 					{
-						std::string label = "Follow " + mapIterator->second->getLabel();
-
-						if (ImGui::Button(label.c_str()))
-						{
-							sceneManager.getWritableSelectedObject()->setObjectToFollow(mapIterator->second);
-						}
-
-						mapIterator++;
+						XMVECTOR axisVec = XMLoadFloat3(&axis);
+						axisVec = XMVector3Normalize(axisVec);
+						XMStoreFloat3(&axis, axisVec);
 					}
-					ImGui::TreePop();
+					ImGui::SliderFloat("Rotation Angle", &angle, 3.141592f, -3.141592f);
+					if (ImGui::Button("Rotate about axis by angle"))
+					{
+						sceneManager.getWritableSelectedObject()->getWritableTransform().rotateUsingAxis(XMLoadFloat3(&axis), angle);
+					}
 				}
 			}
-		
-			if (ImGui::Button("Edit Translation"))
+			if (ImGui::CollapsingHeader("Misc"))
 			{
-				sceneManager.setAxisEditState(scene::AxisEditState::eEditTranslate);
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Edit Rotation"))
-			{
-				sceneManager.setAxisEditState(scene::AxisEditState::eEditRotate);
-			}
+				if (sceneManager.getSelectedObject()->hasObjectTrack())
+				{
+					bool followingTrack = sceneManager.getSelectedObject()->isFollowingObjectTrack();
+					ImGui::Checkbox("Follow Track", &followingTrack);
+					sceneManager.getWritableSelectedObject()->setFollowingObjectTrack(followingTrack);
+				}
 
-			if (ImGui::Button("Reset Rotation"))
-			{
-				sceneManager.getWritableSelectedObject()->getWritableTransform().setOrientationQuaternion(XMQuaternionIdentity());
-			}
-			static XMFLOAT3 axis = XMFLOAT3(0.0f, 1.0f, 0.0f);
-			ImGui::DragFloat3("Rotation Axis", &axis.x, 0.1f, -1.0f, 1.0f);
-			if (ImGui::Button("Rotate 90 degrees about axis"))
-			{
-				sceneManager.getWritableSelectedObject()->getWritableTransform().rotateUsingAxis(XMLoadFloat3(&axis), 1.5707963f);
+				bool floatingObject = sceneManager.getSelectedObject()->getFloating();
+				ImGui::Checkbox("Float Object", &floatingObject);
+				sceneManager.getWritableSelectedObject()->setFloating(floatingObject);
+
+				if (sceneManager.getSelectedObject()->isFollowingObject())
+				{
+					if (ImGui::Button("Stop Following Object"))
+					{
+						sceneManager.getWritableSelectedObject()->setObjectToFollow(nullptr);
+					}
+				}
+				else
+				{
+					if (ImGui::TreeNode("Followable Objects"))
+					{
+						auto mapIterator = sceneManager.getObjectMap().begin();
+						while (mapIterator != sceneManager.getObjectMap().end())
+						{
+							std::string label = "Follow " + mapIterator->second->getLabel();
+
+							if (ImGui::Button(label.c_str()))
+							{
+								sceneManager.getWritableSelectedObject()->setObjectToFollow(mapIterator->second);
+							}
+
+							mapIterator++;
+						}
+						ImGui::TreePop();
+					}
+				}
 			}
 
 			entity::GameObject::Type type = sceneManager.getSelectedObject()->getType();
@@ -707,9 +723,10 @@ namespace hrzn::gfx
 				}
 			}
 
-			if (sceneManager.getSelectedObject()->getController() != nullptr)
+			entity::GameObjectController* controller = sceneManager.getWritableSelectedObject()->getWritableController();
+			if (controller != nullptr)
 			{
-				ImGui::Checkbox("Control Object", sceneManager.getWritableSelectedObject()->getWritableController()->isActivePtr());
+				ImGui::Checkbox("Control Object", controller->isActivePtr());
 			}
 
 			if (type == entity::GameObject::Type::ePhysics)
@@ -1027,7 +1044,7 @@ namespace hrzn::gfx
 			sceneManager.getWritableActiveCamera().unsetRelativeObject();
 		}
 
-		ImGui::Checkbox("Control Camera", sceneManager.getWritableControllerManager()->getControllers().at(0).isActivePtr());
+		ImGui::Checkbox("Control Camera", sceneManager.getWritableActiveCamera().getWritableController()->isActivePtr());
 
 		if (ImGui::CollapsingHeader("Camera List"))
 		{

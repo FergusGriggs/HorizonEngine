@@ -28,7 +28,6 @@ namespace hrzn::entity
 
 	protected:
 		gfx::Model* m_model;
-		gfx::Model* m_axisModel;
 
 		XMFLOAT3    m_scale;
 	};

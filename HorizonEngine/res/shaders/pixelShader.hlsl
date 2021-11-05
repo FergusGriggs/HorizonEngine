@@ -343,20 +343,22 @@ float4 main(PS_INPUT input) : SV_TARGET
     {
         for (int i = 0; i < numPointLights; ++i)
         {
-            float3 toLight = normalize(pointLights[i].position- input.worldPos);
-
-            float diffuseFloat = max(dot(toLight, normal), 0.0f);
-            float3 diffuse = diffuseFloat * pointLights[i].colour * textureColour;
-
-            float3 reflectDirection = reflect(-toLight, normal);
-
-            float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower) * (1.0f - roughnessSample);
-            float3 specular = specularFloat * pointLights[i].colour;
-
             float pointLightDistance = distance(pointLights[i].position, input.worldPos);
-            if (pointLightDistance < 25.0f)
+            float pointLightAttenuation = 1.0f / (pointLights[i].attenuationConstant + pointLights[i].attenuationLinear * pointLightDistance + pointLights[i].attenuationQuadratic * pow(pointLightDistance, 2.0f));
+            
+            //float pointLightAttenuation = pow(1.0f - min(1.0f, pointLightDistance / 15.0f), 2.0f);
+            
+            if (pointLightAttenuation > 0.01f)
             {
-                float pointLightAttenuation = 1.0f / (pointLights[i].attenuationConstant + pointLights[i].attenuationLinear * pointLightDistance + pointLights[i].attenuationQuadratic * pow(pointLightDistance, 2.0f));
+                float3 toLight = normalize(pointLights[i].position - input.worldPos);
+
+                float diffuseFloat = max(dot(toLight, normal), 0.0f);
+                float3 diffuse = diffuseFloat * pointLights[i].colour * textureColour;
+
+                float3 reflectDirection = reflect(-toLight, normal);
+
+                float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower) * (1.0f - roughnessSample);
+                float3 specular = specularFloat * pointLights[i].colour;
 
                 float lightShadowFactor = 1.0f;
                 if (selfShadowing)
@@ -373,25 +375,27 @@ float4 main(PS_INPUT input) : SV_TARGET
     {
         for (int i = 0; i < numSpotLights; ++i)
         {
-            float3 toLight = normalize(spotLights[i].position- input.worldPos);
-
-            float diffuseFloat = max(dot(toLight, normal), 0.0f);
-            float3 diffuse = diffuseFloat * spotLights[i].colour* textureColour;
-
-            float3 reflectDirection = reflect(-toLight, normal);
-
-            float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower) * (1.0f - roughnessSample);
-            float3 specular = specularFloat * spotLights[i].colour;
-
             float spotLightDistance = distance(spotLights[i].position, input.worldPos);
-            if (spotLightDistance < 25.0f)
+            float spotLightAttenuation = 1.0f / (spotLights[i].attenuationConstant + spotLights[i].attenuationLinear * spotLightDistance + spotLights[i].attenuationQuadratic * pow(spotLightDistance, 2.0f));
+            
+            //float spotLightAttenuation = pow(1.0f - min(1.0f, spotLightDistance / 15.0f), 2.0f);
+            
+            if (spotLightAttenuation > 0.01f)
             {
-                float spotLightAttenuation = 1.0f / (spotLights[i].attenuationConstant + spotLights[i].attenuationLinear * spotLightDistance + spotLights[i].attenuationQuadratic * pow(spotLightDistance, 2.0f));
+                float3 toLight = normalize(spotLights[i].position - input.worldPos);
 
                 float lightAngle = (acos(dot(-toLight, spotLights[i].direction)) * 180.0) / 3.141592f;
                 float lightCutoffAmount = 1.0 - smoothstep(spotLights[i].innerCutoff, spotLights[i].outerCutoff, lightAngle);
                 if (lightCutoffAmount > 0.001f)
                 {
+                    float diffuseFloat = max(dot(toLight, normal), 0.0f);
+                    float3 diffuse = diffuseFloat * spotLights[i].colour * textureColour;
+
+                    float3 reflectDirection = reflect(-toLight, normal);
+
+                    float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower) * (1.0f - roughnessSample);
+                    float3 specular = specularFloat * spotLights[i].colour;
+
                     float lightShadowFactor = 1.0f;
                     if (selfShadowing)
                     {
