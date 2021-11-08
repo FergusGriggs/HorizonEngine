@@ -255,11 +255,12 @@ namespace hrzn::physics
 
 	void Transform::editPositionImGui()
 	{
-		ImGui::DragFloat3("Position", &m_position.x, 3.0f, -500.0f, 500.0f);
+		ImGui::DragFloat3("Position", &m_position.x, 0.2f, -500.0f, 500.0f);
 	}
 
-	void Transform::showAxisVectorsImGui() const
+	void Transform::displayOrientationImGui() const
 	{
+		ImGui::Text("quat -> (%f, %f, %f, %f)", m_orientation.x, m_orientation.y, m_orientation.z, m_orientation.w);
 		ImGui::Text("front -> (%f, %f, %f)", m_front.x, m_front.y, m_front.z);
 		ImGui::Text("up -> (%f, %f, %f)", m_up.x, m_up.y, m_up.z);
 		ImGui::Text("right -> (%f, %f, %f)", m_right.x, m_right.y, m_right.z);

@@ -106,8 +106,8 @@ namespace hrzn::gfx
 
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerState;
 
-		bool m_useWireframe = false;
-		bool m_useVSync = true;
+		bool m_useWireframe;
+		bool m_useVSync;
 
 		utils::Timer m_fpsTimer;
 		int          m_fpsCounter;

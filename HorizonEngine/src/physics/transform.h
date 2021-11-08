@@ -87,7 +87,7 @@ namespace hrzn::physics
 		void updateAxisVectorsUsingRotationMatrix(const XMMATRIX& rotationMatrix);
 
 		void editPositionImGui();
-		void showAxisVectorsImGui() const;
+		void displayOrientationImGui() const;
 
 	private:
 		// Position info

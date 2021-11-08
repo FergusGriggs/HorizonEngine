@@ -83,10 +83,10 @@ namespace hrzn::entity
 		std::vector<XMFLOAT3>&       getWritableRelativePositions();
 
 	protected:
-		std::string        m_label;
-		Type               m_type;
+		std::string           m_label;
+		Type                  m_type;
 
-		physics::Transform m_transform;
+		physics::Transform    m_transform;
 
 		// Track information
 		bool                  m_followingTrack;
