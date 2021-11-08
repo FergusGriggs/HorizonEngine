@@ -141,6 +141,7 @@ namespace hrzn::physics
 		rotationMatrix.r[0].m128_f32[3] = 0.0f;
 		rotationMatrix.r[1].m128_f32[3] = 0.0f;
 		rotationMatrix.r[2].m128_f32[3] = 0.0f;
+		//rotationMatrix.r[3].m128_f32[3] = 1.0f;
 
 		XMStoreFloat4x4(&m_rotationMatrix, rotationMatrix);
 

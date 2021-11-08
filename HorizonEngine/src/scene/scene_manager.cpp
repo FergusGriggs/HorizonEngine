@@ -395,8 +395,8 @@ namespace hrzn::scene
 		entity::CameraGameObject* mainCamera = new entity::CameraGameObject();
 		mainCamera->setLabel("main_cam");
 
-		mainCamera->getWritableTransform().setPosition(-12.0f, 3.0f, 7.0f);
-		mainCamera->getWritableTransform().lookAtPosition(XMFLOAT3(-12.0f, 0.0f, -3.6f));
+		//mainCamera->getWritableTransform().setPosition(-12.0f, 3.0f, 7.0f);
+		//mainCamera->getWritableTransform().lookAtPosition(XMFLOAT3(-12.0f, 0.0f, -3.6f));
 		//m_camera.getTransform().lookAtPosition(XMVectorSet(0.0f, 7.0f, 0.0f, 1.0f));
 		mainCamera->setProjectionValues(90.0f, UserConfig::it().getWindowAspectRatio(), 0.1f, 1000.0f);
 		//camera.SetObjectTrack(objectTracks.at("camera_track"));

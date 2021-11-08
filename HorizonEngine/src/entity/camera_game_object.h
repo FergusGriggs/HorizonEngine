@@ -39,17 +39,17 @@ namespace hrzn::entity
 		void     updateView();
 
 	private:
-		XMMATRIX m_view;
-		XMMATRIX m_projection;
+		XMFLOAT4X4 m_view;
+		XMFLOAT4X4 m_projection;
 
 		float m_fov;
 		float m_aspectRatio;
 		float m_nearZ;
 		float m_farZ;
 
-		XMVECTOR m_mouseToWorldVectorDirection;
+		XMFLOAT3 m_mouseToWorldVectorDirection;
 
 		const GameObject* m_relativeObject;
-		XMVECTOR          m_relativePosition;
+		XMFLOAT3          m_relativePosition;
 	};
 }
