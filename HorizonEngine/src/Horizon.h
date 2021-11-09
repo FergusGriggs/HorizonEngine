@@ -1,4 +1,4 @@
-//HorizonEngine.h
+
 //A singleton class that encapsulates all of the engine code
 
 #pragma once
@@ -7,7 +7,7 @@
 
 #include "window_container.h"
 #include "utils/timer.h"
-#include "entities/utility/game_object_controller.h"
+#include "entity/utils/game_object_controller.h"
 
 namespace hrzn
 {
@@ -17,7 +17,8 @@ namespace hrzn
 		Horizon();
 		Horizon(const Horizon&);
 
-		bool initialize(HINSTANCE hInstance, std::string windowTitle, std::string windowClass, int width, int height);
+		bool initialize(HINSTANCE hInstance, std::string windowClass);
+
 		bool processMessages();
 		void update();
 		void renderFrame();
@@ -26,9 +27,11 @@ namespace hrzn
 		utils::Timer m_timer;
 		float        m_deltaTime;
 
-		AudioEngine* m_audioEngine;
-		SoundEffect* m_soundEffect;
+		AudioEngine*         m_audioEngine;
+		SoundEffect*         m_soundEffect;
 
+		gfx::GraphicsHandler      m_graphicsHandler;
 		entity::ControllerManager m_controllerManager;
+		scene::SceneManager       m_sceneManager;
 	};
 }

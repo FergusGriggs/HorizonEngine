@@ -4,7 +4,7 @@ meme 2
 0 0 0 1 0 0 
 0 0 0 1 0 0 
 
-16
+17
 
 1 test|cube|4 test_cubes/lava.obj
 -11.8653 1.46821 -0.394168 
@@ -129,6 +129,14 @@ meme 2
 1 skull environment/meshes/../../skull.obj
 -18.4218 3.21054 -1.03762 
 3 0 0.912907 0 -0.408167 
+0
+0
+0
+0
+
+1 boat environment/meshes/../../boat.obj
+-3.43067 0.326069 -5.53323 
+3 -0 0.256246 -0 0.966612 
 0
 0
 0

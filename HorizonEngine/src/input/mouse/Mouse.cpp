@@ -1,4 +1,6 @@
-#include "Mouse.h"
+#include "mouse.h"
+
+#include "../src/user_config.h"
 
 namespace hrzn::input
 {
@@ -62,6 +64,9 @@ namespace hrzn::input
 	{
 		m_pos.x = x;
 		m_pos.y = y;
+
+		updateNDCPos();
+
 		m_eventBuffer.push(MouseEvent(MouseEvent::EventType::eMove, x, y));
 	}
 
@@ -85,9 +90,20 @@ namespace hrzn::input
 		return m_middleIsDown;
 	}
 
-	const MousePos& Mouse::getPos() const
+	void Mouse::updateNDCPos()
+	{
+		m_posNDC.x = (2.0f * static_cast<float>(m_pos.x)) / (static_cast<float>(UserConfig::it().getWindowWidth())) - 1.0f;
+		m_posNDC.y = 1.0f - (2.0f * static_cast<float>(m_pos.y)) / static_cast<float>(UserConfig::it().getWindowHeight());
+	}
+
+	const MousePosPixel& Mouse::getPos() const
 	{
 		return m_pos;
+	}
+
+	const MousePosNDC& Mouse::getPosNDC() const
+	{
+		return m_posNDC;
 	}
 
 	bool Mouse::isEventBufferEmpty() const

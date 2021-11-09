@@ -1,6 +1,7 @@
 #include "window_container.h"
 
 #include "utils/error_logger.h"
+#include "input/input_manager.h"
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -26,6 +27,8 @@ namespace hrzn
 
 			raw_input_initialized = true;
 		}
+
+		InputManager::it().setMouseAndKeyboardPtrs(&m_mouse, &m_keyboard);
 	}
 
 	LRESULT WindowContainer::windowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

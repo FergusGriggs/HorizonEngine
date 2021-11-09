@@ -12,5 +12,5 @@ d 1.000000
 illum 2
 map_Kd ../../textures/metal/diffuse.jpg
 map_Ks ../../textures/metal/roughness.jpg
-map_Bump ../../textures/metal/normal.jpg
+map_Kn ../../textures/metal/normal.jpg
 disp ../../textures/metal/depth.png

@@ -6,78 +6,87 @@
 #include <string>
 #include <algorithm>
 
-namespace hrzn::utils
+namespace hrzn::utils::string_helpers
 {
-	namespace string_helpers
+	static std::wstring stringToWide(const std::string& str)
 	{
-		static std::wstring stringToWide(std::string str)
+		std::wstring wide_string(str.begin(), str.end());
+		return wide_string;
+	}
+
+	static std::string getDirectoryFromPath(const std::string& filePath)
+	{
+		size_t off1 = filePath.find_last_of('\\');
+		size_t off2 = filePath.find_last_of('/');
+
+		if (off1 == std::string::npos && off2 == std::string::npos)
 		{
-			std::wstring wide_string(str.begin(), str.end());
-			return wide_string;
+			return "";
 		}
 
-		static std::string getDirectoryFromPath(const std::string& filePath)
+		if (off1 == std::string::npos)
 		{
-			size_t off1 = filePath.find_last_of('\\');
-			size_t off2 = filePath.find_last_of('/');
-
-			if (off1 == std::string::npos && off2 == std::string::npos)
-			{
-				return "";
-			}
-
-			if (off1 == std::string::npos)
-			{
-				return filePath.substr(0, off2);
-			}
-
-			if (off2 == std::string::npos)
-			{
-				return filePath.substr(0, off1);
-			}
-
-			return filePath.substr(0, std::max(off1, off2));
+			return filePath.substr(0, off2);
 		}
 
-		static std::string getFileExtension(const std::string& fileName)
+		if (off2 == std::string::npos)
 		{
-			size_t off = fileName.find_last_of(".");
-
-			if (off == std::string::npos)
-			{
-				return "";
-			}
-
-			return std::string(fileName.substr(off + 1));
+			return filePath.substr(0, off1);
 		}
 
-		static void removeDirectoriesFromStart(std::string& filePath, int numDirectories)
+		return filePath.substr(0, std::max(off1, off2));
+	}
+
+	static std::string getFileExtension(const std::string& fileName)
+	{
+		size_t off = fileName.find_last_of(".");
+
+		if (off == std::string::npos)
 		{
-			int numDirectoriesFound = 0;
-			size_t strLength = filePath.size();
-			for (size_t i = 0; i < strLength; ++i)
+			return "";
+		}
+
+		return std::string(fileName.substr(off + 1));
+	}
+
+	static void removeDirectoriesFromStart(std::string& filePath, int numDirectories)
+	{
+		int numDirectoriesFound = 0;
+		size_t strLength = filePath.size();
+		for (size_t i = 0; i < strLength; ++i)
+		{
+			if (filePath[i] == '\\' || filePath[i] == '/')
 			{
-				if (filePath[i] == '\\' || filePath[i] == '/')
+				if (++numDirectoriesFound >= numDirectories)
 				{
-					if (++numDirectoriesFound >= numDirectories)
-					{
-						filePath = filePath.substr(i + 1, strLength - 1 - i);
-						return;
-					}
+					filePath = filePath.substr(i + 1, strLength - 1 - i);
+					return;
 				}
 			}
 		}
+	}
 
-		static void replaceChars(std::string& string, char existingChar, char newChar)
+	static void replaceChars(std::string& string, char existingChar, char newChar)
+	{
+		size_t stringSize = string.length();
+		for (size_t i = 0; i < stringSize; ++i)
 		{
-			size_t stringSize = string.length();
-			for (size_t i = 0; i < stringSize; ++i)
+			if (string[i] == existingChar)
 			{
-				if (string[i] == existingChar)
-				{
-					string[i] = newChar;
-				}
+				string[i] = newChar;
 			}
 		}
-	};
+	}
+
+	static int getLineNumberFromOffset(std::string& string, size_t charOffset)
+	{
+		int lineNumber = 0;
+		size_t numIterations = std::min(string.length(), charOffset);
+		for (size_t i = 0; i < numIterations; ++i)
+		{
+			if (string[i] == '\n') ++lineNumber;
+		}
+
+		return lineNumber;
+	}
 }

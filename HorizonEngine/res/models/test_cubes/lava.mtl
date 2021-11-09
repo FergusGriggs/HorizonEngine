@@ -12,5 +12,5 @@ d 1.000000
 illum 2
 map_Kd ../../textures/lava/diffuse.jpg
 map_Ks ../../textures/lava/roughness.jpg
-map_Bump ../../textures/lava/normal.jpg
+map_Kn ../../textures/lava/normal.jpg
 disp ../../textures/lava/depth.png

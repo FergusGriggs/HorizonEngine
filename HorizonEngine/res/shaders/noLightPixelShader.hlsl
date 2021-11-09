@@ -5,6 +5,9 @@ cbuffer constantBuffer : register(b0)
 {
     float3 colour;
     int justColour;
+
+    float3 cameraPos;
+    float padding1;
 };
 
 struct PS_INPUT
@@ -32,7 +35,14 @@ float4 main(PS_INPUT input) : SV_TARGET
     }
     
     float dotResult = abs(dot(float3(0.0f, 1.0f, 0.0f), input.normal));
-    dotResult = dotResult * 0.5 + 0.5f;
-    return float4(textureColour * colour * dotResult, 1.0f);
+    dotResult = dotResult * 0.4 + 0.6f;
+
+    float3 viewDirection = normalize(input.worldPos - cameraPos);
+    //float fresnelFactor = clamp(1.0f - dot(-input.normal, viewDirection), 0.0f, 1.0f);
+    //fresnelFactor = pow(fresnelFactor, 5.0f) * 0.5f;
+
+    float facingFactor = pow(max(0.0f, dot(-input.normal, viewDirection)), 2.0f) * 0.25;
+
+    return float4(textureColour * colour * dotResult + facingFactor, 1.0f);
 
 }

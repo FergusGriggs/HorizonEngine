@@ -18,17 +18,17 @@ namespace hrzn::gfx
 	public:
 		Model();
 
-		bool        initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+		bool initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
 		template <class T>
-		void        draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<T>* vertexShaderCB, bool bindTextures = true);
+		void draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<T>* vertexShaderCB, bool bindTextures = true) const;
 
-		std::string            getPath();
-		std::vector<XMFLOAT3>* getVertices();
+		const std::string&           getPath() const;
+		const std::vector<XMFLOAT3>& getVertices() const;
 
-		float       getHitRadius();
-		BoundingBox getBoundingBox();
-		bool        rayInersect(XMVECTOR rayOrigin, XMVECTOR rayDirection, float* rayDistance);
+		float              getHitRadius() const;
+		const BoundingBox& getBoundingBox() const;
+		bool               rayInersectAllFaces(XMVECTOR rayOrigin, XMVECTOR rayDirection, float* rayDistance) const;
 
 	private:
 		bool loadModel(const std::string& filePath);
@@ -36,8 +36,8 @@ namespace hrzn::gfx
 		Mesh processMesh(aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMatrix);
 		void loadModelMetaData(const std::string& filePath);
 
-		int                   getTextureIndex(aiString* pString);
-		TextureStorageType    determineTextureStorageType(const aiScene* pScene, aiMaterial* pMaterial, unsigned int index, aiTextureType textureType);
+		int                   getTextureIndex(aiString* pString) const;
+		TextureStorageType    determineTextureStorageType(const aiScene* pScene, aiMaterial* pMaterial, unsigned int index, aiTextureType textureType) const;
 		std::vector<Texture*> loadMaterialTextures(aiMaterial* pMaterial, aiTextureType textureType, const aiScene* pScene);
 
 	private:
@@ -46,8 +46,8 @@ namespace hrzn::gfx
 		std::vector<DWORD>    m_indices;
 		int                   m_currentNumVerts;
 
-		ID3D11Device* m_device;
-		ID3D11DeviceContext* m_deviceContext;
+		ID3D11Device*         m_device;
+		ID3D11DeviceContext*  m_deviceContext;
 
 		std::string           m_filePath;
 		std::string           m_directory;
@@ -61,7 +61,7 @@ namespace hrzn::gfx
 namespace hrzn::gfx
 {
 	template<class T>
-	inline void Model::draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<T>* vertexShaderCB, bool bindTextures)
+	inline void Model::draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<T>* vertexShaderCB, bool bindTextures) const
 	{
 		m_deviceContext->VSSetConstantBuffers(0, 1, vertexShaderCB->getAddressOf());
 

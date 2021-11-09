@@ -21,17 +21,17 @@ namespace hrzn::input
 		}
 	}
 
-	bool Keyboard::keyIsPressed(const unsigned char keyCode)
+	bool Keyboard::isKeyPressed(const unsigned char keyCode) const
 	{
 		return m_keyStates[keyCode];
 	}
 
-	bool Keyboard::isKeyBufferEmpty()
+	bool Keyboard::isKeyBufferEmpty() const
 	{
 		return m_keyBuffer.empty();
 	}
 
-	bool Keyboard::isCharBufferEmpty()
+	bool Keyboard::isCharBufferEmpty() const
 	{
 		return m_charBuffer.empty();
 	}
@@ -91,12 +91,12 @@ namespace hrzn::input
 		m_autoRepeatChars = autoRepeat;
 	}
 
-	bool Keyboard::isAutoRepeatKeysOn()
+	bool Keyboard::isAutoRepeatKeysOn() const
 	{
 		return m_autoRepeatKeys;
 	}
 
-	bool Keyboard::isAutoRepeatCharsOn()
+	bool Keyboard::isAutoRepeatCharsOn() const
 	{
 		return m_autoRepeatChars;
 	}

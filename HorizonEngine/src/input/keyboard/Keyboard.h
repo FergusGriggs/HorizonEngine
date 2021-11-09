@@ -14,9 +14,9 @@ namespace hrzn::input
 	public:
 		Keyboard();
 
-		bool keyIsPressed(const unsigned char keyCode);
-		bool isKeyBufferEmpty();
-		bool isCharBufferEmpty();
+		bool isKeyPressed(const unsigned char keyCode) const;
+		bool isKeyBufferEmpty() const;
+		bool isCharBufferEmpty() const;
 
 		KeyboardEvent readKey();
 		unsigned char readChar();
@@ -28,8 +28,8 @@ namespace hrzn::input
 		void setAutoRepeatKeys(bool autoRepeat);
 		void setAutoRepeatChars(bool autoRepeat);
 
-		bool isAutoRepeatKeysOn();
-		bool isAutoRepeatCharsOn();
+		bool isAutoRepeatKeysOn() const;
+		bool isAutoRepeatCharsOn() const;
 
 	private:
 		bool                      m_keyStates[256];

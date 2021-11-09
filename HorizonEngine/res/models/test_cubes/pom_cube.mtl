@@ -12,5 +12,5 @@ d 1.000000
 illum 2
 map_Kd ../../textures/pom_cube/diffuse.jpg
 map_Ks ../../textures/pom_cube/roughness.jpg
-map_Bump ../../textures/pom_cube/normal.jpg
+map_Kn ../../textures/pom_cube/normal.jpg
 disp ../../textures/pom_cube/depth.png

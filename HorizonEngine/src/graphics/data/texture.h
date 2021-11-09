@@ -33,13 +33,13 @@ namespace hrzn::gfx
 		Texture();
 		Texture(ID3D11Device* device, const Colour& colour, aiTextureType type);
 		Texture(ID3D11Device* device, const Colour* colourData, UINT width, UINT height, aiTextureType type);
-		Texture(ID3D11Device* device, std::string& filePath, aiTextureType type);
+		Texture(ID3D11Device* device, const std::string& filePath, aiTextureType type);
 		Texture(ID3D11Device* device, const uint8_t* pData, size_t size, aiTextureType type);
 
-		bool initialize(ID3D11Device* device, std::string& filePath, aiTextureType type);
+		bool initialize(ID3D11Device* device, const std::string& filePath, aiTextureType type);
 
-		aiTextureType              getType();
-		ID3D11ShaderResourceView*  getTextureResourceView();
+		aiTextureType              getType() const;
+		ID3D11ShaderResourceView*  getTextureResourceView() const;
 		ID3D11ShaderResourceView** getTextureResourceViewAddress();
 
 	private:

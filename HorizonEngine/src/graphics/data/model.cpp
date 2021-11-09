@@ -5,6 +5,8 @@
 
 #include "resource_manager.h";
 
+#include "../../physics/utils/collision_helpers.h"
+
 namespace hrzn::gfx
 {
 	Model::Model() :
@@ -46,66 +48,38 @@ namespace hrzn::gfx
 		return true;
 	}
 
-	float Model::getHitRadius()
+	float Model::getHitRadius() const
 	{
 		return m_modelHitRadius;
 	}
 
-	std::string Model::getPath()
+	const std::string& Model::getPath() const
 	{
 		return m_filePath;
 	}
 
-	BoundingBox Model::getBoundingBox()
+	const BoundingBox& Model::getBoundingBox() const
 	{
 		return m_boundingBox;
 	}
 
-	std::vector<XMFLOAT3>* Model::getVertices()
+	const std::vector<XMFLOAT3>& Model::getVertices() const
 	{
-		return &m_vertices;
+		return m_vertices;
 	}
 
-	bool Model::rayInersect(XMVECTOR rayOrigin, XMVECTOR rayDirection, float* rayDistance)
+	bool Model::rayInersectAllFaces(XMVECTOR rayOrigin, XMVECTOR rayDirection, float* rayDistance) const
 	{
 		for (int i = 0; i < m_indices.size(); i += 3)
 		{
-			// Load vertex positions
+			// Load face vertices
 			XMVECTOR vertex1 = XMLoadFloat3(&m_vertices[m_indices[i]]);
 			XMVECTOR vertex2 = XMLoadFloat3(&m_vertices[m_indices[i + 1]]);
 			XMVECTOR vertex3 = XMLoadFloat3(&m_vertices[m_indices[i + 2]]);
 
-			// Face normal
-			XMVECTOR faceNormal = XMVector3Normalize(XMVector3Cross(vertex2 - vertex1, vertex3 - vertex1));
-
-
-			// Plane intersect point
-			XMVECTOR diff = rayOrigin - vertex1;
-			XMVECTOR planeIntersectPoint = (diff + vertex1) + rayDirection * (-XMVector3Dot(diff, faceNormal) / XMVector3Dot(rayDirection, faceNormal));
-
-			// Check if the ray could hit the face
-			if (XMVectorGetX(XMVector3Dot(planeIntersectPoint - rayOrigin, rayDirection)) >= 0.0)
+			if (physics::collision::rayFaceIntersect(vertex1, vertex2, vertex3, rayOrigin, rayDirection, rayDistance))
 			{
-				// Work out barrycentric coordinates to check if point is in face
-				XMVECTOR v0 = vertex2 - vertex1;
-				XMVECTOR v1 = vertex3 - vertex1;
-				XMVECTOR v2 = planeIntersectPoint - vertex1;
-
-				float d00 = XMVectorGetX(XMVector3Dot(v0, v0));
-				float d01 = XMVectorGetX(XMVector3Dot(v0, v1));
-				float d11 = XMVectorGetX(XMVector3Dot(v1, v1));
-				float d20 = XMVectorGetX(XMVector3Dot(v2, v0));
-				float d21 = XMVectorGetX(XMVector3Dot(v2, v1));
-				float denom = d00 * d11 - d01 * d01;
-				float v = (d11 * d20 - d01 * d21) / denom;
-				float w = (d00 * d21 - d01 * d20) / denom;
-				float u = 1.0f - v - w;
-
-				if ((u >= 0.0f) && (v >= 0.0f) && (u + v <= 1.0f))
-				{
-					*rayDistance = XMVectorGetX(XMVector3Length(rayOrigin - planeIntersectPoint));
-					return true;
-				}
+				return true;
 			}
 		}
 
@@ -226,7 +200,7 @@ namespace hrzn::gfx
 		std::vector<Texture*> specularTextures = loadMaterialTextures(material, aiTextureType::aiTextureType_SPECULAR, scene);
 		textures.insert(textures.end(), specularTextures.begin(), specularTextures.end());
 
-		std::vector<Texture*> normalTextures = loadMaterialTextures(material, aiTextureType::aiTextureType_HEIGHT, scene);
+		std::vector<Texture*> normalTextures = loadMaterialTextures(material, aiTextureType::aiTextureType_NORMALS, scene);
 		textures.insert(textures.end(), normalTextures.begin(), normalTextures.end());
 
 		std::vector<Texture*> depthTextures = loadMaterialTextures(material, aiTextureType::aiTextureType_DISPLACEMENT, scene);
@@ -235,13 +209,13 @@ namespace hrzn::gfx
 		return Mesh(m_device, m_deviceContext, meshVertices, indices, textures, transformMatrix);
 	}
 
-	int Model::getTextureIndex(aiString* pString)
+	int Model::getTextureIndex(aiString* pString) const
 	{
 		assert(pString->length >= 2);
 		return atoi((&pString->C_Str()[1]));
 	}
 
-	TextureStorageType Model::determineTextureStorageType(const aiScene* pScene, aiMaterial* pMaterial, unsigned int index, aiTextureType textureType)
+	TextureStorageType Model::determineTextureStorageType(const aiScene* pScene, aiMaterial* pMaterial, unsigned int index, aiTextureType textureType) const
 	{
 		if (pMaterial->GetTextureCount(textureType) == 0)
 		{
@@ -314,7 +288,7 @@ namespace hrzn::gfx
 
 				return materialTextures;
 
-			case aiTextureType_HEIGHT:
+			case aiTextureType_NORMALS:
 				materialTextures.push_back(ResourceManager::it().getColourTexturePtr("UNLOADED_NORMAL", colours::sc_unloadedNormalTextureColour, textureType));
 				return materialTextures;
 

@@ -31,7 +31,7 @@ namespace hrzn::gfx
 	{
 	}
 
-	void Mesh::draw(bool bindTextures)
+	void Mesh::draw(bool bindTextures) const
 	{
 		if (bindTextures)
 		{
@@ -45,7 +45,7 @@ namespace hrzn::gfx
 				case aiTextureType::aiTextureType_SPECULAR:
 					m_deviceContext->PSSetShaderResources(1, 1, m_textures[i]->getTextureResourceViewAddress());
 					break;
-				case aiTextureType::aiTextureType_HEIGHT:
+				case aiTextureType::aiTextureType_NORMALS:
 					m_deviceContext->PSSetShaderResources(2, 1, m_textures[i]->getTextureResourceViewAddress());
 					break;
 				case aiTextureType::aiTextureType_DISPLACEMENT:
@@ -62,7 +62,7 @@ namespace hrzn::gfx
 		m_deviceContext->DrawIndexed(m_indexBuffer.indexCount(), 0, 0);
 	}
 
-	const DirectX::XMMATRIX& Mesh::getTransformMatrix()
+	const DirectX::XMMATRIX& Mesh::getTransformMatrix() const
 	{
 		return m_transformMatrix;
 	}

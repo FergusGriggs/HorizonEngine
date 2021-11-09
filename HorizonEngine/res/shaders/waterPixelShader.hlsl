@@ -150,7 +150,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 
     float3 refracted = seaBaseColour * modifiedLightColour + diffuse(normal, -lightDirection, 20.0f) * seaWaterColour * 0.12f;
     float3 reflected = modifiedLightColour;//getSkyColor();// max(0.0f, sign(reflect(viewDirection, normal).y))
-    float3 colour = lerp(refracted, reflected, fresnel);
+    float3 colour = refracted;// lerp(refracted, reflected, fresnel);
 
    // float height = getLinearProgress(-1.0f, 1.0f, (mainFourierOffset.y - input.baseWorldPos.y) / waveScale);
    // height = clamp(height + colourChangeStart + heightDistMod, 0.0f, 1.0f);

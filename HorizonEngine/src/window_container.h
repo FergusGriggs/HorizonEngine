@@ -19,7 +19,6 @@ namespace hrzn
 
 	protected:
 		RenderWindow         m_renderWindow;
-		gfx::GraphicsHandler m_graphicsHandler;
 
 		input::Keyboard      m_keyboard;
 		input::Mouse         m_mouse;

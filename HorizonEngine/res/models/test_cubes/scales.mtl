@@ -12,5 +12,5 @@ d 1.000000
 illum 2
 map_Kd ../../textures/scales/diffuse.jpg
 map_Ks ../../textures/scales/roughness.jpg
-map_Bump ../../textures/scales/normal.jpg
+map_Kn ../../textures/scales/normal.jpg
 disp ../../textures/scales/depth.png

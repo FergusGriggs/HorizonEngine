@@ -58,13 +58,18 @@ cbuffer constantBuffer : register(b0)
 	//PACK_SEAM
     int useNormalMapping;
     int useParallaxOcclusionMapping;
-    float parallaxOcclusionMappingHeight;
+    float depthScale;
     int showWorldNormals;
 
     int showUVs;
     int cullBackNormals;
+    int selfShadowing;
+    int gammaCorrection;
+
     int miscToggleA;
     int miscToggleB;
+    int miscToggleC;
+    int miscToggleD;
 
 	//PACK_SEAM
     Material objectMaterial;
@@ -102,10 +107,10 @@ float2 getParallaxTextureCoords(float3 viewDir, float2 texCoords)
 {
     viewDir.y = -viewDir.y;
 
-    const float heightScale = parallaxOcclusionMappingHeight;
+    const float heightScale = depthScale;
 
     const float minLayers = 8;
-    const float maxLayers = 48;
+    const float maxLayers = 32;
     float numLayers = lerp(maxLayers, minLayers, max(0.0f, dot(float3(0.0f, 0.0f, 1.0f), viewDir)));//128.0f;
 
     // calculate the size of each layer
@@ -114,21 +119,21 @@ float2 getParallaxTextureCoords(float3 viewDir, float2 texCoords)
     float currentLayerDepth = 0.0;
     // the amount to shift the texture coordinates per layer (from vector P)
 
-    float2 P = viewDir.xy / viewDir.z * heightScale;
+    float2 P = (viewDir.xy / viewDir.z) * heightScale;
     float2 deltaTexCoords = P / numLayers;
   
     // get initial values
     float2 currentTexCoords = texCoords;
     float currentDepthMapValue = depthTexture.Sample(samplerState, currentTexCoords).r;
      
-    [unroll(128)]
+    [unroll(32)]
     while(currentLayerDepth < currentDepthMapValue)
     {
         // shift texture coordinates along direction of P
         currentTexCoords -= deltaTexCoords;
-    // get depthmap value at current texture coordinates
+        // get depthmap value at current texture coordinates
         currentDepthMapValue = depthTexture.Sample(samplerState, currentTexCoords).r;
-    // get depth of next layer
+        // get depth of next layer
         currentLayerDepth += layerDepth;
     }
     
@@ -146,6 +151,78 @@ float2 getParallaxTextureCoords(float3 viewDir, float2 texCoords)
     return finalTexCoords;
 }
 
+float getShadowFactorForLightAtCoord(float3 toLight, float2 texCoord, bool softShadow)
+{
+    toLight.y *= -1.0f;
+
+    float shadowFactor = 0.0f;
+    int minLayers = 8;
+    int maxLayers = 16;
+
+    float2 dx = ddx(texCoord);
+    float2 dy = ddy(texCoord);
+    float initialDepth = depthTexture.Sample(samplerState, texCoord).r;
+
+    float lightNormalDot = dot(float3(0.0f, 0.0f, 1.0f), toLight);
+    if (lightNormalDot > 0.0f)
+    {
+        if (depthScale < 0.0001f) return 1.0f;
+        float parallaxScale = depthScale;// *initialDepth;
+
+        float numSamplesUnderSurface = 0.0f;
+
+        float numLayers = lerp(maxLayers, minLayers, dot(float3(0.0f, 0.0f, 1.0f), toLight));
+
+        float2 totalDiff = (toLight.xy / toLight.z) * parallaxScale;
+        float2 texStep = totalDiff / numLayers;
+
+        float layerHeight = initialDepth / numLayers;
+
+        float currLayerDepth = initialDepth - layerHeight;
+        float2 currentTexCoord = texCoord + texStep;
+        float depthFromTex = depthTexture.SampleGrad(samplerState, currentTexCoord, dx, dy).r;
+        int stepIndex = 1;
+        int numIter = 0;
+
+        [unroll(16)]
+        while (currLayerDepth > 0.0f)
+        {
+            // If under surface at sample
+            if (depthFromTex < currLayerDepth)
+            {
+                numSamplesUnderSurface += 1.0f;
+                float newShadowFactor = min(1.0f, (currLayerDepth - depthFromTex) * (1.0f - stepIndex / numLayers) * 5.0f);
+                shadowFactor = max(shadowFactor, newShadowFactor);
+            }
+
+            stepIndex += 1;
+            currLayerDepth -= layerHeight;
+            currentTexCoord += texStep;
+            depthFromTex = depthTexture.SampleGrad(samplerState, currentTexCoord, dx, dy).r;
+        }
+
+        if (numSamplesUnderSurface < 1)
+        {
+            shadowFactor = 1.0f;
+        }
+        else
+        {
+            if (softShadow)
+            {
+                shadowFactor = 1.0f - shadowFactor;
+            }
+            else
+            {
+                shadowFactor = 0.0f;
+            }
+        }
+
+        shadowFactor *= min(1.0f, lightNormalDot * 10.0f);
+    }
+
+    return shadowFactor;
+}
+
 float4 main(PS_INPUT input) : SV_TARGET
 {
     float3 viewDirection = normalize(cameraPosition - input.worldPos);
@@ -153,7 +230,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     float3 normal = normalize(input.normal);
     float3 tangent = normalize(input.tangent);
     float3 bitangent = normalize(input.bitangent);
-
+    
     //float3 tangent = normalize(input.tangent - dot(input.tangent, normal) * normal);
 
     //float3 bitangent = normalize(cross(tangent, normal));
@@ -161,15 +238,25 @@ float4 main(PS_INPUT input) : SV_TARGET
     float3x3 tangentToWorld = float3x3(tangent, bitangent, normal);
     float3x3 worldToTangent = transpose(tangentToWorld);
 
+    float2 unmodifiedTexCoord = input.texCoord;
     if (useParallaxOcclusionMapping)
     {
+        //float texDepth = depthTexture.Sample(samplerState, input.texCoord).r;
+        //return float4(texDepth, texDepth, texDepth, 1.0f);
+
         float3 tangentViewDir = mul(viewDirection, worldToTangent);
         input.texCoord = getParallaxTextureCoords(tangentViewDir, input.texCoord);
 
-        /*if (input.texCoord.x < 0.0f || input.texCoord.x > 1.0f || input.texCoord.y < 0.0f || input.texCoord.y > 1.0f)
+        //float2 texCoordDiff = input.texCoord - unmodifiedTexCoord;
+        //input.worldPos += tangent * texCoordDiff.x + bitangent * texCoordDiff.y - normal * depthTexture.Sample(samplerState, input.texCoord).r;
+
+        if (miscToggleA)
         {
-            discard;
-        }*/
+            if (input.texCoord.x < 0.0f || input.texCoord.x > 1.0f || input.texCoord.y < 0.0f || input.texCoord.y > 1.0f)
+            {
+                discard;
+            }
+        }
     }
 
     if (showUVs)
@@ -199,7 +286,6 @@ float4 main(PS_INPUT input) : SV_TARGET
         normal = normalize(mul(normalColour, tangentToWorld)); //float3(0.0f, 0.5f, 0.5f)
 
         if (cullBackNormals && dot(viewDirection, normal) < 0.0f) discard;
-        
     }
 
     if (showWorldNormals)
@@ -243,51 +329,84 @@ float4 main(PS_INPUT input) : SV_TARGET
 
         //return float4(specularFloat, specularFloat, specularFloat, 1.0f);
 
-        cumulativeColour += ambient + diffuse + specular;
+        float directionalLightShadowFactor = 1.0f;
+        if (selfShadowing)
+        {
+            float3 toLightTangent = mul(toLight, worldToTangent);
+            directionalLightShadowFactor = getShadowFactorForLightAtCoord(toLightTangent, input.texCoord, true);
+        }
+
+        cumulativeColour += ambient + (diffuse + specular) * directionalLightShadowFactor;
     }
 
     // POINT LIGHT
     {
         for (int i = 0; i < numPointLights; ++i)
         {
-            float3 toLight = normalize(pointLights[i].position- input.worldPos);
-
-            float diffuseFloat = max(dot(toLight, normal), 0.0f);
-            float3 diffuse = diffuseFloat * pointLights[i].colour * textureColour;
-
-            float3 reflectDirection = reflect(-toLight, normal);
-
-            float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower) * (1.0f - roughnessSample);
-            float3 specular = specularFloat * pointLights[i].colour;
-
             float pointLightDistance = distance(pointLights[i].position, input.worldPos);
             float pointLightAttenuation = 1.0f / (pointLights[i].attenuationConstant + pointLights[i].attenuationLinear * pointLightDistance + pointLights[i].attenuationQuadratic * pow(pointLightDistance, 2.0f));
+            
+            //float pointLightAttenuation = pow(1.0f - min(1.0f, pointLightDistance / 15.0f), 2.0f);
+            
+            if (pointLightAttenuation > 0.01f)
+            {
+                float3 toLight = normalize(pointLights[i].position - input.worldPos);
 
-            cumulativeColour += (diffuse + specular) * pointLightAttenuation;
+                float diffuseFloat = max(dot(toLight, normal), 0.0f);
+                float3 diffuse = diffuseFloat * pointLights[i].colour * textureColour;
+
+                float3 reflectDirection = reflect(-toLight, normal);
+
+                float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower) * (1.0f - roughnessSample);
+                float3 specular = specularFloat * pointLights[i].colour;
+
+                float lightShadowFactor = 1.0f;
+                if (selfShadowing)
+                {
+                    float3 toLightTangent = mul(toLight, worldToTangent);
+                    lightShadowFactor = getShadowFactorForLightAtCoord(toLightTangent, input.texCoord, true);
+                }
+
+                cumulativeColour += (diffuse + specular) * pointLightAttenuation * lightShadowFactor;
+            }
         }
     }
     // SPOT LIGHT
     {
         for (int i = 0; i < numSpotLights; ++i)
         {
-            float3 toLight = normalize(spotLights[i].position- input.worldPos);
-
-            float diffuseFloat = max(dot(toLight, normal), 0.0f);
-            float3 diffuse = diffuseFloat * spotLights[i].colour* textureColour;
-
-            float3 reflectDirection = reflect(-toLight, normal);
-
-            float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower) * (1.0f - roughnessSample);
-            float3 specular = specularFloat * spotLights[i].colour;
-
             float spotLightDistance = distance(spotLights[i].position, input.worldPos);
             float spotLightAttenuation = 1.0f / (spotLights[i].attenuationConstant + spotLights[i].attenuationLinear * spotLightDistance + spotLights[i].attenuationQuadratic * pow(spotLightDistance, 2.0f));
+            
+            //float spotLightAttenuation = pow(1.0f - min(1.0f, spotLightDistance / 15.0f), 2.0f);
+            
+            if (spotLightAttenuation > 0.01f)
+            {
+                float3 toLight = normalize(spotLights[i].position - input.worldPos);
 
-            float lightAngle = (acos(dot(-toLight, spotLights[i].direction)) * 180.0) / 3.141592f;
-            float lightCutoffAmount = 1.0 - smoothstep(spotLights[i].innerCutoff, spotLights[i].outerCutoff, lightAngle);
+                float lightAngle = (acos(dot(-toLight, spotLights[i].direction)) * 180.0) / 3.141592f;
+                float lightCutoffAmount = 1.0 - smoothstep(spotLights[i].innerCutoff, spotLights[i].outerCutoff, lightAngle);
+                if (lightCutoffAmount > 0.001f)
+                {
+                    float diffuseFloat = max(dot(toLight, normal), 0.0f);
+                    float3 diffuse = diffuseFloat * spotLights[i].colour * textureColour;
 
-            //cumulativeColour += (ambient + diffuse + specular) * spotLightAttenuation;
-            cumulativeColour += (diffuse + specular) * spotLightAttenuation * lightCutoffAmount;
+                    float3 reflectDirection = reflect(-toLight, normal);
+
+                    float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower) * (1.0f - roughnessSample);
+                    float3 specular = specularFloat * spotLights[i].colour;
+
+                    float lightShadowFactor = 1.0f;
+                    if (selfShadowing)
+                    {
+                        float3 toLightTangent = mul(toLight, worldToTangent);
+                        lightShadowFactor = getShadowFactorForLightAtCoord(toLightTangent, input.texCoord, true);
+                    }
+
+                    //cumulativeColour += (ambient + diffuse + specular) * spotLightAttenuation;
+                    cumulativeColour += (diffuse + specular) * spotLightAttenuation * lightCutoffAmount * lightShadowFactor;
+                }
+            }
         }
     }
 
@@ -300,7 +419,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 
     cumulativeColour = lerp(cumulativeColour, directionalLight.colour, fresnelFactor);
 
-    if (miscToggleA)
+    if (gammaCorrection)
     {
         cumulativeColour = pow(cumulativeColour, 1.0f / 2.2f);
     }

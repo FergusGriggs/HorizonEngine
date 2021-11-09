@@ -18,7 +18,7 @@ namespace hrzn
 		RenderWindow();
 		~RenderWindow();
 
-		bool initialize(WindowContainer* windowContainer, HINSTANCE hInstance, std::string windowTitle, std::string windowClass, int width, int height);
+		bool initialize(WindowContainer* windowContainer, HINSTANCE hInstance, const char* windowTitle, std::string windowClass, int width, int height);
 		bool processMessages();
 		HWND getHWND() const;
 		
@@ -29,7 +29,7 @@ namespace hrzn
 		HWND         m_handle = NULL;// window handle
 		HINSTANCE    m_hInstance = NULL;// instance handle
 
-		std::string  m_windowTitle = "";
+		const char*  m_windowTitle = "";
 		std::wstring m_windowTitleWide = L"";
 		std::string  m_windowClass = "";
 		std::wstring m_windowClassWide = L"";

@@ -18,7 +18,7 @@ namespace hrzn
 		}
 	}
 
-	bool RenderWindow::initialize(WindowContainer* windowContainer, HINSTANCE hInstance, std::string windowTitle, std::string windowClass, int width, int height)
+	bool RenderWindow::initialize(WindowContainer* windowContainer, HINSTANCE hInstance, const char* windowTitle, std::string windowClass, int width, int height)
 	{
 		m_hInstance = hInstance;
 		m_windowTitle = windowTitle;
@@ -57,7 +57,7 @@ namespace hrzn
 
 		if (m_handle == NULL)
 		{
-			utils::ErrorLogger::log(GetLastError(), "CreateWindowEX Failed for: " + windowTitle);
+			utils::ErrorLogger::log(GetLastError(), std::string("CreateWindowEX Failed for: ") + windowTitle);
 			return false;
 		}
 
