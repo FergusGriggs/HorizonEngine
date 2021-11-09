@@ -107,13 +107,13 @@ namespace hrzn::scene
 
         // Generic
         const entity::GameObject& getGameObject(const std::string& label) const;
+        entity::GameObject&       getWritableGameObject(const std::string& label);
+
         void                      addGameObject(entity::GameObject* gameObject);
+        void                      removeGameObject(const std::string& gameObjectLabel);
 
         void                      addObjectTrack(entity::GameObjectTrack* objectTrack);
         std::unordered_map<std::string, entity::GameObjectTrack*>& getObjectTracks();
-
-        entity::GameObject&       getWritableGameObject(const std::string& label);
-        void                      removeGameObject(const std::string& gameObjectLabel);
 
         const SceneConfig&        getSceneConfig() const;
         SceneConfig&              getWritableSceneConfig();
@@ -168,15 +168,16 @@ namespace hrzn::scene
 
         // Object map and lists
         std::unordered_map<std::string, entity::GameObject*> m_gameObjectMap;
+        entity::GameObject                                   m_badReturnGameObject;
 
-        std::vector<entity::CameraGameObject*>           m_cameras;
-        std::vector<entity::RenderableGameObject*>       m_renderables;
-        std::vector<entity::PhysicsGameObject*>          m_physicsObjects;
-        std::vector<physics::Spring*>                    m_springs;
+        std::vector<entity::CameraGameObject*>     m_cameras;
+        std::vector<entity::RenderableGameObject*> m_renderables;
+        std::vector<entity::PhysicsGameObject*>    m_physicsObjects;
+        std::vector<physics::Spring*>              m_springs;
 
-        entity::LightGameObject                          m_directionalLight;
-        std::vector<entity::PointLightGameObject*>       m_pointLights;
-        std::vector<entity::SpotLightGameObject*>        m_spotLights;
+        entity::LightGameObject                    m_directionalLight;
+        std::vector<entity::PointLightGameObject*> m_pointLights;
+        std::vector<entity::SpotLightGameObject*>  m_spotLights;
 
         // Object selection and modification
         entity::RenderableGameObject* m_selectedObject;

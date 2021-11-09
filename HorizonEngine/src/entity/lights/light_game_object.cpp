@@ -21,7 +21,7 @@ namespace hrzn::entity
 		return true;
 	}
 
-	void LightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& cb_ps_pixelShader, int lightIndex)
+	void LightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& cb_ps_pixelShader, size_t lightIndex)
 	{
 		cb_ps_pixelShader.m_data.m_directionalLight.m_colour = m_colour;
 		cb_ps_pixelShader.m_data.m_directionalLight.m_ambientStrength = m_ambientStrength;

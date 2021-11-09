@@ -57,7 +57,7 @@ float hash11(float p)
     return frac(p);
 }
 
-static float windDir = float3(1.0f, 0.0f, 0.0f);
+static float3 windDir = float3(1.0f, 0.0f, 0.0f);
 
 float3 getFourierOffset(float3 position)
 {
@@ -105,7 +105,7 @@ float3 getFourierOffset(float3 position)
 VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT output;
-    float3 baseFlatWorldPos = mul(float4(input.pos, 1.0f), modelMatrix);
+    float3 baseFlatWorldPos = mul(float4(input.pos, 1.0f), modelMatrix).xyz;
     //float3 tangentFlatWorldPos = float3(baseFlatWorldPos.x + 0.025f, baseFlatWorldPos.y, baseFlatWorldPos.z);
     //float3 bitangentFlatWorldPos = float3(baseFlatWorldPos.x, baseFlatWorldPos.y, baseFlatWorldPos.z + 0.025f);
 

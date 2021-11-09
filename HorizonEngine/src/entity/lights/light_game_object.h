@@ -14,7 +14,7 @@ namespace hrzn::entity
 		LightGameObject();
 
 		bool initialize();
-		void virtual updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& cb_ps_pixelShader, int lightIndex = 0);
+		void virtual updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& cb_ps_pixelShader, size_t lightIndex = 0);
 
 		void setColour(DirectX::XMFLOAT3 colour);
 		DirectX::XMFLOAT3 getColour();
@@ -23,9 +23,9 @@ namespace hrzn::entity
 		float getAmbientStrength();
 
 
-		DirectX::XMFLOAT3 m_colour = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+		DirectX::XMFLOAT3 m_colour;
 
 	private:
-		float m_ambientStrength = 0.3f;
+		float m_ambientStrength;
 	};
 }

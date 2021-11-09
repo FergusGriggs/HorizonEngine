@@ -16,7 +16,7 @@ namespace hrzn::entity
 		m_type = GameObject::Type::ePointLight;
 	}
 
-	void PointLightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& pixelShaderCB, int lightIndex)
+	void PointLightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& pixelShaderCB, size_t lightIndex)
 	{
 		pixelShaderCB.m_data.m_pointLights[lightIndex].m_colour = m_colour;
 

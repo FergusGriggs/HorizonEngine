@@ -12,7 +12,7 @@ namespace hrzn::entity
 	public:
 		PointLightGameObject();
 
-		void   updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& pixelShaderCB, int lightIndex = 0) override;
+		void   updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& pixelShaderCB, size_t lightIndex = 0) override;
 
 		float* getAttenuationConstantPtr();
 		float* getAttenuationLinearPtr();

@@ -44,10 +44,10 @@ namespace hrzn::scene
         if (document.HasParseError())
         {
             rapidjson::ParseErrorCode error = document.GetParseError();
-            size_t errorOffset = document.GetErrorOffset();
+            int errorOffset = static_cast<int>(document.GetErrorOffset());
 
-            int errorStart = std::max(0, static_cast<int>(errorOffset) - 20);
-            int errorEnd = std::min(strlen(sceneFileStr.c_str()), errorOffset + 20);
+            int errorStart = std::max(0, errorOffset - 20);
+            int errorEnd = std::min(static_cast<int>(strlen(sceneFileStr.c_str())), errorOffset + 20);
 
             int beforeLen = errorOffset - errorStart;
             int afterLen = errorEnd - errorOffset;
@@ -327,18 +327,6 @@ namespace hrzn::scene
         // Renderable vars
         std::string modelPath;
         XMFLOAT3 scale;
-
-        // Light vars
-        XMFLOAT3 lightColour;
-
-        // Point light vars
-        float attenuationQuadratic;
-        float attenuationLinear;
-        float attenuationConstant;
-
-        // Spot light vars
-        float innerCutoff;
-        float outerCutoff;
 
         // Physics vars
         float mass;

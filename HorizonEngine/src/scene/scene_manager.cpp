@@ -47,6 +47,7 @@ namespace hrzn::scene
 		
 		m_lastAxisGrabOffset(FLT_MAX),
 		m_lastGrabPos(XMVectorZero()),
+		m_axisEditPlaneNormal(XMVectorZero()),
 
 		m_particleSystem(nullptr),
 		
@@ -117,6 +118,8 @@ namespace hrzn::scene
 		{
 			return false;
 		}
+
+		return true;
 	}
 
 	const std::string& SceneManager::getSceneName()
@@ -843,6 +846,20 @@ namespace hrzn::scene
 		{
 			return *(m_gameObjectMap.at(label));
 		}
+
+		utils::ErrorLogger::log("Game object with label " + label + " was not in the map");
+		return m_badReturnGameObject;
+	}
+
+	entity::GameObject& SceneManager::getWritableGameObject(const std::string& label)
+	{
+		if (m_gameObjectMap.find(label) != m_gameObjectMap.end())
+		{
+			return *(m_gameObjectMap.at(label));
+		}
+
+		utils::ErrorLogger::log("Game object with label " + label + " was not in the map");
+		return m_badReturnGameObject;
 	}
 
 	void SceneManager::addGameObject(entity::GameObject* gameObject)
@@ -861,24 +878,6 @@ namespace hrzn::scene
 		else
 		{
 			utils::ErrorLogger::log("Failed to add game object because an object with label '" + gameObject->getLabel() + "' already exists");
-		}
-	}
-
-	void SceneManager::addObjectTrack(entity::GameObjectTrack* objectTrack)
-	{
-		m_objectTracks.insert(std::make_pair(objectTrack->getId(), objectTrack));
-	}
-
-	std::unordered_map<std::string, entity::GameObjectTrack*>& SceneManager::getObjectTracks()
-	{
-		return m_objectTracks;
-	}
-
-	entity::GameObject& SceneManager::getWritableGameObject(const std::string& label)
-	{
-		if (m_gameObjectMap.find(label) != m_gameObjectMap.end())
-		{
-			return *(m_gameObjectMap.at(label));
 		}
 	}
 
@@ -943,6 +942,16 @@ namespace hrzn::scene
 
 			m_gameObjectMap.erase(iterator->first);
 		}
+	}
+
+	void SceneManager::addObjectTrack(entity::GameObjectTrack* objectTrack)
+	{
+		m_objectTracks.insert(std::make_pair(objectTrack->getId(), objectTrack));
+	}
+
+	std::unordered_map<std::string, entity::GameObjectTrack*>& SceneManager::getObjectTracks()
+	{
+		return m_objectTracks;
 	}
 
 	const SceneConfig& SceneManager::getSceneConfig() const

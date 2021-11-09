@@ -139,7 +139,7 @@ float3 getAtmosphericScattering(float3 viewDirection, float3 sunDirection)
 		if (noiseSample > 0.9f)
 		{
 			float intensity = (noiseSample - 0.9f) * 10.0f * nightSkyBlendFactor;
-			totalSky += float4(intensity, intensity, intensity, 1.0f);
+			totalSky += float3(intensity, intensity, intensity);
 		}
 	}
 

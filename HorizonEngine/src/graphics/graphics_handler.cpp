@@ -3,7 +3,11 @@
 
 #include "graphics_handler.h"
 
+#include <shobjidl.h>
+
 #include "../user_config.h"
+
+#define _SOLUTIONDIR R"($(SolutionDir))"
 
 namespace hrzn::gfx
 {
@@ -233,8 +237,8 @@ namespace hrzn::gfx
 		}
 
 		//General shader variables
-		m_pixelShaderCB.m_data.m_numPointLights = numPointLights;
-		m_pixelShaderCB.m_data.m_numSpotLights = numSpotLights;
+		m_pixelShaderCB.m_data.m_numPointLights = static_cast<int>(numPointLights);
+		m_pixelShaderCB.m_data.m_numSpotLights = static_cast<int>(numSpotLights);
 
 		m_pixelShaderCB.m_data.m_cameraPosition = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
 
@@ -245,7 +249,7 @@ namespace hrzn::gfx
 		m_deviceContext->PSSetConstantBuffers(0, 1, m_pixelShaderCB.getAddressOf());
 
 		//CLEAR RENDER TARGET VIEW AND DEPTH STENCIL VIEW
-		float backgroundColour[] = { 0.62f * sceneManager.getDirectionalLight().m_colour.x, 0.90 * sceneManager.getDirectionalLight().m_colour.y, 1.0f * sceneManager.getDirectionalLight().m_colour.z, 1.0f };
+		float backgroundColour[] = { 0.62f * sceneManager.getDirectionalLight().m_colour.x, 0.9f * sceneManager.getDirectionalLight().m_colour.y, 1.0f * sceneManager.getDirectionalLight().m_colour.z, 1.0f };
 		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), backgroundColour);
 		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -873,9 +877,27 @@ namespace hrzn::gfx
 		{
 			sceneManager.unloadScene();
 		}*/
+		
+		//DIRECTIONAL LIGHT COLOUR
+		ImGui::ColorEdit3("Dir Light Colour", &(sceneManager.getWritableDirectionalLight().m_colour.x));
+		m_cloudsPixelShaderCB.m_data.m_lightColour = sceneManager.getDirectionalLight().m_colour;
+		m_waterPixelShaderCB.m_data.m_lightColour = sceneManager.getWritableDirectionalLight().m_colour;
+
+		ImGui::Checkbox("Use VSync", &m_useVSync);
+
+		ImGui::SameLine();
+
+		ImGui::Checkbox("Day/Night Cycle", sceneManager.getDayNightCyclePtr());
+
+		ImGui::SameLine();
+
+		ImGui::Checkbox("Pause", sceneManager.getPausedPtr());
+		ImGui::SliderFloat("Day Progress", sceneManager.getDayProgressPtr(), 0.0f, 1.0f);
+
 		if (ImGui::CollapsingHeader("Object Spawning"))
 		{
 			ImGui::TreePush();
+
 			static char label[20] = "";
 			static char path[50] = "city/wall/frames/left/r.obj";
 			ImGui::InputText("New Object Label", &label[0], 20);
@@ -883,6 +905,46 @@ namespace hrzn::gfx
 
 			if (ImGui::Button("Spawn Object"))
 			{
+				IFileOpenDialog* pFileOpen;
+
+				// Create the FileOpenDialog object.
+				HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+
+				if (SUCCEEDED(hr))
+				{
+					//LPCWSTR modelPath = utils::string_helpers::stringToWide(_SOLUTIONDIR).c_str();
+					LPCWSTR modelPath = L"C:\\Users\\g012090i\\source\\repos\\FergusGriggs\\HorizonEngine\\HorizonEngine\\res\\models\\";
+
+					Microsoft::WRL::ComPtr<IShellItem> location;
+					hr = SHCreateItemFromParsingName(modelPath, nullptr, IID_PPV_ARGS(&location));
+
+					pFileOpen->SetFolder(location.Get());
+
+					// Show the Open dialog box.
+					hr = pFileOpen->Show(NULL);
+
+					// Get the file name from the dialog box.
+					if (SUCCEEDED(hr))
+					{
+						IShellItem* pItem;
+						hr = pFileOpen->GetResult(&pItem);
+						if (SUCCEEDED(hr))
+						{
+							PWSTR pszFilePath;
+							hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+							// Display the file name to the user.
+							if (SUCCEEDED(hr))
+							{
+								MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
+								CoTaskMemFree(pszFilePath);
+							}
+							pItem->Release();
+						}
+					}
+					pFileOpen->Release();
+				}
+
 				std::string labelChosen = label;
 				if (labelChosen != "" && sceneManager.getObjectMap().find(labelChosen) == sceneManager.getObjectMap().end())
 				{
@@ -899,22 +961,6 @@ namespace hrzn::gfx
 
 			ImGui::TreePop();
 		}
-
-		//DIRECTIONAL LIGHT COLOUR
-		ImGui::ColorEdit3("Dir Light Colour", &(sceneManager.getWritableDirectionalLight().m_colour.x));
-		m_cloudsPixelShaderCB.m_data.m_lightColour = sceneManager.getDirectionalLight().m_colour;
-		m_waterPixelShaderCB.m_data.m_lightColour = sceneManager.getWritableDirectionalLight().m_colour;
-
-		ImGui::Checkbox("Use VSync", &m_useVSync);
-
-		ImGui::SameLine();
-
-		ImGui::Checkbox("Day/Night Cycle", sceneManager.getDayNightCyclePtr());
-
-		ImGui::SameLine();
-
-		ImGui::Checkbox("Pause", sceneManager.getPausedPtr());
-		ImGui::SliderFloat("Day Progress", sceneManager.getDayProgressPtr(), 0.0f, 1.0f);
 
 		if (ImGui::CollapsingHeader("Render Options"))
 		{
@@ -1074,7 +1120,7 @@ namespace hrzn::gfx
 		if (!particleSystem.getEmitters().empty())
 		{
 			static int emitterIndex = 0;
-			ImGui::SliderInt("Emitter Index", &emitterIndex, 0, particleSystem.getEmitters().size() - 1);
+			ImGui::SliderInt("Emitter Index", &emitterIndex, 0, static_cast<int>(particleSystem.getEmitters().size()) - 1);
 
 			physics::ParticleSystemEmitter& particleEmitter = *(particleSystem.getEmitters()[emitterIndex]);
 
@@ -1384,7 +1430,7 @@ namespace hrzn::gfx
 		if (scale < 0.75f) scale = 0.75f;
 
 		float distance = XMVectorGetX(XMVector3Length(gameObject.getTransform().getPositionVector() - sceneManager.getActiveCamera().getTransform().getPositionVector()));
-		scale *= distance * 0.5;
+		scale *= distance * 0.5f;
 
 		if (sceneManager.getAxisEditState() == scene::AxisEditState::eEditTranslate)
 		{
