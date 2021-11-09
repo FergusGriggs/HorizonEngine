@@ -58,30 +58,30 @@ namespace hrzn::physics
 		void rotateUsingAxis(const XMVECTOR& axis, float angle);
 
 		// Position get functions
-		const XMVECTOR& getPositionVector() const;
+		XMVECTOR        getPositionVector() const;
 		const XMFLOAT3& getPositionFloat3() const;
 
 		// Orientation get functions
-		const XMVECTOR& getOrientation() const;
+		XMVECTOR        getOrientation() const;
 		const XMFLOAT4& getOrientationFloat4() const;
-		const XMMATRIX& getRotationMatrix() const;
+		XMMATRIX        getRotationMatrix() const;
 
-		const XMVECTOR& getFrontVector() const;
+		XMVECTOR        getFrontVector() const;
 		const XMFLOAT3& getFrontFloat3() const;
 
-		const XMVECTOR& getBackVector() const;
+		XMVECTOR        getBackVector() const;
 		const XMFLOAT3& getBackFloat3() const;
 
-		const XMVECTOR& getUpVector() const;
+		XMVECTOR        getUpVector() const;
 		const XMFLOAT3& getUpFloat3() const;
 
-		const XMVECTOR& getDownVector() const;
+		XMVECTOR        getDownVector() const;
 		const XMFLOAT3& getDownFloat3() const;
 
-		const XMVECTOR& getRightVector() const;
+		XMVECTOR        getRightVector() const;
 		const XMFLOAT3& getRightFloat3() const;
 
-		const XMVECTOR& getLeftVector() const;
+		XMVECTOR        getLeftVector() const;
 		const XMFLOAT3& getLeftFloat3() const;
 
 		void updateAxisVectorsUsingRotationMatrix(const XMMATRIX& rotationMatrix);

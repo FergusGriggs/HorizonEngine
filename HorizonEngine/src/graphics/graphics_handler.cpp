@@ -353,7 +353,6 @@ namespace hrzn::gfx
 			// Draw particles
 			sceneManager.getParticleSystem().drawParticles(viewProjMat, &m_vertexShaderCB);
 
-
 			// Draw Springs
 			XMMATRIX springModelMatrix;
 

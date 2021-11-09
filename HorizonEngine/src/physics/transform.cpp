@@ -162,7 +162,7 @@ namespace hrzn::physics
 		setOrientationRotationMatrix(rotationMatrix);
 	}
 
-	const XMVECTOR& Transform::getPositionVector() const
+	XMVECTOR Transform::getPositionVector() const
 	{
 		return XMLoadFloat3(&m_position);
 	}
@@ -172,7 +172,7 @@ namespace hrzn::physics
 		return m_position;
 	}
 
-	const XMVECTOR& Transform::getOrientation() const
+	XMVECTOR Transform::getOrientation() const
 	{
 		return XMLoadFloat4(&m_orientation);
 	}
@@ -182,12 +182,12 @@ namespace hrzn::physics
 		return m_orientation;
 	}
 
-	const XMMATRIX& Transform::getRotationMatrix() const
+	XMMATRIX Transform::getRotationMatrix() const
 	{
 		return XMLoadFloat4x4(&m_rotationMatrix);
 	}
 
-	const XMVECTOR& Transform::getFrontVector() const
+	XMVECTOR Transform::getFrontVector() const
 	{
 		return XMLoadFloat3(&m_front);
 	}
@@ -197,7 +197,7 @@ namespace hrzn::physics
 		return m_front;
 	}
 
-	const XMVECTOR& Transform::getBackVector() const
+	XMVECTOR Transform::getBackVector() const
 	{
 		return -getFrontVector();
 	}
@@ -207,7 +207,7 @@ namespace hrzn::physics
 		return XMFLOAT3(-m_front.x, -m_front.y, -m_front.z);
 	}
 
-	const XMVECTOR& Transform::getUpVector() const
+	XMVECTOR Transform::getUpVector() const
 	{
 		return XMLoadFloat3(&m_up);
 	}
@@ -217,7 +217,7 @@ namespace hrzn::physics
 		return m_up;
 	}
 
-	const XMVECTOR& Transform::getDownVector() const
+	XMVECTOR Transform::getDownVector() const
 	{
 		return -getUpVector();
 	}
@@ -227,7 +227,7 @@ namespace hrzn::physics
 		return XMFLOAT3(-m_up.x, -m_up.y, -m_up.z);
 	}
 
-	const XMVECTOR& Transform::getRightVector() const
+	XMVECTOR Transform::getRightVector() const
 	{
 		return XMLoadFloat3(&m_right);
 	}
@@ -237,7 +237,7 @@ namespace hrzn::physics
 		return m_right;
 	}
 
-	const XMVECTOR& Transform::getLeftVector() const
+	XMVECTOR Transform::getLeftVector() const
 	{
 		return -getRightVector();
 	}

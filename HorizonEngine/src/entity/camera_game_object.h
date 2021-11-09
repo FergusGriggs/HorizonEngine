@@ -22,11 +22,11 @@ namespace hrzn::entity
 		void  setFOV(float fov);
 		float getFOV() const;
 
-		const XMMATRIX& getViewMatrix() const;
-		const XMMATRIX& getProjectionMatrix() const;
+		XMMATRIX getViewMatrix() const;
+		XMMATRIX getProjectionMatrix() const;
 
-		void            updateMouseToWorldVectorDirection();
-		const XMVECTOR& getMouseToWorldVectorDirection() const;
+		void     updateMouseToWorldVectorDirection();
+		XMVECTOR getMouseToWorldVectorDirection() const;
 
 		XMFLOAT2 getNDCFrom3DPos(XMVECTOR objectPosition) const;
 

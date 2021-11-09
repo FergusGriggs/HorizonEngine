@@ -78,12 +78,12 @@ namespace hrzn::entity
 		return m_fov;
 	}
 
-	const XMMATRIX& CameraGameObject::getViewMatrix() const
+	XMMATRIX CameraGameObject::getViewMatrix() const
 	{
 		return XMLoadFloat4x4(&m_view);
 	}
 
-	const XMMATRIX& CameraGameObject::getProjectionMatrix() const
+	XMMATRIX CameraGameObject::getProjectionMatrix() const
 	{
 		return XMLoadFloat4x4(&m_projection);
 	}
@@ -107,7 +107,7 @@ namespace hrzn::entity
 		XMStoreFloat3(&m_mouseToWorldVectorDirection, XMVector3Normalize(worldSpaceVector - m_transform.getPositionVector()));
 	}
 
-	const XMVECTOR& CameraGameObject::getMouseToWorldVectorDirection() const
+	XMVECTOR CameraGameObject::getMouseToWorldVectorDirection() const
 	{
 		return XMLoadFloat3(&m_mouseToWorldVectorDirection);
 	}
