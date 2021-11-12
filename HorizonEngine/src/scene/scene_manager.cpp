@@ -393,7 +393,7 @@ namespace hrzn::scene
 
 		// Standard Camera
 		entity::CameraGameObject* mainCamera = new entity::CameraGameObject();
-		mainCamera->setLabel("main_cam");
+		mainCamera->setLabel("free_cam");
 
 		mainCamera->getWritableTransform().setPosition(-15.0f, 3.0f, 7.0f);
 		mainCamera->getWritableTransform().lookAtPosition(XMFLOAT3(-15.0f, 0.0f, -3.6f));

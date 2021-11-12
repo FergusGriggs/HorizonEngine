@@ -64,7 +64,8 @@ namespace hrzn
 			return false;
 		}
 
-		m_controllerManager.addController(&m_sceneManager.getWritableActiveCamera(), entity::ControllerType::eCamera, 5.0f, true);
+		
+		m_controllerManager.addController(&m_sceneManager.getWritableGameObject("free_cam"), entity::ControllerType::eCamera, 5.0f, true);
 
 		return true;
 	}

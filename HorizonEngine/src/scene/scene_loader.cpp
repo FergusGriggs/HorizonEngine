@@ -430,6 +430,14 @@ namespace hrzn::scene
                     if (cameraData.HasMember("near_plane")) nearPlane = cameraData["near_plane"].GetFloat();
                     if (cameraData.HasMember("far_plane")) farPlane = cameraData["far_plane"].GetFloat();
 
+                    if (cameraData.HasMember("is_active_cam"))
+                    {
+                        if (cameraData["is_active_cam"].GetBool())
+                        {
+                            m_sceneManager->setActiveCamera(camera);
+                        }
+                    }
+                    
                     camera->setProjectionValues(fov, UserConfig::it().getWindowAspectRatio(), nearPlane, farPlane);
                 }
 

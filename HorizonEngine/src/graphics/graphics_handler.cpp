@@ -1136,10 +1136,15 @@ namespace hrzn::gfx
 			sceneManager.getWritableActiveCamera().unsetRelativeObject();
 		}
 
-		ImGui::Checkbox("Control Camera", sceneManager.getWritableActiveCamera().getWritableController()->isActivePtr());
+		entity::GameObjectController* controller = sceneManager.getWritableActiveCamera().getWritableController();
+		if (controller != nullptr)
+		{
+			ImGui::Checkbox("Control Camera", controller->isActivePtr());
+		}
 
 		if (ImGui::CollapsingHeader("Camera List"))
 		{
+			int count = 0;
 			auto& cameras = sceneManager.getWritableCameraList();
 			for (auto& camera : cameras)
 			{
@@ -1149,15 +1154,19 @@ namespace hrzn::gfx
 
 				if (&(sceneManager.getActiveCamera()) != camera)
 				{
+					ImGui::PushID(count);
 					if (ImGui::Button("Make Active"))
 					{
 						sceneManager.setActiveCamera(camera);
 					}
+					ImGui::PopID();
 				}
 				else
 				{
 					ImGui::Text(" *Active*");
 				}
+
+				++count;
 			}
 		}
 
