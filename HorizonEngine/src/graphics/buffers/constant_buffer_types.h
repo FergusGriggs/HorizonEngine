@@ -119,7 +119,7 @@ namespace hrzn::gfx
 		int                 m_miscToggleA;
 		int                 m_miscToggleB;
 		int                 m_miscToggleC;
-		int                 m_miscToggleD;
+		int                 m_roughnessMapping;
 
 		//PACK_SEAM
 		MaterialCB          m_objectMaterial;

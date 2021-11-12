@@ -69,7 +69,7 @@ cbuffer constantBuffer : register(b0)
     int miscToggleA;
     int miscToggleB;
     int miscToggleC;
-    int miscToggleD;
+    int roughnessMapping;
 
 	//PACK_SEAM
     Material objectMaterial;
@@ -266,8 +266,15 @@ float4 main(PS_INPUT input) : SV_TARGET
 
     float3 textureColour = diffuseTexture.Sample(samplerState, input.texCoord);
 
-    float roughnessSample = specularTexture.Sample(samplerState, input.texCoord).r;
-    float specularPower = lerp(1.0f, 128.0f, pow(1.0f - roughnessSample, 3.0f));
+    float specularPower = 16.0f;
+    float specularMultiplier = 0.25f;
+
+    if (roughnessMapping)
+    {
+        float roughnessSample = specularTexture.Sample(samplerState, input.texCoord).r;
+        specularMultiplier = (1.0f - roughnessSample);
+        specularPower = lerp(1.0f, 128.0f, pow(1.0f - roughnessSample, 3.0f));
+    }
 
     if (useNormalMapping)
     {
@@ -324,8 +331,8 @@ float4 main(PS_INPUT input) : SV_TARGET
 
         float3 reflectDirection = reflect(-toLight, normal);
 
-        float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower) * (1.0f - roughnessSample);
-        float3 specular = specularFloat * directionalLight.colour * objectMaterial.specularity;
+        float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower);
+        float3 specular = specularFloat * directionalLight.colour * objectMaterial.specularity * specularMultiplier;
 
         //return float4(specularFloat, specularFloat, specularFloat, 1.0f);
 
@@ -357,8 +364,8 @@ float4 main(PS_INPUT input) : SV_TARGET
 
                 float3 reflectDirection = reflect(-toLight, normal);
 
-                float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower) * (1.0f - roughnessSample);
-                float3 specular = specularFloat * pointLights[i].colour;
+                float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower);
+                float3 specular = specularFloat * pointLights[i].colour * specularMultiplier;
 
                 float lightShadowFactor = 1.0f;
                 if (selfShadowing)
@@ -393,8 +400,8 @@ float4 main(PS_INPUT input) : SV_TARGET
 
                     float3 reflectDirection = reflect(-toLight, normal);
 
-                    float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower) * (1.0f - roughnessSample);
-                    float3 specular = specularFloat * spotLights[i].colour;
+                    float specularFloat = pow(max(dot(viewDirection, reflectDirection), 0.0), specularPower);
+                    float3 specular = specularFloat * spotLights[i].colour * specularMultiplier;
 
                     float lightShadowFactor = 1.0f;
                     if (selfShadowing)

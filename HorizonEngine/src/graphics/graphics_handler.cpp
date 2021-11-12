@@ -71,6 +71,7 @@ namespace hrzn::gfx
 			m_pixelShaderCB.m_data.m_useNormalMapping = true;
 			m_pixelShaderCB.m_data.m_useParallaxOcclusionMapping = true;
 			m_pixelShaderCB.m_data.m_selfShadowing = true;
+			m_pixelShaderCB.m_data.m_roughnessMapping = true;
 			m_pixelShaderCB.m_data.m_depthScale = 0.05f;
 			m_useVSync = false;
 
@@ -920,21 +921,32 @@ namespace hrzn::gfx
 		{
 			ImGui::TreePush();
 
-			//NORMAL MAPPING CHECKBOX
+			// Normal Mapping
 			bool useNormalMapping = static_cast<bool>(m_pixelShaderCB.m_data.m_useNormalMapping);
 			ImGui::Checkbox("Normal Mapping", &useNormalMapping);
 			m_pixelShaderCB.m_data.m_useNormalMapping = useNormalMapping;
 
 			ImGui::SameLine();
 
-			//POM CHECKBOX
+			// PO Mapping
 			bool useParallaxOcclusionMapping = static_cast<bool>(m_pixelShaderCB.m_data.m_useParallaxOcclusionMapping);
 			ImGui::Checkbox("PO Mapping", &useParallaxOcclusionMapping);
 			m_pixelShaderCB.m_data.m_useParallaxOcclusionMapping = useParallaxOcclusionMapping;
 
 			ImGui::SameLine();
 
-			//WIREFRAME CHECKBOX
+			// Self shadowing
+			bool selfShadowing = static_cast<bool>(m_pixelShaderCB.m_data.m_selfShadowing);
+			ImGui::Checkbox("Self Shadowing", &selfShadowing);
+			m_pixelShaderCB.m_data.m_selfShadowing = selfShadowing;
+
+			// Roughness Mapping
+			bool roughnessMapping = static_cast<bool>(m_pixelShaderCB.m_data.m_roughnessMapping);
+			ImGui::Checkbox("Roughness Mapping", &roughnessMapping);
+			m_pixelShaderCB.m_data.m_roughnessMapping = roughnessMapping;
+
+			ImGui::SameLine();
+
 			ImGui::Checkbox("Wireframe", &m_useWireframe);
 
 			ImGui::SameLine();
@@ -944,12 +956,12 @@ namespace hrzn::gfx
 			ImGui::Checkbox("Normals", &showWorldNormals);
 			m_pixelShaderCB.m_data.m_showWorldNormals = showWorldNormals;
 
+			ImGui::SameLine();
+
 			// Show UVs
 			bool showUVs = static_cast<bool>(m_pixelShaderCB.m_data.m_showUVs);
 			ImGui::Checkbox("Show UVs", &showUVs);
 			m_pixelShaderCB.m_data.m_showUVs = showUVs;
-
-			ImGui::SameLine();
 
 			// Cull back normals
 			bool cullBackNormals = static_cast<bool>(m_pixelShaderCB.m_data.m_cullBackNormals);
@@ -957,11 +969,6 @@ namespace hrzn::gfx
 			m_pixelShaderCB.m_data.m_cullBackNormals = cullBackNormals;
 
 			ImGui::SameLine();
-
-			// Self shadowing
-			bool selfShadowing = static_cast<bool>(m_pixelShaderCB.m_data.m_selfShadowing);
-			ImGui::Checkbox("Self Shadowing", &selfShadowing);
-			m_pixelShaderCB.m_data.m_selfShadowing = selfShadowing;
 
 			// Gamma correction
 			bool gammaCorrection = static_cast<bool>(m_pixelShaderCB.m_data.m_gammaCorrection);
@@ -982,19 +989,10 @@ namespace hrzn::gfx
 			ImGui::Checkbox("Misc B", &miscToggleB);
 			m_pixelShaderCB.m_data.m_miscToggleB = miscToggleB;
 
-			ImGui::SameLine();
-
 			// Misc toggle C
 			bool miscToggleC = static_cast<bool>(m_pixelShaderCB.m_data.m_miscToggleC);
 			ImGui::Checkbox("Misc C", &miscToggleC);
 			m_pixelShaderCB.m_data.m_miscToggleC = miscToggleC;
-
-			ImGui::SameLine();
-
-			// Misc toggle D
-			bool miscToggleD = static_cast<bool>(m_pixelShaderCB.m_data.m_miscToggleD);
-			ImGui::Checkbox("Misc D", &miscToggleD);
-			m_pixelShaderCB.m_data.m_miscToggleD = miscToggleD;
 
 			// Depth scale
 			ImGui::DragFloat("Depth Scale", &m_pixelShaderCB.m_data.m_depthScale, 0.001f, 0.0f, 0.5f);
