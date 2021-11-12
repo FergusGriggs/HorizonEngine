@@ -17,6 +17,11 @@ namespace hrzn::physics::collision
 		// Face normal
 		XMVECTOR faceNormal = XMVector3Normalize(XMVector3Cross(vertex2 - vertex1, vertex3 - vertex1));
 
+		if (XMVectorGetX(XMVector3Dot(faceNormal, rayDirection)) > 0.0f)
+		{
+			return false;
+		}
+
 		// Plane intersect point
 		XMVECTOR planeIntersectPoint = rayPlaneIntersect(rayOrigin, rayDirection, faceNormal, vertex1);
 
