@@ -213,6 +213,7 @@ namespace hrzn::gfx
 
 	void GraphicsHandler::renderActiveScene(scene::SceneManager& sceneManager)
 	{
+		
 		float blackColour[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), blackColour);
 
