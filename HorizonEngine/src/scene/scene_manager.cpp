@@ -799,51 +799,54 @@ namespace hrzn::scene
 			// Translating
 			if (m_axisEditState == AxisEditState::eEditTranslate)
 			{
-				XMFLOAT3 objectPos = m_selectedObject->getTransform().getPositionFloat3();
-
-				float currentAxisGrabOffset = 0.0f;
-
-				// Get intersect point with mouse ray
-				XMVECTOR intersect = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), m_axisEditPlaneNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-
-				switch (m_axisEditSubState)
+				if (m_axisEditSubState != AxisEditSubState::eEditNone)
 				{
-				case AxisEditSubState::eEditX:
-				{
-					// Get relevant vector component
-					currentAxisGrabOffset = XMVectorGetX(intersect);
+					XMFLOAT3 objectPos = m_selectedObject->getTransform().getPositionFloat3();
 
-					// Dont move on the first frame
-					if (m_lastAxisGrabOffset != FLT_MAX)
+					float currentAxisGrabOffset = 0.0f;
+
+					// Get intersect point with mouse ray
+					XMVECTOR intersect = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), m_axisEditPlaneNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+
+					switch (m_axisEditSubState)
 					{
-						// Move object by difference
-						float diff = currentAxisGrabOffset - m_lastAxisGrabOffset;
-						m_selectedObject->getWritableTransform().adjustPosition(diff, 0.0f, 0.0f);
-					}
-					break;
-				}
-				case AxisEditSubState::eEditY:
-				{
-					currentAxisGrabOffset = XMVectorGetY(intersect);
-					if (m_lastAxisGrabOffset != FLT_MAX)
+					case AxisEditSubState::eEditX:
 					{
-						float diff = currentAxisGrabOffset - m_lastAxisGrabOffset;
-						m_selectedObject->getWritableTransform().adjustPosition(0.0f, diff, 0.0f);
+						// Get relevant vector component
+						currentAxisGrabOffset = XMVectorGetX(intersect);
+
+						// Dont move on the first frame
+						if (m_lastAxisGrabOffset != FLT_MAX)
+						{
+							// Move object by difference
+							float diff = currentAxisGrabOffset - m_lastAxisGrabOffset;
+							m_selectedObject->getWritableTransform().adjustPosition(diff, 0.0f, 0.0f);
+						}
+						break;
 					}
-					break;
-				}
-				case AxisEditSubState::eEditZ:
-				{
-					currentAxisGrabOffset = XMVectorGetZ(intersect);
-					if (m_lastAxisGrabOffset != FLT_MAX)
+					case AxisEditSubState::eEditY:
 					{
-						float diff = currentAxisGrabOffset - m_lastAxisGrabOffset;
-						m_selectedObject->getWritableTransform().adjustPosition(0.0f, 0.0f, diff);
+						currentAxisGrabOffset = XMVectorGetY(intersect);
+						if (m_lastAxisGrabOffset != FLT_MAX)
+						{
+							float diff = currentAxisGrabOffset - m_lastAxisGrabOffset;
+							m_selectedObject->getWritableTransform().adjustPosition(0.0f, diff, 0.0f);
+						}
+						break;
 					}
-					break;
+					case AxisEditSubState::eEditZ:
+					{
+						currentAxisGrabOffset = XMVectorGetZ(intersect);
+						if (m_lastAxisGrabOffset != FLT_MAX)
+						{
+							float diff = currentAxisGrabOffset - m_lastAxisGrabOffset;
+							m_selectedObject->getWritableTransform().adjustPosition(0.0f, 0.0f, diff);
+						}
+						break;
+					}
+					}
+					m_lastAxisGrabOffset = currentAxisGrabOffset;
 				}
-				}
-				m_lastAxisGrabOffset = currentAxisGrabOffset;
 			}
 			// Rotating
 			else if (m_axisEditState == AxisEditState::eEditRotate)

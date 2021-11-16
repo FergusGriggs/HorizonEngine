@@ -89,6 +89,6 @@ namespace hrzn
 
 	void Horizon::renderFrame()
 	{
-		m_graphicsHandler.renderActiveScene(m_sceneManager);
+		m_graphicsHandler.render(m_sceneManager);
 	}
 }

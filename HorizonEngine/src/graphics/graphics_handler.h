@@ -22,6 +22,7 @@
 #include "../utils/timer.h"
 #include "buffers/constant_buffer_types.h"
 #include "shaders/shader.h"
+#include "render_pass_config.h"
 
 //comicSansMS16.spritefont
 
@@ -37,7 +38,9 @@ namespace hrzn::gfx
 		bool initializeScene(scene::SceneManager& sceneManager);
 
 		void update(scene::SceneManager& sceneManager, float deltaTime);
-		void renderActiveScene(scene::SceneManager& sceneManager);
+
+		void render(scene::SceneManager& sceneManager);
+		void renderSceneObjects(scene::SceneManager& sceneManager, const RenderPassConfig& renderPassConfig);
 
 		void create3DNoiseTexture();
 

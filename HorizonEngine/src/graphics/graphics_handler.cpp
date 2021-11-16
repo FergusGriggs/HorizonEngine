@@ -211,11 +211,33 @@ namespace hrzn::gfx
 		return true;
 	}
 
-	void GraphicsHandler::renderActiveScene(scene::SceneManager& sceneManager)
+	void GraphicsHandler::render(scene::SceneManager& sceneManager)
 	{
+		// Render geometry from main camera to the GBuffer
+		renderSceneObjects(sceneManager, );
+
+		// Render scene depth from directional light's perspective
+		renderSceneObjects(sceneManager, );
+
+		// Work out scene ambient occulsion using depth
+
+		// Shade objects using the gbuffer
 		
+		// Do postprocessing
+	}
+
+	void GraphicsHandler::renderSceneObjects(scene::SceneManager& sceneManager, const RenderPassConfig& renderPassConfig)
+	{
 		float blackColour[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), blackColour);
+		m_deviceContext->ClearRenderTargetView(renderPassConfig.m_renderTargetView, blackColour);
+
+		m_deviceContext->RSSetViewports(1, &renderPassConfig.m_viewport);
+
+		m_deviceContext->OMSetDepthStencilState(renderPassConfig.m_depthStencilState, 0);
+
+		m_deviceContext->RSSetState(renderPassConfig.m_rasterizerState);
+
+		m_deviceContext->OMSetBlendState(renderPassConfig.m_blendState, NULL, 0xFFFFFFFF);
 
 		sceneManager.getWritableActiveCamera().updateView();
 
@@ -237,7 +259,7 @@ namespace hrzn::gfx
 			spotLights[i]->updateShaderVariables(m_pixelShaderCB, i);
 		}
 
-		//General shader variables
+		// General shader variables
 		m_pixelShaderCB.m_data.m_numPointLights = static_cast<int>(numPointLights);
 		m_pixelShaderCB.m_data.m_numSpotLights = static_cast<int>(numSpotLights);
 
@@ -249,16 +271,16 @@ namespace hrzn::gfx
 		m_pixelShaderCB.mapToGPU();
 		m_deviceContext->PSSetConstantBuffers(0, 1, m_pixelShaderCB.getAddressOf());
 
-		//CLEAR RENDER TARGET VIEW AND DEPTH STENCIL VIEW
+		// Clear render target view and depth stencil view
 		float backgroundColour[] = { 0.62f * sceneManager.getDirectionalLight().m_colour.x, 0.9f * sceneManager.getDirectionalLight().m_colour.y, 1.0f * sceneManager.getDirectionalLight().m_colour.z, 1.0f };
 		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), backgroundColour);
 		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-		//UPDATE INPUT ASSEMBLER
+		// Update input assembler
 		m_deviceContext->IASetInputLayout(m_vertexShader.getInputLayout());
 		m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		//SET RASTERIZER STATE
+		// Set rasterizer state
 		if (m_useWireframe)
 		{
 			m_deviceContext->RSSetState(m_wireframeRasterizerState.Get());
