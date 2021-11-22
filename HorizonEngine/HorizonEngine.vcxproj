@@ -171,6 +171,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\graphics\buffers\geometry_buffer.cpp" />
     <ClCompile Include="src\input\input_manager.cpp" />
     <ClCompile Include="src\scene\config\scene_config.cpp" />
     <ClCompile Include="src\scene\scene_loader.cpp" />
@@ -217,6 +218,7 @@
     <ClCompile Include="src\user_config.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\graphics\buffers\geometry_buffer.h" />
     <ClInclude Include="src\graphics\render_pass_config.h" />
     <ClInclude Include="src\input\input_manager.h" />
     <ClInclude Include="src\physics\utils\collision_helpers.h" />

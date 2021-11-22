@@ -217,7 +217,7 @@ namespace hrzn::gfx
 		renderSceneObjects(sceneManager, );
 
 		// Render scene depth from directional light's perspective
-		renderSceneObjects(sceneManager, );
+		//renderSceneObjects(sceneManager, );
 
 		// Work out scene ambient occulsion using depth
 
@@ -229,15 +229,18 @@ namespace hrzn::gfx
 	void GraphicsHandler::renderSceneObjects(scene::SceneManager& sceneManager, const RenderPassConfig& renderPassConfig)
 	{
 		float blackColour[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		m_deviceContext->ClearRenderTargetView(renderPassConfig.m_renderTargetView, blackColour);
 
 		m_deviceContext->RSSetViewports(1, &renderPassConfig.m_viewport);
 
-		m_deviceContext->OMSetDepthStencilState(renderPassConfig.m_depthStencilState, 0);
-
 		m_deviceContext->RSSetState(renderPassConfig.m_rasterizerState);
-
+		m_deviceContext->OMSetDepthStencilState(renderPassConfig.m_depthStencilState, 0);
 		m_deviceContext->OMSetBlendState(renderPassConfig.m_blendState, NULL, 0xFFFFFFFF);
+
+		m_deviceContext->OMSetRenderTargets(renderPassConfig.m_numRenderTargetViews, renderPassConfig.m_renderTargetViews, renderPassConfig.m_depthStencilView);
+		for (int renderTargetIndex = 0; renderTargetIndex < renderPassConfig.m_numRenderTargetViews; ++renderTargetIndex)
+		{
+			m_deviceContext->ClearRenderTargetView(renderPassConfig.m_renderTargetViews[renderTargetIndex], blackColour);
+		}
 
 		sceneManager.getWritableActiveCamera().updateView();
 
@@ -572,7 +575,7 @@ namespace hrzn::gfx
 		// Do some epik GPU computations to the UAV
 		m_deviceContext->Dispatch(size / 8, height / 8, size / 8);
 
-		//Unbind the UAV
+		// Unbind the UAV
 		ID3D11UnorderedAccessView* ppUAViewNULL[1] = { NULL };
 		ID3D11ShaderResourceView* ppSRVNULL[1] = { NULL };
 
