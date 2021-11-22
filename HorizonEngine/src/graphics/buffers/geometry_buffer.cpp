@@ -52,23 +52,23 @@ namespace hrzn::gfx
 		// Create textures
 		// Albedo
 		HRESULT hr = device->CreateTexture2D(&unsignedNormalizedTextureDesc, nullptr, m_albedo.m_texture2D.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer albedo texture creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer albedo texture creation failed");
 
 		// PositionRoughness
 		hr = device->CreateTexture2D(&signedFloatTextureDesc, nullptr, m_positionRoughness.m_texture2D.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer position roughness texture creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer position roughness texture creation failed");
 
 		// NormalAO
 		hr = device->CreateTexture2D(&signedFloatTextureDesc, nullptr, m_normalAO.m_texture2D.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer normal ao texture creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer normal ao texture creation failed");
 
 		// EmissionMetallic
 		hr = device->CreateTexture2D(&unsignedNormalizedTextureDesc, nullptr, m_emissionMetallic.m_texture2D.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer emission metallic texture creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer emission metallic texture creation failed");
 
 		// DepthStencil
 		hr = device->CreateTexture2D(&depthStencilTextureDesc, nullptr, m_depthStencil.m_texture2D.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer depth stencil texture creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer depth stencil texture creation failed");
 
 
 		// Create render target view descriptions
@@ -83,19 +83,19 @@ namespace hrzn::gfx
 		// Create render target views
 		// Albedo
 		hr = device->CreateRenderTargetView(m_albedo.m_texture2D.Get(), &unsignedNormalizedRenderTargetViewDesc, m_albedo.m_renderTargetView.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer albedo render target view creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer albedo render target view creation failed");
 
 		// PositionRoughness
 		hr = device->CreateRenderTargetView(m_positionRoughness.m_texture2D.Get(), &signedFloatRenderTargetViewDesc, m_positionRoughness.m_renderTargetView.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer position roughness render target view creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer position roughness render target view creation failed");
 
 		// NormalAO
 		hr = device->CreateRenderTargetView(m_normalAO.m_texture2D.Get(), &signedFloatRenderTargetViewDesc, m_normalAO.m_renderTargetView.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer normal ao render target view creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer normal ao render target view creation failed");
 
 		// EmissionMetallic
 		hr = device->CreateRenderTargetView(m_emissionMetallic.m_texture2D.Get(), &unsignedNormalizedRenderTargetViewDesc, m_emissionMetallic.m_renderTargetView.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer emission metallic render target view creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer emission metallic render target view creation failed");
 
 
 		// Create depth stencil view
@@ -107,7 +107,7 @@ namespace hrzn::gfx
 
 		// DepthStencil
 		hr = device->CreateDepthStencilView(m_depthStencil.m_texture2D.Get(), &depthStencilViewDesc, m_depthStencil.m_depthStencilView.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer depth stencil view creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer depth stencil view creation failed");
 
 
 		// Create shader resource view descriptions
@@ -130,23 +130,23 @@ namespace hrzn::gfx
 		// Create shader resource views
 		// Albedo
 		hr = device->CreateShaderResourceView(m_albedo.m_texture2D.Get(), &unsignedNormalizedShaderResourceViewDesc, m_albedo.m_shaderResourceView.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer albedo shader resource view creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer albedo shader resource view creation failed");
 
 		// PositionRoughness
 		hr = device->CreateShaderResourceView(m_positionRoughness.m_texture2D.Get(), &signedFloatShaderResourceViewDesc, m_positionRoughness.m_shaderResourceView.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer position roughness shader resource view creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer position roughness shader resource view creation failed");
 
 		// NormalAO
 		hr = device->CreateShaderResourceView(m_normalAO.m_texture2D.Get(), &signedFloatShaderResourceViewDesc, m_normalAO.m_shaderResourceView.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer normal ao shader resource view creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer normal ao shader resource view creation failed");
 
 		// EmissionMetallic
 		hr = device->CreateShaderResourceView(m_emissionMetallic.m_texture2D.Get(), &unsignedNormalizedShaderResourceViewDesc, m_emissionMetallic.m_shaderResourceView.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer emission metallic shader resource view creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer emission metallic shader resource view creation failed");
 
 		// Depth Stencil
 		hr = device->CreateShaderResourceView(m_depthStencil.m_texture2D.Get(), &depthStencilShaderResourceViewDesc, m_depthStencil.m_shaderResourceView.GetAddressOf());
-		utils::ErrorLogger::log(hr, "Geometry buffer depth stencil shader resource view creation failed");
+		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer depth stencil shader resource view creation failed");
 
 
 		// Fill geometry buffer render target array

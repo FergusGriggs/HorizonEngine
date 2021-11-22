@@ -62,9 +62,8 @@ namespace hrzn::gfx
 			D3D11_MAPPED_SUBRESOURCE mappedResource;
 			HRESULT hr = m_deviceContext->Map(m_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 
-			if (FAILED(hr))
+			if (utils::ErrorLogger::logIfFailed(hr, "Failed to map constant buffer."))
 			{
-				utils::ErrorLogger::log(hr, "Failed to map constant buffer.");
 				return false;
 			}
 

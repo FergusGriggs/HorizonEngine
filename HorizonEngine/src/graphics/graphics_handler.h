@@ -61,6 +61,8 @@ namespace hrzn::gfx
 		Microsoft::WRL::ComPtr<IDXGISwapChain>         m_swapChain;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_renderTargetView;
 
+		CD3D11_VIEWPORT m_defaultViewport;
+
 		Model* m_axisTranslateModel;
 		Model* m_axisRotateModel;
 		Model* m_springModel;

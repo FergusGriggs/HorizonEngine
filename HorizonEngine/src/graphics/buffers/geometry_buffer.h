@@ -28,7 +28,7 @@ namespace hrzn::gfx
 
 		void initialise(ID3D11Device* device);
 
-	private:
+	public:
 		// Albedo -> DXGI_FORMAT_R8G8B8A8_UNORM
 		// RGBA -> Pixel colour
 		RenderTexture m_albedo;

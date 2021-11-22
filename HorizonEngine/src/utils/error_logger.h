@@ -13,8 +13,12 @@ namespace hrzn::utils
 	{
 	public:
 		static void log(std::string message);
+		static void log(COMException& exception);
+
 		static void log(HRESULT hr, std::string message);
 		static void log(HRESULT hr, std::wstring message);
-		static void log(COMException& exception);
+
+		static bool logIfFailed(HRESULT hr, std::string message);
+		static bool logIfFailed(HRESULT hr, std::wstring message);
 	};
 }

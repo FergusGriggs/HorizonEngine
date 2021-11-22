@@ -602,7 +602,22 @@ namespace hrzn::gfx
 
 	void GraphicsHandler::createRenderPassConfigs()
 	{
+		// Default render config
+		m_defaultRenderConfig.m_viewport = m_defaultViewport;
+
+		m_defaultRenderConfig.m_renderTargetViews = m_geometryBuffer.m_renderTargetViews;
+		m_defaultRenderConfig.m_numRenderTargetViews = 4;
+
+		m_defaultRenderConfig.m_depthStencilView = m_geometryBuffer.m_depthStencil.m_depthStencilView.Get();
+
+		m_defaultRenderConfig.m_depthStencilState = m_depthStencilState.Get();
+		m_defaultRenderConfig.m_rasterizerState = m_regularRasterizerState.Get();
 		m_defaultRenderConfig.m_blendState = m_blendState.Get();
+
+		m_defaultRenderConfig.m_viewMatrix = XMMatrixIdentity();
+		m_defaultRenderConfig.m_projectionMatrix = XMMatrixIdentity();
+
+		m_defaultRenderConfig.m_highestLOD = 0;
 	}
 
 	void GraphicsHandler::updateImGui(scene::SceneManager& sceneManager)
@@ -1379,10 +1394,10 @@ namespace hrzn::gfx
 
 			COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil view.");
 
-			//SET THE RENDER TARGET
+			// SET THE RENDER TARGET
 			m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
 
-			//CREATE DEPTH STENCIL STATE
+			// CREATE DEPTH STENCIL STATE
 			CD3D11_DEPTH_STENCIL_DESC depthStencilDesc(D3D11_DEFAULT);
 			depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
 
@@ -1390,11 +1405,11 @@ namespace hrzn::gfx
 
 			COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil state.");
 
-			//CREATE VIEWPORT
-			CD3D11_VIEWPORT viewport(0.0f, 0.0f, static_cast<float>(UserConfig::it().getWindowWidth()), static_cast<float>(UserConfig::it().getWindowHeight()));
-			m_deviceContext->RSSetViewports(1, &viewport);
+			// Create viewport
+			m_defaultViewport = CD3D11_VIEWPORT(0.0f, 0.0f, static_cast<float>(UserConfig::it().getWindowWidth()), static_cast<float>(UserConfig::it().getWindowHeight()));
+			m_deviceContext->RSSetViewports(1, &m_defaultViewport);
 
-			//CREATE DEFAULT RASTERIZER STATE
+			// Create default rasterizer state
 			D3D11_RASTERIZER_DESC regularRasterizerDesc;
 			ZeroMemory(&regularRasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 
@@ -1405,7 +1420,7 @@ namespace hrzn::gfx
 
 			COM_ERROR_IF_FAILED(hr, "Failed to create default rasterizer state.");
 
-			//CREATE WIREFRAME RASTERIZER STATE
+			// Create wireframe rasterizer state
 			D3D11_RASTERIZER_DESC wireFrameRasterizerDesc;
 			ZeroMemory(&wireFrameRasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 
@@ -1416,7 +1431,7 @@ namespace hrzn::gfx
 
 			COM_ERROR_IF_FAILED(hr, "Failed to create wireframe rasterizer state.");
 
-			//CREATE DEFAULT BLEND STATE
+			// Create default blend state
 			D3D11_BLEND_DESC blendDesc;
 			ZeroMemory(&blendDesc, sizeof(blendDesc));
 
@@ -1438,11 +1453,11 @@ namespace hrzn::gfx
 
 			COM_ERROR_IF_FAILED(hr, "Failed to create blend state.");
 
-			//CREATE SPRITE BATCH AND SPRITE FONT INSTANCES
+			// Create sprite batch and sprite font instances
 			m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(m_deviceContext.Get());
 			m_spriteFont = std::make_unique<DirectX::SpriteFont>(m_device.Get(), L"res\\fonts\\consolas16.spritefont");//comicSansMS16.spritefont
 
-			//CREATE SAMPLER STATE
+			// Create sampler state
 			CD3D11_SAMPLER_DESC samplerDesc(D3D11_DEFAULT);
 			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;//D3D11_FILTER_MIN_MAG_MIP_LINEAR
 			samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
