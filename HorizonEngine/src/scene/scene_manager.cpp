@@ -47,6 +47,7 @@ namespace hrzn::scene
 		
 		m_lastAxisGrabOffset(FLT_MAX),
 		m_lastGrabPos(XMVectorZero()),
+		m_axisEditPlaneNormal(XMVectorZero()),
 
 		m_particleSystem(nullptr),
 		
@@ -56,7 +57,7 @@ namespace hrzn::scene
 		
 		m_dayNightCycle(false),
 		m_paused(false),
-		m_dayProgress(0.335f),//0.494f
+		m_dayProgress(0.335f),
 		m_gameTime(0.0f),
 		
 		m_newObjectType(0),
@@ -117,6 +118,8 @@ namespace hrzn::scene
 		{
 			return false;
 		}
+
+		return true;
 	}
 
 	const std::string& SceneManager::getSceneName()
@@ -138,240 +141,7 @@ namespace hrzn::scene
 
 		m_sceneName = sceneName;
 
-		std::string sceneFilePath = "res/scenes/";
-		sceneFilePath += sceneName;
-
-		std::ifstream sceneFile(sceneFilePath.c_str());
-
-		if (sceneFile)
-		{
-			int numObjectTracks;
-			sceneFile >> numObjectTracks;
-
-			for (int i = 0; i < numObjectTracks; ++i)
-			{
-				std::string trackId;
-				sceneFile >> trackId;
-				utils::string_helpers::replaceChars(trackId, '|', ' ');
-
-				int numNodes;
-				sceneFile >> numNodes;
-
-				entity::GameObjectTrack* track = new entity::GameObjectTrack();
-
-				for (int j = 0; j < numNodes; ++j)
-				{
-					XMFLOAT3 nodePos = utils::io_helpers::readFloat3(sceneFile);
-
-					XMFLOAT3 nodeLookAt = utils::io_helpers::readFloat3(sceneFile);
-
-					track->addTrackNode(entity::ObjectTrackNode(nodePos, nodeLookAt));
-				}
-
-				track->generateMidPoints();
-
-				track->setId(trackId);
-
-				m_objectTracks.insert(std::make_pair(trackId, track));
-			}
-
-			int numObjects;
-			sceneFile >> numObjects;
-
-			for (int i = 0; i < numObjects; ++i)
-			{
-				entity::GameObject* gameObject;
-
-				int intObjectType;
-				sceneFile >> intObjectType;
-				entity::GameObject::Type objectType = static_cast<entity::GameObject::Type>(intObjectType);
-
-				std::string label;
-				sceneFile >> label;
-				utils::string_helpers::replaceChars(label, '|', ' ');
-
-				switch (objectType)
-				{
-				case entity::GameObject::Type::eRenderable:
-				{
-					entity::RenderableGameObject* renderableGameObject = new entity::RenderableGameObject();
-					gameObject = dynamic_cast<entity::GameObject*>(renderableGameObject);
-
-					std::string fileName;
-					sceneFile >> fileName;
-					utils::string_helpers::replaceChars(fileName, '|', ' ');
-					fileName = "res/models/" + fileName;
-
-					if (!renderableGameObject->initialize(label, fileName))
-					{
-						std::cout << "Failed to init renderable game object with label " << label << "\n";
-						return false;
-					}
-					
-					break;
-				}
-				case entity::GameObject::Type::eLight:
-				{
-					if (!m_directionalLight.initialize())
-					{
-						std::cout << "Failed to init directional light with label " << label << "\n";
-						return false;
-					}
-
-					m_directionalLight.setColour(utils::io_helpers::readFloat3(sceneFile));
-
-					gameObject = dynamic_cast<entity::GameObject*>(&m_directionalLight);
-					break;
-				}
-				case entity::GameObject::Type::ePointLight:
-				{
-					entity::PointLightGameObject* pointLight = new entity::PointLightGameObject();
-					gameObject = dynamic_cast<entity::GameObject*>(pointLight);
-
-					if (!pointLight->initialize())
-					{
-						std::cout << "Failed to init point light with label " << label << "\n";
-						return false;
-					}
-
-					pointLight->setColour(utils::io_helpers::readFloat3(sceneFile));
-					break;
-				}
-				case entity::GameObject::Type::eSpotLight:
-				{
-					entity::SpotLightGameObject* spotLight = new entity::SpotLightGameObject();
-					gameObject = dynamic_cast<entity::GameObject*>(spotLight);
-
-					if (!spotLight->initialize())
-					{
-						std::cout << "Failed to init spot light with label " << label << "\n";
-						return false;
-					}
-
-					spotLight->setColour(utils::io_helpers::readFloat3(sceneFile));
-
-					float innerCutoff, outerCutoff;
-					sceneFile >> innerCutoff >> outerCutoff;
-					spotLight->setInnerCutoff(innerCutoff);
-					spotLight->setOuterCutoff(outerCutoff);
-					break;
-				}
-				case entity::GameObject::Type::ePhysics:
-				{
-					entity::PhysicsGameObject* physicsGameObject = new entity::PhysicsGameObject();
-					gameObject = dynamic_cast<entity::GameObject*>(physicsGameObject);
-
-					std::string fileName;
-					sceneFile >> fileName;
-					utils::string_helpers::replaceChars(fileName, '|', ' ');
-					fileName = "res/models/" + fileName;
-
-					if (!physicsGameObject->initialize(label, fileName))
-					{
-						std::cout << "Failed to init physics object with label " << label << "\n";
-						return false;
-					}
-					break;
-				}
-				default:
-				{
-					gameObject = new entity::GameObject();
-					break;
-				}
-				}
-
-				addGameObject(gameObject);
-
-				gameObject->getWritableTransform().setPosition(utils::io_helpers::readFloat3(sceneFile));
-
-				int rotationType;
-				sceneFile >> rotationType;
-
-				switch (rotationType)
-				{
-				case 1:
-				{
-					XMFLOAT3 front = utils::io_helpers::readFloat3(sceneFile);
-					XMFLOAT3 right = utils::io_helpers::readFloat3(sceneFile);
-					XMFLOAT3 up = utils::io_helpers::readFloat3(sceneFile);
-
-					// Outdated method
-
-					/*gameObject->getTransform()->SetFrontVector(XMVectorSet(front.x, front.y, front.z, 0.0f));
-					gameObject->getTransform()->SetRightVector(XMVectorSet(right.x, right.y, right.z, 0.0f));
-					gameObject->getTransform()->SetUpVector(XMVectorSet(up.x, up.y, up.z, 0.0f));*/
-
-					break;
-				}
-
-				case 2:
-					gameObject->getWritableTransform().lookAtPosition(utils::io_helpers::readFloat3(sceneFile));
-					break;
-				case 3:
-				{
-					XMFLOAT4 orientation = utils::io_helpers::readFloat4(sceneFile);
-					XMVECTOR orientationVector = XMLoadFloat4(&orientation);
-					gameObject->getWritableTransform().setOrientationQuaternion(orientationVector);
-
-					break;
-				}
-				}
-
-				bool hasTrack;
-				sceneFile >> hasTrack;
-
-				if (hasTrack)
-				{
-					std::string trackName;
-					sceneFile >> trackName;
-
-					gameObject->setObjectTrack(m_objectTracks.at(trackName));
-
-					bool followingTrack;
-					sceneFile >> followingTrack;
-
-					gameObject->setFollowingObjectTrack(followingTrack);
-
-					float objectTrackDelta;
-					sceneFile >> objectTrackDelta;
-
-					gameObject->setObjectTrackDelta(objectTrackDelta);
-				}
-
-				int numRelativeCams;
-				sceneFile >> numRelativeCams;
-
-				for (int i = 0; i < numRelativeCams; ++i)
-				{
-					XMFLOAT3 cameraRelativePosition = utils::io_helpers::readFloat3(sceneFile);
-					gameObject->getWritableRelativePositions().push_back(DirectX::XMFLOAT3(cameraRelativePosition.x, cameraRelativePosition.y, cameraRelativePosition.z));
-				}
-
-				bool hasController;
-				sceneFile >> hasController;
-
-				if (hasController)
-				{
-					int controllerTypeInt;
-					sceneFile >> controllerTypeInt;
-
-					float moveSpeed;
-					sceneFile >> moveSpeed;
-
-					entity::ControllerType controllerType = static_cast<entity::ControllerType>(controllerTypeInt);
-					m_controllerManager->addController(gameObject, controllerType, moveSpeed, false);
-				}
-
-				bool floating;
-				sceneFile >> floating;
-
-				gameObject->setFloating(floating);
-			}
-
-			return true;
-		}
-
-		return false;
+		return true;
 	}
 
 	bool SceneManager::loadSceneStaticObjects()
@@ -409,141 +179,13 @@ namespace hrzn::scene
 
 	bool SceneManager::saveScene(const char* sceneName)
 	{
-		std::string sceneFilePath = "res/scenes/";
-		sceneFilePath += sceneName;
 
-		std::ofstream sceneFile(sceneFilePath.c_str());
-
-		if (sceneFile)
-		{
-			try
-			{
-				sceneFile << m_objectTracks.size() << "\n\n";
-
-				std::unordered_map<std::string, entity::GameObjectTrack*>::iterator objectTrackIterator = m_objectTracks.begin();
-				while (objectTrackIterator != m_objectTracks.end())
-				{
-					const std::vector<entity::ObjectTrackNode>& trackNodes = objectTrackIterator->second->getTrackNodes();
-
-					size_t numTrackNodes = trackNodes.size();
-
-					sceneFile << objectTrackIterator->first << ' ' << numTrackNodes << '\n';
-
-					for (size_t i = 0; i < numTrackNodes; ++i)
-					{
-						utils::io_helpers::writeFloat3(trackNodes[i].m_position, sceneFile);
-						utils::io_helpers::writeFloat3(trackNodes[i].m_lookPoint, sceneFile);
-
-						sceneFile << '\n';
-					}
-
-					sceneFile << '\n';
-
-					++objectTrackIterator;
-				}
-
-				sceneFile << m_gameObjectMap.size() << "\n\n";
-
-				std::unordered_map<std::string, entity::GameObject*>::iterator objectMapIterator = m_gameObjectMap.begin();
-				while (objectMapIterator != m_gameObjectMap.end())
-				{
-					entity::GameObject::Type objectType = objectMapIterator->second->getType();
-					int objectTypeInt = static_cast<int>(objectType);
-					sceneFile << objectTypeInt << ' ';
-
-					std::string label = objectMapIterator->first;
-					utils::string_helpers::replaceChars(label, ' ', '|');
-					sceneFile << label << ' ';
-
-					switch (objectType)
-					{
-					case entity::GameObject::Type::eRenderable:
-					{
-						entity::RenderableGameObject* renderableGameObject = dynamic_cast<entity::RenderableGameObject*>(objectMapIterator->second);
-						std::string path = renderableGameObject->getModel().getPath();
-						utils::string_helpers::removeDirectoriesFromStart(path, 2);
-						sceneFile << path;
-						break;
-					}
-					case entity::GameObject::Type::eLight:
-					{
-						entity::LightGameObject* directionalLight = dynamic_cast<entity::LightGameObject*>(objectMapIterator->second);
-						utils::io_helpers::writeFloat3(directionalLight->getColour(), sceneFile);
-						break;
-					}
-					case entity::GameObject::Type::ePointLight:
-					{
-						entity::PointLightGameObject* pointLight = dynamic_cast<entity::PointLightGameObject*>(objectMapIterator->second);
-						utils::io_helpers::writeFloat3(pointLight->getColour(), sceneFile);
-						break;
-					}
-					case entity::GameObject::Type::eSpotLight:
-					{
-						entity::SpotLightGameObject* spotLight = dynamic_cast<entity::SpotLightGameObject*>(objectMapIterator->second);
-						utils::io_helpers::writeFloat3(spotLight->getColour(), sceneFile);
-						sceneFile << spotLight->getInnerCutoff() << " " << spotLight->getOuterCutoff() << " ";
-						break;
-					}
-					}
-
-					sceneFile << '\n';
-
-					utils::io_helpers::writeFloat3(objectMapIterator->second->getTransform().getPositionFloat3(), sceneFile);
-					sceneFile << '\n';
-
-					sceneFile << 3 << ' ';
-					utils::io_helpers::writeFloat4(objectMapIterator->second->getTransform().getOrientation(), sceneFile);
-					sceneFile << '\n';
-
-					const entity::GameObjectTrack* gameObjectTrack = objectMapIterator->second->getObjectTrack();
-					if (gameObjectTrack != nullptr)
-					{
-						sceneFile << 1 << ' ' << gameObjectTrack->getId() << ' ' << objectMapIterator->second->isFollowingObjectTrack() << ' ' << objectMapIterator->second->getObjectTrackDelta() << '\n';
-					}
-					else
-					{
-						sceneFile << 0 << '\n';
-					}
-
-					size_t numRelativeCams = objectMapIterator->second->getRelativePositions().size();
-
-					sceneFile << numRelativeCams << '\n';
-
-					for (size_t i = 0; i < numRelativeCams; ++i)
-					{
-						utils::io_helpers::writeFloat3(objectMapIterator->second->getRelativePositions()[i], sceneFile);
-						sceneFile << '\n';
-					}
-
-					if (objectMapIterator->second->getController() != nullptr)
-					{
-						sceneFile << "1 " << static_cast<int>(objectMapIterator->second->getController()->getType()) << ' ' << objectMapIterator->second->getController()->getMoveSpeed() << '\n';
-					}
-					else
-					{
-						sceneFile << "0\n";
-					}
-
-					sceneFile << objectMapIterator->second->getFloating() << "\n\n";
-
-					++objectMapIterator;
-				}
-			}
-			catch (std::exception e)
-			{
-				utils::ErrorLogger::log("Failed to save scene");
-				return false;
-			}
-
-			return true;
-		}
-
-		return false;
+		return true;
 	}
 
 	void SceneManager::unloadScene()
 	{
-		//Remove Object Tracks
+		// Remove Object Tracks
 		std::unordered_map<std::string, entity::GameObjectTrack*>::iterator objectTrackIterator = m_objectTracks.begin();
 		while (objectTrackIterator != m_objectTracks.end())
 		{
@@ -553,7 +195,7 @@ namespace hrzn::scene
 
 		m_objectTracks.clear();
 
-		//Remove Game Objects
+		// Remove Game Objects
 		std::unordered_map<std::string, entity::GameObject*>::iterator objectMapIterator = m_gameObjectMap.begin();
 		while (objectMapIterator != m_gameObjectMap.end())
 		{
@@ -689,11 +331,11 @@ namespace hrzn::scene
 					float diff = objectPosition.y + vertexPosition.y - getWaterHeightAt(objectPosition.x + vertexPosition.x, objectPosition.z + vertexPosition.z, true);
 					if (diff < 0.0f)
 					{
-						//Buoyancy forces
+						// Buoyancy forces
 						m_physicsObjects[i]->getRigidBody()->addForce(XMVectorSet(0.0f, upthrustMagnitude, 0.0f, 0.0f));
 						m_physicsObjects[i]->getRigidBody()->addTorque(rotatedPosition, XMVectorSet(0.0f, upthrustMagnitude * 0.001f, 0.0f, 0.0f));
 
-						//Water drag forces
+						// Water drag forces
 						XMVECTOR waterDragForce = m_physicsObjects[i]->getRigidBody()->getMass() * -m_physicsObjects[i]->getRigidBody()->getVelocityVector() * 0.1f;
 						m_physicsObjects[i]->getRigidBody()->addForce(waterDragForce);
 					}
@@ -843,6 +485,20 @@ namespace hrzn::scene
 		{
 			return *(m_gameObjectMap.at(label));
 		}
+
+		utils::ErrorLogger::log("Game object with label " + label + " was not in the map");
+		return m_badReturnGameObject;
+	}
+
+	entity::GameObject& SceneManager::getWritableGameObject(const std::string& label)
+	{
+		if (m_gameObjectMap.find(label) != m_gameObjectMap.end())
+		{
+			return *(m_gameObjectMap.at(label));
+		}
+
+		utils::ErrorLogger::log("Game object with label " + label + " was not in the map");
+		return m_badReturnGameObject;
 	}
 
 	void SceneManager::addGameObject(entity::GameObject* gameObject)
@@ -861,24 +517,6 @@ namespace hrzn::scene
 		else
 		{
 			utils::ErrorLogger::log("Failed to add game object because an object with label '" + gameObject->getLabel() + "' already exists");
-		}
-	}
-
-	void SceneManager::addObjectTrack(entity::GameObjectTrack* objectTrack)
-	{
-		m_objectTracks.insert(std::make_pair(objectTrack->getId(), objectTrack));
-	}
-
-	std::unordered_map<std::string, entity::GameObjectTrack*>& SceneManager::getObjectTracks()
-	{
-		return m_objectTracks;
-	}
-
-	entity::GameObject& SceneManager::getWritableGameObject(const std::string& label)
-	{
-		if (m_gameObjectMap.find(label) != m_gameObjectMap.end())
-		{
-			return *(m_gameObjectMap.at(label));
 		}
 	}
 
@@ -943,6 +581,16 @@ namespace hrzn::scene
 
 			m_gameObjectMap.erase(iterator->first);
 		}
+	}
+
+	void SceneManager::addObjectTrack(entity::GameObjectTrack* objectTrack)
+	{
+		m_objectTracks.insert(std::make_pair(objectTrack->getId(), objectTrack));
+	}
+
+	std::unordered_map<std::string, entity::GameObjectTrack*>& SceneManager::getObjectTracks()
+	{
+		return m_objectTracks;
 	}
 
 	const SceneConfig& SceneManager::getSceneConfig() const
@@ -1060,6 +708,10 @@ namespace hrzn::scene
 
 								m_axisEditPlaneNormal = getMostAllignedVector(planeTest1, planeTest2, m_activeCamera->getMouseToWorldVectorDirection());
 							}
+							else
+							{
+								m_axisEditPlaneNormal = XMVector3Normalize(XMVectorSet(m_activeCamera->getTransform().getPositionFloat3().x - objectPos.x, 0.0f, m_activeCamera->getTransform().getPositionFloat3().z - objectPos.z, 0.0f));
+							}
 						}
 					}
 				}
@@ -1076,53 +728,30 @@ namespace hrzn::scene
 			{
 				XMMATRIX modelRotationMatrix = m_selectedObject->getTransform().getRotationMatrix();
 				objectHitRadius *= 0.75f;
+				for (int axis = 0; axis < 3; ++axis)
 				{
-					//GET TRANSFORMED AXIS VECTOR (PLANE NORMAL)
-					XMVECTOR planeNormal = XMVector3Normalize(XMVector4Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), modelRotationMatrix));
-					//GET INTERSECT POINT WITH THIS PLANE AND THE MOUSE RAY
+					// Get transformed axis vector
+					XMVECTOR planeNormal;
+					if (axis == 0) planeNormal = XMVector3Normalize(XMVector4Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), modelRotationMatrix));
+					else if (axis == 1) planeNormal = XMVector3Normalize(XMVector4Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), modelRotationMatrix));
+					else planeNormal = XMVector3Normalize(XMVector4Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), modelRotationMatrix));
+
+					// Get intersect point with this plane and the mouse ray
 					XMVECTOR planeIntersectPoint = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-					XMVECTOR centreDiff = planeIntersectPoint - m_selectedObject->getTransform().getPositionVector(); //FIND VECTOR DIFFERENCE
-					float distanceToCentre = XMVectorGetX(XMVector3Length(centreDiff));//GET SCALAR DISTANCE
-					if (distanceToCentre > objectHitRadius - objectHitRadius * 0.1f && distanceToCentre < objectHitRadius + objectHitRadius * 0.1f)
-					{ //CHECK IF THE INTERSECT IS ON THE RING
-						XMVECTOR camToIntersect = planeIntersectPoint - m_activeCamera->getTransform().getPositionVector(); //FIND VECTOR DIFF FROM CAMERA TO THE POINT
-						float camToIntersectDist = XMVectorGetX(XMVector3Length(camToIntersect)); //FIND SCALAR DISTANCE FROM CAMERA TO THE POINT
-						if (camToIntersectDist < closestDist)
-						{ //IF LESS THAN THE LAST DISTANCE SET VARIABLES
-							closestDist = camToIntersectDist;
-							m_axisEditSubState = AxisEditSubState::eEditX;
-						}
-					}
-				}
-				{
-					XMVECTOR planeNormal = XMVector3Normalize(XMVector3Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), modelRotationMatrix));
-					XMVECTOR planeIntersectPoint = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
+						
 					XMVECTOR centreDiff = planeIntersectPoint - m_selectedObject->getTransform().getPositionVector();
 					float distanceToCentre = XMVectorGetX(XMVector3Length(centreDiff));
+
 					if (distanceToCentre > objectHitRadius - objectHitRadius * 0.1f && distanceToCentre < objectHitRadius + objectHitRadius * 0.1f)
 					{
+						// Check if the intersect is on the ring
 						XMVECTOR camToIntersect = planeIntersectPoint - m_activeCamera->getTransform().getPositionVector();
 						float camToIntersectDist = XMVectorGetX(XMVector3Length(camToIntersect));
+
 						if (camToIntersectDist < closestDist)
 						{
 							closestDist = camToIntersectDist;
-							m_axisEditSubState = AxisEditSubState::eEditY;
-						}
-					}
-				}
-				{
-					XMVECTOR planeNormal = XMVector3Normalize(XMVector4Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), modelRotationMatrix));
-					XMVECTOR planeIntersectPoint = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-					XMVECTOR centreDiff = planeIntersectPoint - m_selectedObject->getTransform().getPositionVector();
-					float distanceToCentre = XMVectorGetX(XMVector3Length(centreDiff));
-					if (distanceToCentre > objectHitRadius - objectHitRadius * 0.1f && distanceToCentre < objectHitRadius + objectHitRadius * 0.1f)
-					{
-						XMVECTOR camToIntersect = planeIntersectPoint - m_activeCamera->getTransform().getPositionVector();
-						float camToIntersectDist = XMVectorGetX(XMVector3Length(camToIntersect));
-						if (camToIntersectDist < closestDist)
-						{
-							closestDist = camToIntersectDist;
-							m_axisEditSubState = AxisEditSubState::eEditZ;
+							m_axisEditSubState = static_cast<AxisEditSubState>(axis);
 						}
 					}
 				}
@@ -1170,50 +799,56 @@ namespace hrzn::scene
 			// Translating
 			if (m_axisEditState == AxisEditState::eEditTranslate)
 			{
-				XMFLOAT3 objectPos = m_selectedObject->getTransform().getPositionFloat3();
+				if (m_axisEditSubState != AxisEditSubState::eEditNone)
+				{
+					XMFLOAT3 objectPos = m_selectedObject->getTransform().getPositionFloat3();
 
-				switch (m_axisEditSubState)
-				{
-				case AxisEditSubState::eEditX:
-				{
-					//GET INTERSECT POINT WITH MOUSE RAY
+					float currentAxisGrabOffset = 0.0f;
+
+					// Get intersect point with mouse ray
 					XMVECTOR intersect = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), m_axisEditPlaneNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-					float currentAxisGrabOffset = XMVectorGetX(intersect); //GET RELEVANT VECTOR COMPONENT
-					if (m_lastAxisGrabOffset != FLT_MAX)
-					{ //CHECK IF FIRST ITERATION
-						float diff = currentAxisGrabOffset - m_lastAxisGrabOffset; //FIND DIFFERENCE
-						m_selectedObject->getWritableTransform().adjustPosition(diff, 0.0f, 0.0f); //MOVE OBJECT BY DIFFERENCE
-					}
-					m_lastAxisGrabOffset = currentAxisGrabOffset; //SET LAST OFFSET
-					break;
-				}
-				case AxisEditSubState::eEditY:
-				{
-					XMVECTOR intersect = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), XMVector3Normalize(XMVectorSet(m_activeCamera->getTransform().getPositionFloat3().x - objectPos.x, 0.0f, m_activeCamera->getTransform().getPositionFloat3().z - objectPos.z, 0.0f)), XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-					float currentAxisGrabOffset = XMVectorGetY(intersect);
-					if (m_lastAxisGrabOffset != FLT_MAX)
+
+					switch (m_axisEditSubState)
 					{
-						float diff = currentAxisGrabOffset - m_lastAxisGrabOffset;
-						m_selectedObject->getWritableTransform().adjustPosition(0.0f, diff, 0.0f);
+					case AxisEditSubState::eEditX:
+					{
+						// Get relevant vector component
+						currentAxisGrabOffset = XMVectorGetX(intersect);
+
+						// Dont move on the first frame
+						if (m_lastAxisGrabOffset != FLT_MAX)
+						{
+							// Move object by difference
+							float diff = currentAxisGrabOffset - m_lastAxisGrabOffset;
+							m_selectedObject->getWritableTransform().adjustPosition(diff, 0.0f, 0.0f);
+						}
+						break;
+					}
+					case AxisEditSubState::eEditY:
+					{
+						currentAxisGrabOffset = XMVectorGetY(intersect);
+						if (m_lastAxisGrabOffset != FLT_MAX)
+						{
+							float diff = currentAxisGrabOffset - m_lastAxisGrabOffset;
+							m_selectedObject->getWritableTransform().adjustPosition(0.0f, diff, 0.0f);
+						}
+						break;
+					}
+					case AxisEditSubState::eEditZ:
+					{
+						currentAxisGrabOffset = XMVectorGetZ(intersect);
+						if (m_lastAxisGrabOffset != FLT_MAX)
+						{
+							float diff = currentAxisGrabOffset - m_lastAxisGrabOffset;
+							m_selectedObject->getWritableTransform().adjustPosition(0.0f, 0.0f, diff);
+						}
+						break;
+					}
 					}
 					m_lastAxisGrabOffset = currentAxisGrabOffset;
-					break;
-				}
-				case AxisEditSubState::eEditZ:
-				{
-					XMVECTOR intersect = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), m_axisEditPlaneNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-					float currentAxisGrabOffset = XMVectorGetZ(intersect);
-					if (m_lastAxisGrabOffset != FLT_MAX)
-					{
-						float diff = currentAxisGrabOffset - m_lastAxisGrabOffset;
-						m_selectedObject->getWritableTransform().adjustPosition(0.0f, 0.0f, diff);
-					}
-					m_lastAxisGrabOffset = currentAxisGrabOffset;
-					break;
-				}
 				}
 			}
-			//ROTATING
+			// Rotating
 			else if (m_axisEditState == AxisEditState::eEditRotate)
 			{
 				XMFLOAT3 objectPos = m_selectedObject->getTransform().getPositionFloat3();
@@ -1224,18 +859,26 @@ namespace hrzn::scene
 				{
 				case AxisEditSubState::eEditX:
 				{
-					//COMPUTE WORLD SPACE AXIS VECTOR (PLANE NORMAL)
+					// Compute world space axis vector (plane normal)
 					XMVECTOR planeNormal = XMVector3Normalize(XMVector3Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), modelRotationMatrix));
-					//GET INTERSECT POINT OF THIS PLANE WITH MOUSE RAY
+					// Get intersect point of this plane with mouse ray
 					XMVECTOR planeIntersectPoint = physics::collision::rayPlaneIntersect(m_activeCamera->getTransform().getPositionVector(), m_activeCamera->getMouseToWorldVectorDirection(), planeNormal, XMVectorSet(objectPos.x, objectPos.y, objectPos.z, 0.0f));
-					XMVECTOR centreDiff = planeIntersectPoint - m_selectedObject->getTransform().getPositionVector(); //COMPUTE DIFFERENCE
-					XMVECTOR modelSpaceCentreDiff = XMVector3Transform(centreDiff, inverseModelRotationMatrix); //TRANSFORM TO MODEL SPACE
-					float rotation = atan2(XMVectorGetY(modelSpaceCentreDiff), XMVectorGetZ(modelSpaceCentreDiff)); //WORK OUT ANGLE OF ROTATION
+					
+					// Compute difference
+					XMVECTOR centreDiff = planeIntersectPoint - m_selectedObject->getTransform().getPositionVector(); 
+					XMVECTOR modelSpaceCentreDiff = XMVector3Transform(centreDiff, inverseModelRotationMatrix);
+					
+					// Transform to model space
+					float rotation = atan2(XMVectorGetY(modelSpaceCentreDiff), XMVectorGetZ(modelSpaceCentreDiff));
+					
+					// Work out angle of rotation
 					if (m_lastAxisGrabOffset != FLT_MAX)
-					{ //IF NOT FIRST ITERATION
-						float rotationDiff = rotation - m_lastAxisGrabOffset; //FIND ANGLE DIFF
-						m_selectedObject->getWritableTransform().rotateUsingAxis(m_selectedObject->getTransform().getRightVector(), -rotationDiff); //ROTATE AXIS BY DIFFERENCE
-						m_lastAxisGrabOffset = rotation - rotationDiff; //SET LAST OFFSET
+					{
+						// If not first iteration
+						float rotationDiff = rotation - m_lastAxisGrabOffset; // Find angle diff
+						m_selectedObject->getWritableTransform().rotateUsingAxis(m_selectedObject->getTransform().getRightVector(), -rotationDiff);
+						// Rotate axis by difference
+						m_lastAxisGrabOffset = rotation - rotationDiff; // Set last offset
 					}
 					else
 					{

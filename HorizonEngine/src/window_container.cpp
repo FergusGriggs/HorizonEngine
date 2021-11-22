@@ -91,7 +91,7 @@ namespace hrzn
 		}
 		case WM_INPUT:
 		{
-			UINT dataSize;
+			UINT dataSize = 0;
 
 			GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, NULL, &dataSize, sizeof(RAWINPUTHEADER));
 
@@ -167,7 +167,7 @@ namespace hrzn
 			return 0;
 		}
 		default:
-			DefWindowProc(hwnd, uMsg, wParam, lParam);
+			return DefWindowProc(hwnd, uMsg, wParam, lParam);
 		}
 	}
 }

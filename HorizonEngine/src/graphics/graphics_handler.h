@@ -21,7 +21,9 @@
 #include "../utils/adapter_reader.h"
 #include "../utils/timer.h"
 #include "buffers/constant_buffer_types.h"
+#include "buffers/geometry_buffer.h"
 #include "shaders/shader.h"
+#include "render_pass_config.h"
 
 //comicSansMS16.spritefont
 
@@ -37,9 +39,12 @@ namespace hrzn::gfx
 		bool initializeScene(scene::SceneManager& sceneManager);
 
 		void update(scene::SceneManager& sceneManager, float deltaTime);
-		void renderActiveScene(scene::SceneManager& sceneManager);
+
+		void render(scene::SceneManager& sceneManager);
+		void renderSceneObjects(scene::SceneManager& sceneManager, const RenderPassConfig& renderPassConfig);
 
 		void create3DNoiseTexture();
+		void createRenderPassConfigs();
 
 		void updateImGui(scene::SceneManager& sceneManager);
 
@@ -105,6 +110,11 @@ namespace hrzn::gfx
 		std::unique_ptr<DirectX::SpriteFont>  m_spriteFont;
 
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerState;
+
+		GeometryBuffer m_geometryBuffer;
+
+		RenderPassConfig m_defaultRenderConfig;
+		RenderPassConfig m_shadowPassRenderConfig;
 
 		bool m_useWireframe;
 		bool m_useVSync;

@@ -27,7 +27,7 @@ SamplerState samplerState : SAMPLER : register(s0);
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
-    float3 textureColour = diffuseTexture.Sample(samplerState, input.texCoord);
+    float3 textureColour = diffuseTexture.Sample(samplerState, input.texCoord).rgb;
     
     if (justColour)
     {
