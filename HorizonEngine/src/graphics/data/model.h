@@ -23,6 +23,8 @@ namespace hrzn::gfx
 		template <class T>
 		void draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<T>* vertexShaderCB, bool bindTextures = true) const;
 
+		void drawRaw(bool bindTextures = true);
+
 		const std::vector<Mesh>&     getMeshes() const;
 
 		const std::string&           getPath() const;

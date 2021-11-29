@@ -223,10 +223,6 @@ float4 main(PS_INPUT input) : SV_TARGET
     float3 normal = normalize(input.normal);
     float3 tangent = normalize(input.tangent);
     float3 bitangent = normalize(input.bitangent);
-    
-    //float3 tangent = normalize(input.tangent - dot(input.tangent, normal) * normal);
-
-    //float3 bitangent = normalize(cross(tangent, normal));
 
     float3x3 tangentToWorld = float3x3(tangent, bitangent, normal);
     float3x3 worldToTangent = transpose(tangentToWorld);

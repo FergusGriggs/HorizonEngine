@@ -48,8 +48,11 @@ namespace hrzn::gfx
 				case aiTextureType::aiTextureType_NORMALS:
 					m_deviceContext->PSSetShaderResources(2, 1, m_textures[i]->getTextureResourceViewAddress());
 					break;
+				case aiTextureType::aiTextureType_EMISSIVE:
+					m_deviceContext->PSSetShaderResources(5, 1, m_textures[i]->getTextureResourceViewAddress());
+					break;
 				case aiTextureType::aiTextureType_DISPLACEMENT:
-					m_deviceContext->PSSetShaderResources(3, 1, m_textures[i]->getTextureResourceViewAddress());
+					m_deviceContext->PSSetShaderResources(6, 1, m_textures[i]->getTextureResourceViewAddress());
 					break;
 				}
 			}

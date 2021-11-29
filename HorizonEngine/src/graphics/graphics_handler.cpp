@@ -50,7 +50,7 @@ namespace hrzn::gfx
 		try
 		{
 			//CREATE CONSTANT BUFFERS
-			HRESULT hr = m_vertexShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			HRESULT hr = m_defaultVertexShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 
 			hr = m_waterVertexShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterVertexShader' constant buffer.");
@@ -74,13 +74,13 @@ namespace hrzn::gfx
 			m_waterPixelShaderCB.m_data.m_foamStart = sceneManager.getSceneConfig().getOceanConfig().m_foamStart;
 			m_waterPixelShaderCB.m_data.m_colourChangeStart = sceneManager.getSceneConfig().getOceanConfig().m_colourChangeStart;//1.123f
 
-			hr = m_pixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
+			hr = m_lightingPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'pixelShader' constant buffer.");
-			m_pixelShaderCB.m_data.m_useNormalMapping = true;
-			m_pixelShaderCB.m_data.m_useParallaxOcclusionMapping = true;
-			m_pixelShaderCB.m_data.m_selfShadowing = true;
-			m_pixelShaderCB.m_data.m_roughnessMapping = true;
-			m_pixelShaderCB.m_data.m_depthScale = 0.05f;
+			m_lightingPixelShaderCB.m_data.m_useNormalMapping = true;
+			m_lightingPixelShaderCB.m_data.m_useParallaxOcclusionMapping = true;
+			m_lightingPixelShaderCB.m_data.m_selfShadowing = true;
+			m_lightingPixelShaderCB.m_data.m_roughnessMapping = true;
+			m_lightingPixelShaderCB.m_data.m_depthScale = 0.05f;
 			m_useVSync = false;
 
 			hr = m_noLightPixelShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
@@ -242,15 +242,57 @@ namespace hrzn::gfx
 		m_defaultRenderConfig.m_viewMatrix = sceneManager.getActiveCamera().getViewMatrix();
 		m_defaultRenderConfig.m_projectionMatrix = sceneManager.getActiveCamera().getProjectionMatrix();
 
+		// Set rasterizer state
+		if (m_useWireframe)
+		{
+			m_defaultRenderConfig.m_rasterizerState = m_wireframeRasterizerState.Get();
+		}
+		else
+		{
+			m_defaultRenderConfig.m_rasterizerState = m_regularRasterizerState.Get();
+		}
+
 		renderSceneObjects(sceneManager, m_defaultRenderConfig);
 
 		m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
 		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), blackColour);
+		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+		m_deviceContext->IASetInputLayout(m_quadVertexShader.getInputLayout());
+		m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		m_deviceContext->VSSetShader(m_quadVertexShader.getShader(), NULL, 0);
-		m_deviceContext->VSSetShader(m_lightingPixelShader.getShader(), NULL, 0);
+		m_deviceContext->PSSetShader(m_lightingPixelShader.getShader(), NULL, 0);
 
-		m_quadModel->getMeshes()[0].draw(false);
+		// Point light shader variables
+		const auto& pointLights = sceneManager.getPointLights();
+		size_t numPointLights = pointLights.size();
+		for (size_t i = 0; i < numPointLights; ++i)
+		{
+			pointLights[i]->updateShaderVariables(m_lightingPixelShaderCB, i);
+		}
+
+		// Spot light shader variables
+		const auto& spotLights = sceneManager.getSpotLights();
+		size_t numSpotLights = spotLights.size();
+		for (size_t i = 0; i < numSpotLights; ++i)
+		{
+			spotLights[i]->updateShaderVariables(m_lightingPixelShaderCB, i);
+		}
+
+		// General shader variables
+		m_lightingPixelShaderCB.m_data.m_numPointLights = static_cast<int>(numPointLights);
+		m_lightingPixelShaderCB.m_data.m_numSpotLights = static_cast<int>(numSpotLights);
+
+		m_lightingPixelShaderCB.m_data.m_cameraPosition = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
+
+		m_lightingPixelShaderCB.m_data.m_objectMaterial.m_shininess = 4.0f;
+		m_lightingPixelShaderCB.m_data.m_objectMaterial.m_specularity = 0.75f;
+
+		m_lightingPixelShaderCB.mapToGPU();
+		m_deviceContext->PSSetConstantBuffers(0, 1, m_lightingPixelShaderCB.getAddressOf());
+
+		m_quadModel->drawRaw();
 
 		// Update FPS timer
 		m_fpsCounter++;
@@ -289,10 +331,10 @@ namespace hrzn::gfx
 
 		ImGui::Render();
 
-		//RENDER IMGUI
+		// Render imgui
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-		//PRESENT IMAGE
+		// Present image
 		m_swapChain->Present(m_useVSync, NULL);// using vsync
 
 		// Render scene depth from directional light's perspective
@@ -307,254 +349,181 @@ namespace hrzn::gfx
 
 	void GraphicsHandler::renderSceneObjects(scene::SceneManager& sceneManager, const RenderPassConfig& renderPassConfig)
 	{
-		float blackColour[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
 		m_deviceContext->RSSetViewports(1, &renderPassConfig.m_viewport);
 
 		m_deviceContext->RSSetState(renderPassConfig.m_rasterizerState);
 		m_deviceContext->OMSetDepthStencilState(renderPassConfig.m_depthStencilState, 0);
 		m_deviceContext->OMSetBlendState(renderPassConfig.m_blendState, NULL, 0xFFFFFFFF);
 
+		sceneManager.getWritableActiveCamera().updateView();
+
+		sceneManager.getWritableDirectionalLight().updateShaderVariables(m_lightingPixelShaderCB);
+
+		// Clear render target views and depth stencil view
+		float backgroundColour[4] = { 0.62f * sceneManager.getDirectionalLight().m_colour.x, 0.9f * sceneManager.getDirectionalLight().m_colour.y, 1.0f * sceneManager.getDirectionalLight().m_colour.z, 1.0f };
+
 		m_deviceContext->OMSetRenderTargets(renderPassConfig.m_numRenderTargetViews, renderPassConfig.m_renderTargetViews, renderPassConfig.m_depthStencilView);
 		for (int renderTargetIndex = 0; renderTargetIndex < renderPassConfig.m_numRenderTargetViews; ++renderTargetIndex)
 		{
-			m_deviceContext->ClearRenderTargetView(renderPassConfig.m_renderTargetViews[renderTargetIndex], blackColour);
+			m_deviceContext->ClearRenderTargetView(renderPassConfig.m_renderTargetViews[renderTargetIndex], backgroundColour);
 		}
 
-		sceneManager.getWritableActiveCamera().updateView();
-
-		sceneManager.getWritableDirectionalLight().updateShaderVariables(m_pixelShaderCB);
-
-		// Point light shader variables
-		const auto& pointLights = sceneManager.getPointLights();
-		size_t numPointLights = pointLights.size();
-		for (size_t i = 0; i < numPointLights; ++i)
-		{
-			pointLights[i]->updateShaderVariables(m_pixelShaderCB, i);
-		}
-	
-		// Spot light shader variables
-		const auto& spotLights = sceneManager.getSpotLights();
-		size_t numSpotLights = spotLights.size();
-		for (size_t i = 0; i < numSpotLights; ++i)
-		{
-			spotLights[i]->updateShaderVariables(m_pixelShaderCB, i);
-		}
-
-		// General shader variables
-		m_pixelShaderCB.m_data.m_numPointLights = static_cast<int>(numPointLights);
-		m_pixelShaderCB.m_data.m_numSpotLights = static_cast<int>(numSpotLights);
-
-		m_pixelShaderCB.m_data.m_cameraPosition = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
-
-		m_pixelShaderCB.m_data.m_objectMaterial.m_shininess = 4.0f;
-		m_pixelShaderCB.m_data.m_objectMaterial.m_specularity = 0.75f;
-
-		m_pixelShaderCB.mapToGPU();
-		m_deviceContext->PSSetConstantBuffers(0, 1, m_pixelShaderCB.getAddressOf());
-
-		// Clear render target view and depth stencil view
-		float backgroundColour[] = { 0.62f * sceneManager.getDirectionalLight().m_colour.x, 0.9f * sceneManager.getDirectionalLight().m_colour.y, 1.0f * sceneManager.getDirectionalLight().m_colour.z, 1.0f };
-		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), backgroundColour);
 		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		// Update input assembler
-		m_deviceContext->IASetInputLayout(m_vertexShader.getInputLayout());
+		m_deviceContext->IASetInputLayout(m_defaultVertexShader.getInputLayout());
 		m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		// Set rasterizer state
-		if (m_useWireframe)
-		{
-			m_deviceContext->RSSetState(m_wireframeRasterizerState.Get());
-		}
-		else
-		{
-			m_deviceContext->RSSetState(m_regularRasterizerState.Get());
-		}
-
-		//SET DEPTH STENCIL STATE
-		m_deviceContext->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
-
-		//SET BLEND STATE
-		m_deviceContext->OMSetBlendState(m_blendState.Get(), NULL, 0xFFFFFFFF);//blendState.Get()
-
-		//SET SAMPLER STATE
+		// Set sampler state
 		m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
 
-		//SET VERTEX AND PIXEL SHADERS
-		m_deviceContext->VSSetShader(m_vertexShader.getShader(), NULL, 0);
+		// Set vertex and pixel shaders
+		m_deviceContext->VSSetShader(m_defaultVertexShader.getShader(), NULL, 0);
 	
 		UINT offset = 0;
 
 		XMMATRIX viewProjMat = sceneManager.getActiveCamera().getViewMatrix() * sceneManager.getActiveCamera().getProjectionMatrix();
 
-		{
-			// Draw skybox
+		// Draw skybox
+		m_deviceContext->PSSetShader(m_atmosphericPixelShader.getShader(), NULL, 0);
+		m_deviceContext->PSSetConstantBuffers(0, 1, m_atmosphericPixelShaderCB.getAddressOf());
 
-			m_deviceContext->PSSetShader(m_atmosphericPixelShader.getShader(), NULL, 0);
-			m_deviceContext->PSSetConstantBuffers(0, 1, m_atmosphericPixelShaderCB.getAddressOf());
+		m_atmosphericPixelShaderCB.m_data.m_cameraPosition = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
 
-			m_atmosphericPixelShaderCB.m_data.m_cameraPosition = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
-
-			m_atmosphericPixelShaderCB.m_data.m_sunDirection = sceneManager.getDirectionalLight().getTransform().getBackFloat3();
+		m_atmosphericPixelShaderCB.m_data.m_sunDirection = sceneManager.getDirectionalLight().getTransform().getBackFloat3();
 			
-			m_atmosphericPixelShaderCB.mapToGPU();
+		m_atmosphericPixelShaderCB.mapToGPU();
 
-			sceneManager.getWritableSkybox().getWritableTransform().setPosition(sceneManager.getActiveCamera().getTransform().getPositionFloat3());
-			sceneManager.getSkybox().draw(viewProjMat, &m_vertexShaderCB);
+		sceneManager.getWritableSkybox().getWritableTransform().setPosition(sceneManager.getActiveCamera().getTransform().getPositionFloat3());
+		sceneManager.getSkybox().draw(viewProjMat, &m_defaultVertexShaderCB);
 
-			m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+		// Regular objects
+		m_deviceContext->PSSetConstantBuffers(0, 1, m_lightingPixelShaderCB.getAddressOf());
+		m_deviceContext->PSSetShader(m_gBufferPixelShader.getShader(), NULL, 0);
+
+		m_deviceContext->PSSetShaderResources(0, 1, m_defaultDiffuseTexture->getTextureResourceViewAddress());
+		m_deviceContext->PSSetShaderResources(1, 1, m_defaultSpecularTexture->getTextureResourceViewAddress());
+		m_deviceContext->PSSetShaderResources(2, 1, m_defaultNormalTexture->getTextureResourceViewAddress());
+
+		const auto& renderables = sceneManager.getRenderables();
+		size_t numRenderables = renderables.size();
+		for (size_t i = 0; i < numRenderables; ++i)
+		{
+			entity::RenderableGameObject* renderable = renderables[i];
+
+			if (auto* light = dynamic_cast<entity::LightGameObject*>(renderable))
+			{
+				m_noLightPixelShaderCB.m_data.m_colour = light->getColour();
+
+				m_noLightPixelShaderCB.mapToGPU();
+
+				m_deviceContext->PSSetConstantBuffers(0, 1, m_noLightPixelShaderCB.getAddressOf());
+
+				m_deviceContext->PSSetShader(m_noLightPixelShader.getShader(), NULL, 0);
+
+				renderable->draw(viewProjMat, &m_defaultVertexShaderCB);
+
+				m_deviceContext->PSSetShader(m_lightingPixelShader.getShader(), NULL, 0);
+				m_deviceContext->PSSetConstantBuffers(0, 1, m_lightingPixelShaderCB.getAddressOf());
+			}
+			else
+			{
+				renderable->draw(viewProjMat, &m_defaultVertexShaderCB);
+			}
 		}
 
-		m_deviceContext->PSSetConstantBuffers(0, 1, m_pixelShaderCB.getAddressOf());
-		m_deviceContext->PSSetShader(m_pixelShader.getShader(), NULL, 0);
+		// Draw particles
+		sceneManager.getParticleSystem().drawParticles(viewProjMat, &m_defaultVertexShaderCB);
 
+		// Draw Springs
+		XMMATRIX springModelMatrix;
+
+		const auto& springs = sceneManager.getSprings();
+		for (int i = 0; i < springs.size(); ++i)
 		{
-			m_deviceContext->PSSetShaderResources(0, 1, m_defaultDiffuseTexture->getTextureResourceViewAddress());
-			m_deviceContext->PSSetShaderResources(1, 1, m_defaultSpecularTexture->getTextureResourceViewAddress());
-			m_deviceContext->PSSetShaderResources(2, 1, m_defaultNormalTexture->getTextureResourceViewAddress());
+			XMVECTOR springStart = springs[i]->getSpringStart()->getTransformReference()->getPositionVector();
+			XMVECTOR springEnd = springs[i]->getSpringEnd()->getTransformReference()->getPositionVector();
 
-			//DRAW REGULAR GAME OBJECTS
-			const auto& renderables = sceneManager.getRenderables();
-			size_t numRenderables = renderables.size();
-			for (size_t i = 0; i < numRenderables; ++i)
+			float scale = XMVectorGetX(XMVector3Length(springEnd - springStart)) / 5.0f;
+
+			XMVECTOR front = XMVectorSetW(XMVector3Normalize(springEnd - springStart), 0.0f);
+			XMVECTOR up = XMVectorSetW(XMVector3Normalize(XMVector3Cross(front, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f))), 0.0f);
+			XMVECTOR right = XMVectorSetW(XMVector3Cross(front, up), 0.0f);
+
+			if (abs(XMVectorGetZ(front)) == 1.0f)
 			{
-				entity::RenderableGameObject* renderable = renderables[i];
-
-				/*if (renderable == m_selectedObject)
-				{
-					m_deviceContext->PSSetShaderResources(0, 1, m_highlightDiffuseTexture->getTextureResourceViewAddress());
-					m_deviceContext->PSSetShaderResources(1, 1, m_highlightSpecularTexture->getTextureResourceViewAddress());
-					m_deviceContext->PSSetShaderResources(2, 1, m_highlightNormalTexture->getTextureResourceViewAddress());
-
-					renderable->draw(viewProjMat, &m_vertexShaderCB, false);
-
-					m_deviceContext->PSSetShaderResources(0, 1, m_defaultDiffuseTexture->getTextureResourceViewAddress());
-					m_deviceContext->PSSetShaderResources(1, 1, m_defaultSpecularTexture->getTextureResourceViewAddress());
-					m_deviceContext->PSSetShaderResources(2, 1, m_defaultNormalTexture->getTextureResourceViewAddress());
-				}
-				else
-				{
-					renderableGameObject->draw(viewProjMat, &m_vertexShaderCB);
-				}*/
-
-				if (auto* light = dynamic_cast<entity::LightGameObject*>(renderable))
-				{
-					m_noLightPixelShaderCB.m_data.m_colour = light->getColour();
-
-					m_noLightPixelShaderCB.mapToGPU();
-
-					m_deviceContext->PSSetConstantBuffers(0, 1, m_noLightPixelShaderCB.getAddressOf());
-
-					m_deviceContext->PSSetShader(m_noLightPixelShader.getShader(), NULL, 0);
-
-					renderable->draw(viewProjMat, &m_vertexShaderCB);
-
-					m_deviceContext->PSSetShader(m_pixelShader.getShader(), NULL, 0);
-					m_deviceContext->PSSetConstantBuffers(0, 1, m_pixelShaderCB.getAddressOf());
-				}
-				else
-				{
-					renderable->draw(viewProjMat, &m_vertexShaderCB);
-				}
+				springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
 			}
-
-			// Draw particles
-			sceneManager.getParticleSystem().drawParticles(viewProjMat, &m_vertexShaderCB);
-
-			// Draw Springs
-			XMMATRIX springModelMatrix;
-
-			const auto& springs = sceneManager.getSprings();
-			for (int i = 0; i < springs.size(); ++i)
+			else
 			{
-				XMVECTOR springStart = springs[i]->getSpringStart()->getTransformReference()->getPositionVector();
-				XMVECTOR springEnd = springs[i]->getSpringEnd()->getTransformReference()->getPositionVector();
-
-				float scale = XMVectorGetX(XMVector3Length(springEnd - springStart)) / 5.0f;
-
-				XMVECTOR front = XMVectorSetW(XMVector3Normalize(springEnd - springStart), 0.0f);
-				XMVECTOR up = XMVectorSetW(XMVector3Normalize(XMVector3Cross(front, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f))), 0.0f);
-				XMVECTOR right = XMVectorSetW(XMVector3Cross(front, up), 0.0f);
-
-				if (abs(XMVectorGetZ(front)) == 1.0f)
-				{
-					springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
-				}
-				else
-				{
-					springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMATRIX(up, right, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
-				}
+				springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMATRIX(up, right, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
+			}
 			
-				m_springModel->draw(springModelMatrix, viewProjMat, &m_vertexShaderCB);
-			}
+			m_springModel->draw(springModelMatrix, viewProjMat, &m_defaultVertexShaderCB);
+		}
 
-			// Draw ocean
-			if (sceneManager.getSceneConfig().getOceanConfig().m_enabled)
-			{
-				m_deviceContext->VSSetShader(m_waterVertexShader.getShader(), NULL, 0);
-				m_deviceContext->PSSetShader(m_waterPixelShader.getShader(), NULL, 0);
+		// Draw ocean
+		if (sceneManager.getSceneConfig().getOceanConfig().m_enabled)
+		{
+			m_deviceContext->VSSetShader(m_waterVertexShader.getShader(), NULL, 0);
+			m_deviceContext->PSSetShader(m_waterPixelShader.getShader(), NULL, 0);
 
-				m_waterVertexShaderCB.mapToGPU();
+			m_waterVertexShaderCB.mapToGPU();
 
-				// Put the centre a bit in front of the camera where the best fidelity is in the mesh
-				float fovDistMod = (1.0f - (fminf(70.0f, sceneManager.getActiveCamera().getFOV()) / 70.0f)) * 150.0f;
-				XMVECTOR oceanPosition = sceneManager.getActiveCamera().getTransform().getPositionVector() + sceneManager.getActiveCamera().getTransform().getFrontVector() * (abs(sceneManager.getActiveCamera().getTransform().getPositionFloat3().y) + 30.0f + fovDistMod) * 1.2f;
+			// Put the centre a bit in front of the camera where the best fidelity is in the mesh
+			float fovDistMod = (1.0f - (fminf(70.0f, sceneManager.getActiveCamera().getFOV()) / 70.0f)) * 150.0f;
+			XMVECTOR oceanPosition = sceneManager.getActiveCamera().getTransform().getPositionVector() + sceneManager.getActiveCamera().getTransform().getFrontVector() * (abs(sceneManager.getActiveCamera().getTransform().getPositionFloat3().y) + 30.0f + fovDistMod) * 1.2f;
 
-				sceneManager.getWritableOcean().getWritableTransform().setPosition(XMVectorGetX(oceanPosition), sceneManager.getOcean().getTransform().getPositionFloat3().y, XMVectorGetZ(oceanPosition));
+			sceneManager.getWritableOcean().getWritableTransform().setPosition(XMVectorGetX(oceanPosition), sceneManager.getOcean().getTransform().getPositionFloat3().y, XMVectorGetZ(oceanPosition));
 
-				//float scaleMod = fmaxf(1.0f, m_camera.getTransform().getPositionFloat3().y * 0.01f);
-				//m_ocean.setScale(XMFLOAT3(scaleMod, scaleMod, scaleMod));
+			//float scaleMod = fmaxf(1.0f, m_camera.getTransform().getPositionFloat3().y * 0.01f);
+			//m_ocean.setScale(XMFLOAT3(scaleMod, scaleMod, scaleMod));
 
-				
-				m_waterPixelShaderCB.m_data.m_cameraPosition = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
+			m_waterPixelShaderCB.m_data.m_cameraPosition = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
 
-				XMStoreFloat3(&m_waterPixelShaderCB.m_data.m_lightDirection, sceneManager.getDirectionalLight().getTransform().getFrontVector());
+			XMStoreFloat3(&m_waterPixelShaderCB.m_data.m_lightDirection, sceneManager.getDirectionalLight().getTransform().getFrontVector());
 
-				m_waterPixelShaderCB.mapToGPU();
+			m_waterPixelShaderCB.mapToGPU();
 
-				m_deviceContext->PSSetConstantBuffers(0, 1, m_waterPixelShaderCB.getAddressOf());
-				m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
+			m_deviceContext->PSSetConstantBuffers(0, 1, m_waterPixelShaderCB.getAddressOf());
+			m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
 
-				sceneManager.getOcean().draw(viewProjMat, &m_waterVertexShaderCB, false);
-			}
+			sceneManager.getOcean().draw(viewProjMat, &m_waterVertexShaderCB, false);
+		}
 
-			// Draw clouds
-			if (sceneManager.getSceneConfig().getCloudConfig().m_enabled)
-			{
-				m_deviceContext->VSSetShader(m_vertexShader.getShader(), NULL, 0);
-				m_deviceContext->PSSetShader(m_cloudsPixelShader.getShader(), NULL, 0);
+		// Draw clouds
+		if (sceneManager.getSceneConfig().getCloudConfig().m_enabled)
+		{
+			m_deviceContext->VSSetShader(m_defaultVertexShader.getShader(), NULL, 0);
+			m_deviceContext->PSSetShader(m_cloudsPixelShader.getShader(), NULL, 0);
 
-				XMFLOAT3 cameraPosFloat = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
-				m_cloudsPixelShaderCB.m_data.m_cameraPosition = cameraPosFloat;
+			XMFLOAT3 cameraPosFloat = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
+			m_cloudsPixelShaderCB.m_data.m_cameraPosition = cameraPosFloat;
 
-				XMStoreFloat3(&m_cloudsPixelShaderCB.m_data.m_lightDirection, sceneManager.getDirectionalLight().getTransform().getFrontVector());
-				m_cloudsPixelShaderCB.mapToGPU();
+			XMStoreFloat3(&m_cloudsPixelShaderCB.m_data.m_lightDirection, sceneManager.getDirectionalLight().getTransform().getFrontVector());
+			m_cloudsPixelShaderCB.mapToGPU();
 
-				m_deviceContext->PSSetConstantBuffers(0, 1, m_cloudsPixelShaderCB.getAddressOf());
-				m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
+			m_deviceContext->PSSetConstantBuffers(0, 1, m_cloudsPixelShaderCB.getAddressOf());
+			m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
 
-				sceneManager.getWritableClouds().getWritableTransform().setPosition(cameraPosFloat.x, sceneManager.getClouds().getTransform().getPositionFloat3().y, cameraPosFloat.z);
+			sceneManager.getWritableClouds().getWritableTransform().setPosition(cameraPosFloat.x, sceneManager.getClouds().getTransform().getPositionFloat3().y, cameraPosFloat.z);
 
-				sceneManager.getClouds().draw(viewProjMat, &m_vertexShaderCB, false);
-			}
+			sceneManager.getClouds().draw(viewProjMat, &m_defaultVertexShaderCB, false);
 		}
 	
+		// Draw axis
+		if (sceneManager.objectIsSelected())
 		{
-			// Draw axis
 			m_deviceContext->PSSetShader(m_noLightPixelShader.getShader(), NULL, 0);
-
 			m_deviceContext->PSSetConstantBuffers(0, 1, m_noLightPixelShaderCB.getAddressOf());
-
 			m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-			if (sceneManager.objectIsSelected())
-			{
-				m_noLightPixelShaderCB.m_data.m_colour = XMFLOAT3(1.0f, 1.0f, 1.0f);
-				m_noLightPixelShaderCB.m_data.m_cameraPos = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
-				m_noLightPixelShaderCB.mapToGPU();
-				drawAxisForObject(*(sceneManager.getSelectedObject()), viewProjMat, sceneManager);
-			}
+			m_noLightPixelShaderCB.m_data.m_colour = XMFLOAT3(1.0f, 1.0f, 1.0f);
+			m_noLightPixelShaderCB.m_data.m_cameraPos = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
+			m_noLightPixelShaderCB.mapToGPU();
+			drawAxisForObject(*(sceneManager.getSelectedObject()), viewProjMat, sceneManager);
 		}
 	}
 
@@ -1049,28 +1018,28 @@ namespace hrzn::gfx
 			ImGui::TreePush();
 
 			// Normal Mapping
-			bool useNormalMapping = static_cast<bool>(m_pixelShaderCB.m_data.m_useNormalMapping);
+			bool useNormalMapping = static_cast<bool>(m_lightingPixelShaderCB.m_data.m_useNormalMapping);
 			ImGui::Checkbox("Normal Mapping", &useNormalMapping);
-			m_pixelShaderCB.m_data.m_useNormalMapping = useNormalMapping;
+			m_lightingPixelShaderCB.m_data.m_useNormalMapping = useNormalMapping;
 
 			ImGui::SameLine();
 
 			// PO Mapping
-			bool useParallaxOcclusionMapping = static_cast<bool>(m_pixelShaderCB.m_data.m_useParallaxOcclusionMapping);
+			bool useParallaxOcclusionMapping = static_cast<bool>(m_lightingPixelShaderCB.m_data.m_useParallaxOcclusionMapping);
 			ImGui::Checkbox("PO Mapping", &useParallaxOcclusionMapping);
-			m_pixelShaderCB.m_data.m_useParallaxOcclusionMapping = useParallaxOcclusionMapping;
+			m_lightingPixelShaderCB.m_data.m_useParallaxOcclusionMapping = useParallaxOcclusionMapping;
 
 			ImGui::SameLine();
 
 			// Self shadowing
-			bool selfShadowing = static_cast<bool>(m_pixelShaderCB.m_data.m_selfShadowing);
+			bool selfShadowing = static_cast<bool>(m_lightingPixelShaderCB.m_data.m_selfShadowing);
 			ImGui::Checkbox("Self Shadowing", &selfShadowing);
-			m_pixelShaderCB.m_data.m_selfShadowing = selfShadowing;
+			m_lightingPixelShaderCB.m_data.m_selfShadowing = selfShadowing;
 
 			// Roughness Mapping
-			bool roughnessMapping = static_cast<bool>(m_pixelShaderCB.m_data.m_roughnessMapping);
+			bool roughnessMapping = static_cast<bool>(m_lightingPixelShaderCB.m_data.m_roughnessMapping);
 			ImGui::Checkbox("Roughness Mapping", &roughnessMapping);
-			m_pixelShaderCB.m_data.m_roughnessMapping = roughnessMapping;
+			m_lightingPixelShaderCB.m_data.m_roughnessMapping = roughnessMapping;
 
 			ImGui::SameLine();
 
@@ -1079,50 +1048,50 @@ namespace hrzn::gfx
 			ImGui::SameLine();
 
 			// Show Normals
-			bool showWorldNormals = static_cast<bool>(m_pixelShaderCB.m_data.m_showWorldNormals);
+			bool showWorldNormals = static_cast<bool>(m_lightingPixelShaderCB.m_data.m_showWorldNormals);
 			ImGui::Checkbox("Normals", &showWorldNormals);
-			m_pixelShaderCB.m_data.m_showWorldNormals = showWorldNormals;
+			m_lightingPixelShaderCB.m_data.m_showWorldNormals = showWorldNormals;
 
 			ImGui::SameLine();
 
 			// Show UVs
-			bool showUVs = static_cast<bool>(m_pixelShaderCB.m_data.m_showUVs);
+			bool showUVs = static_cast<bool>(m_lightingPixelShaderCB.m_data.m_showUVs);
 			ImGui::Checkbox("Show UVs", &showUVs);
-			m_pixelShaderCB.m_data.m_showUVs = showUVs;
+			m_lightingPixelShaderCB.m_data.m_showUVs = showUVs;
 
 			// Cull back normals
-			bool cullBackNormals = static_cast<bool>(m_pixelShaderCB.m_data.m_cullBackNormals);
+			bool cullBackNormals = static_cast<bool>(m_lightingPixelShaderCB.m_data.m_cullBackNormals);
 			ImGui::Checkbox("Cull Back Normals", &cullBackNormals);
-			m_pixelShaderCB.m_data.m_cullBackNormals = cullBackNormals;
+			m_lightingPixelShaderCB.m_data.m_cullBackNormals = cullBackNormals;
 
 			ImGui::SameLine();
 
 			// Gamma correction
-			bool gammaCorrection = static_cast<bool>(m_pixelShaderCB.m_data.m_gammaCorrection);
+			bool gammaCorrection = static_cast<bool>(m_lightingPixelShaderCB.m_data.m_gammaCorrection);
 			ImGui::Checkbox("Gamma Corr", &gammaCorrection);
-			m_pixelShaderCB.m_data.m_gammaCorrection = gammaCorrection;
+			m_lightingPixelShaderCB.m_data.m_gammaCorrection = gammaCorrection;
 
 			ImGui::SameLine();
 
 			// Misc toggle A
-			bool miscToggleA = static_cast<bool>(m_pixelShaderCB.m_data.m_miscToggleA);
+			bool miscToggleA = static_cast<bool>(m_lightingPixelShaderCB.m_data.m_miscToggleA);
 			ImGui::Checkbox("Misc A", &miscToggleA);
-			m_pixelShaderCB.m_data.m_miscToggleA = miscToggleA;
+			m_lightingPixelShaderCB.m_data.m_miscToggleA = miscToggleA;
 
 			ImGui::SameLine();
 
 			// Misc toggle B
-			bool miscToggleB = static_cast<bool>(m_pixelShaderCB.m_data.m_miscToggleB);
+			bool miscToggleB = static_cast<bool>(m_lightingPixelShaderCB.m_data.m_miscToggleB);
 			ImGui::Checkbox("Misc B", &miscToggleB);
-			m_pixelShaderCB.m_data.m_miscToggleB = miscToggleB;
+			m_lightingPixelShaderCB.m_data.m_miscToggleB = miscToggleB;
 
 			// Misc toggle C
-			bool miscToggleC = static_cast<bool>(m_pixelShaderCB.m_data.m_miscToggleC);
+			bool miscToggleC = static_cast<bool>(m_lightingPixelShaderCB.m_data.m_miscToggleC);
 			ImGui::Checkbox("Misc C", &miscToggleC);
-			m_pixelShaderCB.m_data.m_miscToggleC = miscToggleC;
+			m_lightingPixelShaderCB.m_data.m_miscToggleC = miscToggleC;
 
 			// Depth scale
-			ImGui::DragFloat("Depth Scale", &m_pixelShaderCB.m_data.m_depthScale, 0.001f, 0.0f, 0.5f);
+			ImGui::DragFloat("Depth Scale", &m_lightingPixelShaderCB.m_data.m_depthScale, 0.001f, 0.0f, 0.5f);
 
 			ImGui::TreePop();
 		}
@@ -1303,7 +1272,7 @@ namespace hrzn::gfx
 		if (!sceneManager.isPaused())
 		{
 			float gameTime = sceneManager.getGameTime();
-			m_vertexShaderCB.m_data.m_gameTime = gameTime;
+			m_defaultVertexShaderCB.m_data.m_gameTime = gameTime;
 			m_waterVertexShaderCB.m_data.m_gameTime = gameTime;
 			m_cloudsPixelShaderCB.m_data.m_gameTime = gameTime;
 			m_waterPixelShaderCB.m_data.m_gameTime = gameTime;
@@ -1521,12 +1490,12 @@ namespace hrzn::gfx
 
 		if (sceneManager.getAxisEditState() == scene::AxisEditState::eEditTranslate)
 		{
-			m_axisTranslateModel->draw(XMMatrixScaling(scale, scale, scale) * translationMatrix, viewProjection, &m_vertexShaderCB);
+			m_axisTranslateModel->draw(XMMatrixScaling(scale, scale, scale) * translationMatrix, viewProjection, &m_defaultVertexShaderCB);
 		}
 		else if (sceneManager.getAxisEditState() == scene::AxisEditState::eEditRotate)
 		{
 			// Multiply by rotation matrix when rotating
-			m_axisRotateModel->draw(XMMatrixScaling(scale * 0.75f, scale * 0.75f, scale * 0.75f) * gameObject.getTransform().getRotationMatrix() * translationMatrix, viewProjection, &m_vertexShaderCB);
+			m_axisRotateModel->draw(XMMatrixScaling(scale * 0.75f, scale * 0.75f, scale * 0.75f) * gameObject.getTransform().getRotationMatrix() * translationMatrix, viewProjection, &m_defaultVertexShaderCB);
 		}
 	}
 }

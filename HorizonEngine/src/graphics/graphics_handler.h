@@ -89,8 +89,8 @@ namespace hrzn::gfx
 
 		ComputeShader  m_noiseTextureComputeShader;
 
-		ConstantBuffer<VertexShaderCB>              m_vertexShaderCB;
-		ConstantBuffer<PixelShaderCB>               m_pixelShaderCB;
+		ConstantBuffer<VertexShaderCB>              m_defaultVertexShaderCB;
+		ConstantBuffer<PixelShaderCB>               m_lightingPixelShaderCB;
 
 		ConstantBuffer<WaterVertexShaderCB>         m_waterVertexShaderCB;
 		ConstantBuffer<WaterPixelShaderCB>          m_waterPixelShaderCB;

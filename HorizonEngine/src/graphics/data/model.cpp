@@ -53,6 +53,14 @@ namespace hrzn::gfx
 		return m_modelHitRadius;
 	}
 
+	void Model::drawRaw(bool bindTextures)
+	{
+		for (int i = 0; i < m_meshes.size(); i++)
+		{
+			m_meshes[i].draw(bindTextures);
+		}
+	}
+
 	const std::vector<Mesh>& Model::getMeshes() const
 	{
 		return m_meshes;
