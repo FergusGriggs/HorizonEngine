@@ -66,6 +66,7 @@ namespace hrzn::gfx
 		Model* m_axisTranslateModel;
 		Model* m_axisRotateModel;
 		Model* m_springModel;
+		Model* m_quadModel;
 
 		gfx::Texture* m_defaultDiffuseTexture;
 		gfx::Texture* m_defaultSpecularTexture;
@@ -75,14 +76,16 @@ namespace hrzn::gfx
 		gfx::Texture* m_highlightSpecularTexture;
 		gfx::Texture* m_highlightNormalTexture;
 
-		VertexShader m_vertexShader;
+		VertexShader m_defaultVertexShader;
 		VertexShader m_waterVertexShader;
+		VertexShader m_quadVertexShader;
 
-		PixelShader  m_pixelShader;
+		PixelShader  m_lightingPixelShader;
 		PixelShader  m_noLightPixelShader;
 		PixelShader  m_atmosphericPixelShader;
 		PixelShader  m_cloudsPixelShader;
 		PixelShader  m_waterPixelShader;
+		PixelShader  m_gBufferPixelShader;
 
 		ComputeShader  m_noiseTextureComputeShader;
 

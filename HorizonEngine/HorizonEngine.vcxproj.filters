@@ -385,10 +385,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="res\shaders\pixelShader.hlsl">
+    <FxCompile Include="res\shaders\lightingPixelShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="res\shaders\vertexShader.hlsl">
+    <FxCompile Include="res\shaders\defaultVertexShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
     <FxCompile Include="res\shaders\noLightPixelShader.hlsl">
@@ -403,6 +403,8 @@
     <FxCompile Include="res\shaders\atmosphericPixelShader.hlsl" />
     <FxCompile Include="res\shaders\noiseTextureComputeShader.hlsl" />
     <FxCompile Include="res\shaders\waterPixelShader.hlsl" />
+    <FxCompile Include="res\shaders\quadVertexShader.hlsl" />
+    <FxCompile Include="res\shaders\gBufferPixelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />

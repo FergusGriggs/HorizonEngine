@@ -114,6 +114,8 @@ namespace hrzn::gfx
 
 			m_springModel = ResourceManager::it().getModelPtr("res/models/spring.obj");
 
+			m_quadModel = ResourceManager::it().getModelPtr("res/models/misc/screen_quad.obj");
+
 			m_defaultDiffuseTexture = new Texture(m_device.Get(), "res/textures/scales/diffuse.jpg", aiTextureType::aiTextureType_DIFFUSE);
 			m_defaultSpecularTexture = new Texture(m_device.Get(), "res/textures/scales/specular.jpg", aiTextureType::aiTextureType_DIFFUSE);
 			m_defaultNormalTexture = new Texture(m_device.Get(), "res/textures/scales/normal.jpg", aiTextureType::aiTextureType_DIFFUSE);
@@ -154,7 +156,7 @@ namespace hrzn::gfx
 		//}
 
 		//Create vertex shader input layout
-		D3D11_INPUT_ELEMENT_DESC layout[] =
+		D3D11_INPUT_ELEMENT_DESC defaultLayout[] =
 		{
 			{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 			{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -162,22 +164,32 @@ namespace hrzn::gfx
 			{"BITANGENT", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 			{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
 		};
+		UINT defaultNumElements = ARRAYSIZE(defaultLayout);
 
-		UINT numElements = ARRAYSIZE(layout);
+		D3D11_INPUT_ELEMENT_DESC quadLayout[] =
+		{
+			{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+		};
+		UINT quadNumElements = ARRAYSIZE(quadLayout);
 
 		//Initialise vertex shaders
-		if (!m_vertexShader.initialize(m_device, shaderFolder + L"vertexShader.cso", layout, numElements))
+		if (!m_defaultVertexShader.initialize(m_device, shaderFolder + L"defaultVertexShader.cso", defaultLayout, defaultNumElements))
 		{
 			return false;
 		}
 
-		if (!m_waterVertexShader.initialize(m_device, shaderFolder + L"waterVertexShader.cso", layout, numElements))
+		if (!m_quadVertexShader.initialize(m_device, shaderFolder + L"quadVertexShader.cso", quadLayout, quadNumElements))
+		{
+			return false;
+		}
+
+		if (!m_waterVertexShader.initialize(m_device, shaderFolder + L"waterVertexShader.cso", defaultLayout, defaultNumElements))
 		{
 			return false;
 		}
 
 		//Initialise pixel shaders
-		if (!m_pixelShader.initialize(m_device, shaderFolder + L"pixelShader.cso"))
+		if (!m_lightingPixelShader.initialize(m_device, shaderFolder + L"lightingPixelShader.cso"))
 		{
 			return false;
 		}
@@ -202,6 +214,12 @@ namespace hrzn::gfx
 			return false;
 		}
 
+		if (!m_gBufferPixelShader.initialize(m_device, shaderFolder + L"gBufferPixelShader.cso"))
+		{
+			return false;
+		}
+
+		
 		// Initialise compute shaders
 		if (!m_noiseTextureComputeShader.initialize(m_device, shaderFolder + L"noiseTextureComputeShader.cso"))
 		{
@@ -218,8 +236,64 @@ namespace hrzn::gfx
 
 	void GraphicsHandler::render(scene::SceneManager& sceneManager)
 	{
+		float blackColour[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
 		// Render geometry from main camera to the GBuffer
+		m_defaultRenderConfig.m_viewMatrix = sceneManager.getActiveCamera().getViewMatrix();
+		m_defaultRenderConfig.m_projectionMatrix = sceneManager.getActiveCamera().getProjectionMatrix();
+
 		renderSceneObjects(sceneManager, m_defaultRenderConfig);
+
+		m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
+		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), blackColour);
+
+		m_deviceContext->VSSetShader(m_quadVertexShader.getShader(), NULL, 0);
+		m_deviceContext->VSSetShader(m_lightingPixelShader.getShader(), NULL, 0);
+
+		m_quadModel->getMeshes()[0].draw(false);
+
+		// Update FPS timer
+		m_fpsCounter++;
+
+		if (m_fpsTimer.getMicrosecondsElapsed() > 1000000)
+		{
+			m_fpsString = "FPS: " + std::to_string(m_fpsCounter);
+			m_fpsCounter = 0;
+			m_fpsTimer.restart();
+		}
+
+		// Render UI (not ImGui)
+		m_spriteBatch->Begin();
+
+		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(1.0f, 0.5f), DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+
+		if (sceneManager.objectIsSelected())
+		{
+			// Stop text being drawn behind camera
+			if (XMVectorGetX(XMVector3Dot(sceneManager.getSelectedObject()->getTransform().getPositionVector() - sceneManager.getActiveCamera().getTransform().getPositionVector(), sceneManager.getActiveCamera().getTransform().getFrontVector())) >= 0.0f)
+			{
+				XMFLOAT2 screenNDC = sceneManager.getActiveCamera().getNDCFrom3DPos(sceneManager.getSelectedObject()->getTransform().getPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f)); // XMFLOAT2(-0.5,0.5);
+				XMFLOAT2 screenPos = DirectX::XMFLOAT2((screenNDC.x * 0.5f + 0.5f) * UserConfig::it().getWindowWidth(), (1.0f - (screenNDC.y * 0.5f + 0.5f)) * UserConfig::it().getWindowHeight());
+				XMVECTOR size = m_spriteFont->MeasureString(utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str());
+				screenPos.x -= XMVectorGetX(size) * 0.5f;
+				screenPos.y -= XMVectorGetY(size) * 0.5f;
+				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+				screenPos.y -= 0.5f;
+				screenPos.x -= 1.0f;
+				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+			}
+		}
+
+		m_spriteBatch->End();
+
+		ImGui::Render();
+
+		//RENDER IMGUI
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+		//PRESENT IMAGE
+		m_swapChain->Present(m_useVSync, NULL);// using vsync
 
 		// Render scene depth from directional light's perspective
 		//renderSceneObjects(sceneManager, );
@@ -482,49 +556,6 @@ namespace hrzn::gfx
 				drawAxisForObject(*(sceneManager.getSelectedObject()), viewProjMat, sceneManager);
 			}
 		}
-
-		// Update FPS timer
-		m_fpsCounter++;
-
-		if (m_fpsTimer.getMicrosecondsElapsed() > 1000000)
-		{
-			m_fpsString = "FPS: " + std::to_string(m_fpsCounter);
-			m_fpsCounter = 0;
-			m_fpsTimer.restart();
-		}
-
-		// Render UI (not ImGui)
-		m_spriteBatch->Begin();
-
-		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(1.0f, 0.5f), DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-	
-		if (sceneManager.objectIsSelected())
-		{
-			// Stop text being drawn behind camera
-			if (XMVectorGetX(XMVector3Dot(sceneManager.getSelectedObject()->getTransform().getPositionVector() - sceneManager.getActiveCamera().getTransform().getPositionVector(), sceneManager.getActiveCamera().getTransform().getFrontVector())) >= 0.0f)
-			{
-				XMFLOAT2 screenNDC = sceneManager.getActiveCamera().getNDCFrom3DPos(sceneManager.getSelectedObject()->getTransform().getPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f)); // XMFLOAT2(-0.5,0.5);
-				XMFLOAT2 screenPos = DirectX::XMFLOAT2((screenNDC.x * 0.5f + 0.5f) * UserConfig::it().getWindowWidth(), (1.0f - (screenNDC.y * 0.5f + 0.5f)) * UserConfig::it().getWindowHeight());
-				XMVECTOR size = m_spriteFont->MeasureString(utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str());
-				screenPos.x -= XMVectorGetX(size) * 0.5f;
-				screenPos.y -= XMVectorGetY(size) * 0.5f;
-				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-				screenPos.y -= 0.5f;
-				screenPos.x -= 1.0f;
-				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-			}
-		}
-
-		m_spriteBatch->End();
-
-		ImGui::Render();
-
-		//RENDER IMGUI
-		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-		//PRESENT IMAGE
-		m_swapChain->Present(m_useVSync, NULL);// using vsync
 	}
 
 	void GraphicsHandler::create3DNoiseTexture()
@@ -1407,7 +1438,6 @@ namespace hrzn::gfx
 
 			// Create viewport
 			m_defaultViewport = CD3D11_VIEWPORT(0.0f, 0.0f, static_cast<float>(UserConfig::it().getWindowWidth()), static_cast<float>(UserConfig::it().getWindowHeight()));
-			m_deviceContext->RSSetViewports(1, &m_defaultViewport);
 
 			// Create default rasterizer state
 			D3D11_RASTERIZER_DESC regularRasterizerDesc;

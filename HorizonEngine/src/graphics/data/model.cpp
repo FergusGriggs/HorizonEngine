@@ -53,6 +53,11 @@ namespace hrzn::gfx
 		return m_modelHitRadius;
 	}
 
+	const std::vector<Mesh>& Model::getMeshes() const
+	{
+		return m_meshes;
+	}
+
 	const std::string& Model::getPath() const
 	{
 		return m_filePath;
