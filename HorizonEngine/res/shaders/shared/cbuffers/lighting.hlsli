@@ -38,9 +38,13 @@ struct SpotLight
     float3 direction;
 };
 
-cbuffer lightingConstantBuffer : reguster(b1)
+cbuffer lightingCBuffer : reguster(b1)
 {
     DirectionalLight directionalLight;
     PointLight pointLights[10];
     SpotLight spotLights[20];
+
+    int    numPointLights;
+    int    numSpotLights;
+    float2 padding1;
 }

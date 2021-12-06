@@ -14,7 +14,8 @@ struct PS_OUTPUT
     float4 albedo : SV_TARGET0;
     float4 positionRoughness : SV_TARGET1;
     float4 normalAO : SV_TARGET2;
-    float4 emissionMetallic : SV_TARGET3;
+    float  depth : SV_TARGET3;
+    float4 emissionMetallic : SV_TARGET4;
 };
 
 Texture2D albedoTexture : TEXTURE: register(t0);
@@ -48,11 +49,14 @@ PS_OUTPUT main(PS_INPUT input)
     // Output ambient occlusion
     output.normalAO.a = ambientOcclusionTexture.Sample(objSamplerState, input.texCoord).r;
 
+    // Output depth
+    output.depth.r = depthTexture.Sample(objectSamplerState, input.texCoord).r;
+
     // Output emission
     output.emissionMetallic.rgb = emissionTexture.Sample(objSamplerState, input.texCoord).rgb;
 
-    // Output depth
-    output.emissionMetallic.a = depthTexture.Sample(objSamplerState, input.texCoord).r;
+    // Output metallic
+    output.emissionMetallic.a = metallicTexture.Sample(objSamplerState, input.texCoord).r;
 
     return output;
 }

@@ -19,7 +19,6 @@ struct PS_INPUT
 
     float3 tangent : TANGENT;
     float3 bitangent : BITANGENT;
-    //float3x3 TBNMatrix : TBN_MATRIX;
 };
 
 Texture2D diffuseTexture : TEXTURE : register(t0);
@@ -38,9 +37,6 @@ float4 main(PS_INPUT input) : SV_TARGET
     dotResult = dotResult * 0.4 + 0.6f;
 
     float3 viewDirection = normalize(input.worldPos - cameraPos);
-    //float fresnelFactor = clamp(1.0f - dot(-input.normal, viewDirection), 0.0f, 1.0f);
-    //fresnelFactor = pow(fresnelFactor, 5.0f) * 0.5f;
-
     float facingFactor = pow(max(0.0f, dot(-input.normal, viewDirection)), 2.0f) * 0.25;
 
     return float4(textureColour * colour * dotResult + facingFactor, 1.0f);

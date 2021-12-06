@@ -1,30 +1,4 @@
 
-// Water pixel shader
-
-cbuffer constantBuffer : register(b0)
-{
-    //PACK_SEAM
-    float3 cameraPosition;
-    float gameTime;
-
-    //Water parameters
-    int waveCount;
-    float waveScale;
-    float wavePeriod;
-    float waveSpeed;
-
-    float waveSeed;
-    float waveScaleMultiplier;
-    float foamStart;
-    float colourChangeStart;
-
-    float3 lightDirection;
-    int    iscolateWaveNum;
-
-    float3 lightColour;
-    float padding2;
-};
-
 struct PS_INPUT
 {
     float4 pos : SV_POSITION;
@@ -43,54 +17,6 @@ static float windDir = float3(1.0f, 0.0f, 0.0f);
 
 Texture3D<float> noiseTexture : TEXTURE3D: register(t0);
 SamplerState samplerState : SAMPLER: register(s0);
-
-float3 getFourierOffset(float3 position)
-{
-    float3 flatPosition = float3(position.x, 0.0f, position.z);
-    float3 finalOffset = float3(0.0f, 0.0f, 0.0f);
-
-    float scale = 0.5f;
-
-    int waveNum = 0;
-
-    [unroll(50)]
-    while (waveNum < waveCount)
-    {
-        if (iscolateWaveNum == -1 || iscolateWaveNum == waveNum)
-        {
-            float waveAngle = (float)waveNum * waveSeed;// hash11((float)waveNum * waveSeed)* waveSeed;
-            float3 waveDir = float3(cos(waveAngle), 0.0f, sin(waveAngle));
-            //float3 waveDirRight = float3(waveDir.z, 0.0f, -waveDir.x);
-
-            float windScaleModifier = dot(waveDir, windDir) * 0.35f + 0.7f;
-
-            float initialWaveDist = dot(flatPosition, waveDir);
-            float distWaveTravelled = gameTime * waveSpeed * ((float)waveNum * 1.0f + 1.0f) * scale + initialWaveDist;
-
-            float angle = distWaveTravelled / (wavePeriod * scale * pow(1.1f, (float)waveNum - 1.0f));
-
-            //float signedDistanceToWaveCentre = dot(waveDirRight, flatPosition);
-            float waveBreakScaleMod = 1.0f;// sin(signedDistanceToWaveCentre * 0.05f + waveAngle * 1024.0f + gameTime * waveSpeed * 0.06f + initialWaveDist * 0.2f) * 0.15f + 0.85f;
-
-            float xOffset = cos(waveAngle) * cos(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
-            float yOffset = sin(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
-            float zOffset = sin(waveAngle) * cos(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
-
-            finalOffset += float3(xOffset, yOffset, zOffset);
-        }
-
-        scale *= waveScaleMultiplier;
-
-        waveNum++;
-    }
-
-    //finalOffset += float3(0.0f, noiseTexture.Sample(samplerState, (position + float3(0.0f, 0.5f, 0.0f)) * 0.04f) * waveScale * 0.05f, 0.0f);
-    //finalOffset += float3(0.0f, noiseTexture.Sample(samplerState, (position + finalOffset) * 0.1f) * 0.25f, 0.0f);
-
-    //return float3(noiseTexture.Sample(samplerState, (position + finalOffset) * 0.1f), 0.0f, 0.0f);
-
-    return finalOffset;
-}
 
 static const float3 seaBaseColour = float3(0.0f, 0.09f, 0.18f);
 static const float3 seaWaterColour = float3(0.0f, 0.45f, 0.65f) * 0.7f;
@@ -168,4 +94,67 @@ float4 main(PS_INPUT input) : SV_TARGET
     //colour = float3(fresnel, fresnel, fresnel);
 
     return float4(colour, waterAlpha);
+}
+
+struct PS_INPUT
+{
+    float4 pos : SV_POSITION;
+    float3 normal : NORMAL;
+    float2 texCoord : TEXCOORD;
+    float3 worldPos : WORLD_POSITION;
+
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
+};
+
+struct PS_OUTPUT
+{
+    float4 albedo : SV_TARGET0;
+    float4 positionRoughness : SV_TARGET1;
+    float4 normalAO : SV_TARGET2;
+    float  depth : SV_TARGET3;
+    float4 emissionMetallic : SV_TARGET4;
+};
+
+Texture2D albedoTexture : TEXTURE: register(t0);
+Texture2D roughnessTexture : TEXTURE: register(t1);
+Texture2D normalTexture : TEXTURE: register(t2);
+Texture2D ambientOcclusionTexture : TEXTURE: register(t3);
+Texture2D metallicTexture : TEXTURE: register(t4);
+Texture2D emissionTexture : TEXTURE: register(t5);
+Texture2D depthTexture : TEXTURE: register(t6);
+
+SamplerState objSamplerState : SAMPLER: register(s0);
+
+PS_OUTPUT main(PS_INPUT input)
+{
+    PS_OUTPUT output;
+
+    // Output albedo
+    float4 albedo = albedoTexture.Sample(objSamplerState, input.texCoord);
+    output.albedo = float4(pow(albedo.rgb, 2.2f), albedo.a);
+
+    // Output position
+    output.positionRoughness.rgb = input.worldPos;
+
+    // Output roughness
+    output.positionRoughness.a = roughnessTexture.Sample(objSamplerState, input.texCoord).r;
+
+    // Output normal
+    float3 texturedNormal = normalTexture.Sample(objSamplerState, input.texCoord).xyz;
+    output.normalAO.rgb = normalize(mul(normalize(texturedNormal * 2.0f - 1.0f), input.TBNMatrix));
+
+    // Output ambient occlusion
+    output.normalAO.a = ambientOcclusionTexture.Sample(objSamplerState, input.texCoord).r;
+
+    // Output depth
+    output.depth.r = depthTexture.Sample(objectSamplerState, input.texCoord).r;
+
+    // Output emission
+    output.emissionMetallic.rgb = emissionTexture.Sample(objSamplerState, input.texCoord).rgb;
+
+    // Output metallic
+    output.emissionMetallic.a = metallicTexture.Sample(objSamplerState, input.texCoord).r;
+
+    return output;
 }

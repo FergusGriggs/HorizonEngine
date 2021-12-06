@@ -31,23 +31,11 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
-    //float3 normal : NORMAL;
-    //float2 texCoord : TEXCOORD;
     float3 baseWorldPos : BASE_WORLD_POSIITION;
-    //float3x3 TBNMatrix : TBN_MATRIX;
 };
 
 Texture2D noiseTexture : TEXTURE : register(t4);
 SamplerState samplerState : SAMPLER : register(s0);
-
-float GetWaterHeightAt(float posX, float posZ)
-{
-    float value = sin(posX * 1.5f + gameTime * 1.7f) * 0.05f + sin(posZ * 1.5f + gameTime * 1.9f) * 0.05f;
-    value += sin(-posX * 0.4f + gameTime * 1.2f) * 0.15f + sin(posZ * 0.5f + gameTime * 1.3f) * 0.15f;
-    value += sin(posX * 0.2f + gameTime * 0.6f) * 0.5f + sin(-posZ * 0.22f + gameTime * 0.4f) * 0.45f;
-    return value * waveScale;
-    //return noiseTexture.Sample(samplerState, float2(posX, posZ), 1);
-}
 
 float hash11(float p)
 {
@@ -58,49 +46,6 @@ float hash11(float p)
 }
 
 static float3 windDir = float3(1.0f, 0.0f, 0.0f);
-
-float3 getFourierOffset(float3 position)
-{
-    float3 flatPosition = float3(position.x, 0.0f, position.z);
-    float3 finalOffset = float3(0.0f, 0.0f, 0.0f);
-
-    float scale = 0.5f;
-
-    int waveNum = 0;
-
-    [unroll(50)]
-    while (waveNum < waveCount)
-    {
-        if (iscolateWaveNum == -1 || iscolateWaveNum == waveNum)
-        {
-            float waveAngle = (float)waveNum * waveSeed;// hash11((float)waveNum * waveSeed)* waveSeed;
-            float3 waveDir = float3(cos(waveAngle), 0.0f, sin(waveAngle));
-            //float3 waveDirRight = float3(waveDir.z, 0.0f, -waveDir.x);
-
-            float windScaleModifier = dot(waveDir, windDir) * 0.35f + 0.7f;
-
-            float initialWaveDist = dot(flatPosition, waveDir);
-            float distWaveTravelled = gameTime * waveSpeed * ((float)waveNum * 1.0f + 1.0f) * scale + initialWaveDist;
-
-            float angle = distWaveTravelled / (wavePeriod * scale * pow(1.1f, (float)waveNum - 1.0f));
-
-            //float signedDistanceToWaveCentre = dot(waveDirRight, flatPosition);
-            float waveBreakScaleMod = 1.0f;// sin(signedDistanceToWaveCentre * 0.05f + waveAngle * 1024.0f + gameTime * waveSpeed * 0.06f + initialWaveDist * 0.2f) * 0.15f + 0.85f;
-
-            float xOffset = cos(waveAngle) * cos(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
-            float yOffset = sin(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
-            float zOffset = sin(waveAngle) * cos(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
-
-            finalOffset += float3(xOffset, yOffset, zOffset);
-        }
-
-        scale *= waveScaleMultiplier;
-
-        waveNum++;
-    }
-
-    return finalOffset;
-}
 
 VS_OUTPUT main(VS_INPUT input)
 {

@@ -30,15 +30,7 @@ struct PS_INPUT
 
     float3 tangent : TANGENT;
     float3 bitangent : BITANGENT;
-    //float3x3 TBNMatrix : TBN_MATRIX;
 };
-
-//float GetDensityAt(float3 position)
-//{
-//    float3 modPos = float3(abs(fmod(position.x, 10.0f)), position.y, abs(fmod(position.z, 10.0f)));
-//    float dist = distance(modPos, float3(5.0f, 3.0f, 5.0f));
-//    return smoothstep(3.0f, 5.5f, dist);
-//}
 
 Texture3D<float> noiseTexture : TEXTURE3D : register(t0);
 SamplerState samplerState : SAMPLER : register(s0);

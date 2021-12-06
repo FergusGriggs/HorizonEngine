@@ -385,30 +385,35 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="res\shaders\lightingPixelShader.hlsl">
+    <FxCompile Include="res\shaders\pixel\gbuffer\read\default.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="res\shaders\defaultVertexShader.hlsl">
+    <FxCompile Include="res\shaders\vertex\default.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="res\shaders\noLightPixelShader.hlsl">
+    <FxCompile Include="res\shaders\pixel\standard\noLight.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="res\shaders\waterVertexShader.hlsl">
+    <FxCompile Include="res\shaders\vertex\water.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="res\shaders\cloudsPixelShader.hlsl">
+    <FxCompile Include="res\shaders\pixel\standard\clouds.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="res\shaders\atmosphericPixelShader.hlsl" />
-    <FxCompile Include="res\shaders\noiseTextureComputeShader.hlsl" />
-    <FxCompile Include="res\shaders\waterPixelShader.hlsl" />
-    <FxCompile Include="res\shaders\quadVertexShader.hlsl" />
-    <FxCompile Include="res\shaders\gBufferPixelShader.hlsl" />
+    <FxCompile Include="res\shaders\pixel\standard\atmospheric.hlsl" />
+    <FxCompile Include="res\shaders\compute\noiseTextureGen.hlsl" />
+    <FxCompile Include="res\shaders\pixel\standard\water.hlsl" />
+    <FxCompile Include="res\shaders\vertex\quad.hlsl" />
+    <FxCompile Include="res\shaders\pixel\gbuffer\write\default.hlsl" />
+    <FxCompile Include="res\shaders\pixel\standard\default.hlsl" />
+    <FxCompile Include="res\shaders\pixel\gbuffer\write\water.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />
-    <None Include="res\shaders\parallaxOcclusionMapping.hlsli" />
-    <None Include="res\shaders\lightData.hlsli" />
+    <None Include="res\shaders\shared\parallaxOcclusionMapping.hlsli" />
+    <None Include="res\shaders\shared\cbuffers\lighting.hlsli" />
+    <None Include="res\shaders\shared\cbuffers\standard.hlsli" />
+    <None Include="res\shaders\shared\cbuffers\renderTechniques.hlsli" />
+    <None Include="res\shaders\shared\waterData.hlsli" />
   </ItemGroup>
 </Project>
