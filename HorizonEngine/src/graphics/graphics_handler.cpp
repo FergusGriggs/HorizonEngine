@@ -318,9 +318,11 @@ namespace hrzn::gfx
 				XMFLOAT2 screenNDC = sceneManager.getActiveCamera().getNDCFrom3DPos(sceneManager.getSelectedObject()->getTransform().getPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f)); // XMFLOAT2(-0.5,0.5);
 				XMFLOAT2 screenPos = DirectX::XMFLOAT2((screenNDC.x * 0.5f + 0.5f) * UserConfig::it().getWindowWidth(), (1.0f - (screenNDC.y * 0.5f + 0.5f)) * UserConfig::it().getWindowHeight());
 				XMVECTOR size = m_spriteFont->MeasureString(utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str());
+				
 				screenPos.x -= XMVectorGetX(size) * 0.5f;
 				screenPos.y -= XMVectorGetY(size) * 0.5f;
 				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+				
 				screenPos.y -= 0.5f;
 				screenPos.x -= 1.0f;
 				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
@@ -336,15 +338,6 @@ namespace hrzn::gfx
 
 		// Present image
 		m_swapChain->Present(m_useVSync, NULL);// using vsync
-
-		// Render scene depth from directional light's perspective
-		//renderSceneObjects(sceneManager, );
-
-		// Work out scene ambient occulsion using depth
-
-		// Shade objects using the gbuffer
-		
-		// Do postprocessing
 	}
 
 	void GraphicsHandler::renderSceneObjects(scene::SceneManager& sceneManager, const RenderPassConfig& renderPassConfig)
