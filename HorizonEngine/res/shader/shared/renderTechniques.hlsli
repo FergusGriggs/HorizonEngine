@@ -1,5 +1,5 @@
 
-cbuffer renderTechniquesCBuffer : register(b0)
+cbuffer RenderTechniquesCB : register(b0)
 {
     //PACK_SEAM
     int    useNormalMapping;

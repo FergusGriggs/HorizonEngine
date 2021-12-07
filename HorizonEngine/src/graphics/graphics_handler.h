@@ -76,21 +76,29 @@ namespace hrzn::gfx
 		gfx::Texture* m_highlightSpecularTexture;
 		gfx::Texture* m_highlightNormalTexture;
 
-		VertexShader m_defaultVertexShader;
-		VertexShader m_waterVertexShader;
-		VertexShader m_quadVertexShader;
+		VertexShader m_vs_default;
+		VertexShader m_vs_water;
+		VertexShader m_vs_quad;
 
-		PixelShader  m_lightingPixelShader;
-		PixelShader  m_noLightPixelShader;
-		PixelShader  m_atmosphericPixelShader;
-		PixelShader  m_cloudsPixelShader;
-		PixelShader  m_waterPixelShader;
-		PixelShader  m_gBufferPixelShader;
+		PixelShader  m_ps_default;
+		PixelShader  m_ps_noLight;
+		PixelShader  m_ps_atmospheric;
+		PixelShader  m_ps_clouds;
+		PixelShader  m_ps_water;
 
-		ComputeShader  m_noiseTextureComputeShader;
+		PixelShader  m_ps_gbuf_w_default;
+		PixelShader  m_ps_gbuf_w_noLight;
 
-		ConstantBuffer<VertexShaderCB>              m_defaultVertexShaderCB;
-		ConstantBuffer<PixelShaderCB>               m_lightingPixelShaderCB;
+		PixelShader  m_ps_gbuf_r_default;
+		PixelShader  m_ps_gbuf_r_noLight;
+		PixelShader  m_ps_gbuf_r_atmospheric;
+		PixelShader  m_ps_gbuf_r_clouds;
+		PixelShader  m_ps_gbuf_r_water;
+
+		ComputeShader  m_cs_noiseGen;
+
+		ConstantBuffer<StandardCB> m_standardCB;
+		ConstantBuffer<LightingCB> m_lightingCB;
 
 		ConstantBuffer<WaterVertexShaderCB>         m_waterVertexShaderCB;
 		ConstantBuffer<WaterPixelShaderCB>          m_waterPixelShaderCB;

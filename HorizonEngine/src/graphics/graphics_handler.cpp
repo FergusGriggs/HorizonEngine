@@ -172,59 +172,31 @@ namespace hrzn::gfx
 		};
 		UINT quadNumElements = ARRAYSIZE(quadLayout);
 
-		//Initialise vertex shaders
-		if (!m_defaultVertexShader.initialize(m_device, shaderFolder + L"defaultVertexShader.cso", defaultLayout, defaultNumElements))
-		{
-			return false;
-		}
+		// Initialise vertex shaders
+		if (!m_vs_default.initialize(m_device, shaderFolder + L"vs_standard_default.cso", defaultLayout, defaultNumElements)) return false;
+		if (!m_vs_quad.initialize(m_device, shaderFolder + L"vs_standard_quad.cso", quadLayout, quadNumElements)) return false;
+		if (!m_vs_water.initialize(m_device, shaderFolder + L"vs_standard_water.cso", defaultLayout, defaultNumElements)) return false;
 
-		if (!m_quadVertexShader.initialize(m_device, shaderFolder + L"quadVertexShader.cso", quadLayout, quadNumElements))
-		{
-			return false;
-		}
-
-		if (!m_waterVertexShader.initialize(m_device, shaderFolder + L"waterVertexShader.cso", defaultLayout, defaultNumElements))
-		{
-			return false;
-		}
-
-		//Initialise pixel shaders
-		if (!m_lightingPixelShader.initialize(m_device, shaderFolder + L"lightingPixelShader.cso"))
-		{
-			return false;
-		}
-
-		if (!m_noLightPixelShader.initialize(m_device, shaderFolder + L"noLightPixelShader.cso"))
-		{
-			return false;
-		}
-
-		if (!m_atmosphericPixelShader.initialize(m_device, shaderFolder + L"atmosphericPixelShader.cso"))
-		{
-			return false;
-		}
-
-		if (!m_cloudsPixelShader.initialize(m_device, shaderFolder + L"cloudsPixelShader.cso"))
-		{
-			return false;
-		}
-
-		if (!m_waterPixelShader.initialize(m_device, shaderFolder + L"waterPixelShader.cso"))
-		{
-			return false;
-		}
-
-		if (!m_gBufferPixelShader.initialize(m_device, shaderFolder + L"gBufferPixelShader.cso"))
-		{
-			return false;
-		}
-
+		// Initialise standard pixel shaders
+		if (!m_ps_default.initialize(m_device, shaderFolder + L"ps_default.cso")) return false;
+		if (!m_ps_noLight.initialize(m_device, shaderFolder + L"ps_no_light.cso")) return false;
+		if (!m_ps_atmospheric.initialize(m_device, shaderFolder + L"ps_atmospheric.cso")) return false;
+		if (!m_ps_clouds.initialize(m_device, shaderFolder + L"ps_clouds.cso")) return false;
+		if (!m_ps_water.initialize(m_device, shaderFolder + L"ps_water.cso")) return false;
 		
+		// Initialise gbuffer write pixel shaders
+		if (!m_ps_gbuf_w_default.initialize(m_device, shaderFolder + L"ps_gbuf_w_default.cso")) return false;
+		if (!m_ps_gbuf_w_noLight.initialize(m_device, shaderFolder + L"ps_gbuf_w_no_light.cso")) return false;
+
+		// Initialise gbuffer read pixel shaders
+		if (!m_ps_gbuf_r_default.initialize(m_device, shaderFolder + L"ps_gbuf_r_default.cso")) return false;
+		if (!m_ps_gbuf_r_noLight.initialize(m_device, shaderFolder + L"ps_gbuf_r_no_light.cso")) return false;
+		if (!m_ps_gbuf_r_atmospheric.initialize(m_device, shaderFolder + L"ps_gbuf_r_atmospheric.cso")) return false;
+		if (!m_ps_gbuf_r_clouds.initialize(m_device, shaderFolder + L"ps_gbuf_r_clouds.cso")) return false;
+		if (!m_ps_gbuf_r_water.initialize(m_device, shaderFolder + L"ps_gbuf_r_water.cso")) return false;
+
 		// Initialise compute shaders
-		if (!m_noiseTextureComputeShader.initialize(m_device, shaderFolder + L"noiseTextureComputeShader.cso"))
-		{
-			return false;
-		}
+		if (!m_cs_noiseGen.initialize(m_device, shaderFolder + L"cs_noise_gen.cso")) return false;
 
 		// Initialise global shader vars
 		HRESULT hr = m_noiseTextureComputeShaderCB.initialize(m_device.Get(), m_deviceContext.Get());
@@ -258,11 +230,11 @@ namespace hrzn::gfx
 		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), blackColour);
 		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-		m_deviceContext->IASetInputLayout(m_quadVertexShader.getInputLayout());
+		m_deviceContext->IASetInputLayout(m_vs_quad.getInputLayout());
 		m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		m_deviceContext->VSSetShader(m_quadVertexShader.getShader(), NULL, 0);
-		m_deviceContext->PSSetShader(m_lightingPixelShader.getShader(), NULL, 0);
+		m_deviceContext->VSSetShader(m_vs_quad.getShader(), NULL, 0);
+		m_deviceContext->PSSetShader(m_ps_default.getShader(), NULL, 0);
 
 		// Point light shader variables
 		const auto& pointLights = sceneManager.getPointLights();

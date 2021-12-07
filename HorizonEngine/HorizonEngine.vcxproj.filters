@@ -70,6 +70,9 @@
     <Filter Include="Source Files\Physics">
       <UniqueIdentifier>{55092caf-182e-4cc4-b81d-2da0a63600b3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\shaders">
+      <UniqueIdentifier>{112fce0e-6f49-4f27-8617-a4e3a96896a4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\graphics\imgui\imgui.cpp">
@@ -385,35 +388,78 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="res\shaders\pixel\gbuffer\read\default.hlsl">
-      <Filter>Resource Files</Filter>
+    <FxCompile Include="res\shaders\pixel\gbuffer\write\water.hlsl">
+      <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="res\shaders\vertex\default.hlsl">
-      <Filter>Resource Files</Filter>
+    <FxCompile Include="res\shaders\pixel\standard\water.hlsl">
+      <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="res\shaders\pixel\standard\noLight.hlsl">
-      <Filter>Resource Files</Filter>
+    <FxCompile Include="res\shaders\vertex\quad.hlsl">
+      <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="res\shaders\vertex\water.hlsl">
-      <Filter>Resource Files</Filter>
+    <FxCompile Include="res\shaders\compute\noiseTextureGen.hlsl">
+      <Filter>Resource Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="res\shaders\pixel\gbuffer\write\default.hlsl">
+      <Filter>Resource Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="res\shaders\pixel\standard\default.hlsl">
+      <Filter>Resource Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="res\shaders\pixel\standard\atmospheric.hlsl">
+      <Filter>Resource Files\shaders</Filter>
     </FxCompile>
     <FxCompile Include="res\shaders\pixel\standard\clouds.hlsl">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="res\shaders\pixel\standard\atmospheric.hlsl" />
-    <FxCompile Include="res\shaders\compute\noiseTextureGen.hlsl" />
-    <FxCompile Include="res\shaders\pixel\standard\water.hlsl" />
-    <FxCompile Include="res\shaders\vertex\quad.hlsl" />
-    <FxCompile Include="res\shaders\pixel\gbuffer\write\default.hlsl" />
-    <FxCompile Include="res\shaders\pixel\standard\default.hlsl" />
-    <FxCompile Include="res\shaders\pixel\gbuffer\write\water.hlsl" />
+    <FxCompile Include="res\shaders\pixel\gbuffer\read\default.hlsl">
+      <Filter>Resource Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="res\shaders\vertex\default.hlsl">
+      <Filter>Resource Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="res\shaders\pixel\standard\noLight.hlsl">
+      <Filter>Resource Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="res\shaders\vertex\water.hlsl">
+      <Filter>Resource Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="res\shader\pixel\standard\ps_no_light.hlsl" />
+    <FxCompile Include="res\shader\compute\cs_noise_gen.hlsl" />
+    <FxCompile Include="res\shader\pixel\gbuffer\read\ps_gbuf_r_default.hlsl" />
+    <FxCompile Include="res\shader\pixel\gbuffer\write\ps_gbuf_w_default.hlsl" />
+    <FxCompile Include="res\shader\pixel\gbuffer\write\ps_gbuf_w_water.hlsl" />
+    <FxCompile Include="res\shader\pixel\standard\ps_atmospheric.hlsl" />
+    <FxCompile Include="res\shader\pixel\standard\ps_clouds.hlsl" />
+    <FxCompile Include="res\shader\pixel\standard\ps_default.hlsl" />
+    <FxCompile Include="res\shader\pixel\standard\ps_water.hlsl" />
+    <FxCompile Include="res\shader\vertex\vs_default.hlsl" />
+    <FxCompile Include="res\shader\vertex\vs_quad.hlsl" />
+    <FxCompile Include="res\shader\vertex\vs_water.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="imgui.ini" />
-    <None Include="res\shaders\shared\parallaxOcclusionMapping.hlsli" />
-    <None Include="res\shaders\shared\cbuffers\lighting.hlsli" />
-    <None Include="res\shaders\shared\cbuffers\standard.hlsli" />
-    <None Include="res\shaders\shared\cbuffers\renderTechniques.hlsli" />
-    <None Include="res\shaders\shared\waterData.hlsli" />
+    <None Include="res\shaders\shared\waterData.hlsli">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="res\shaders\shared\cbuffers\standard.hlsli">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="res\shaders\shared\cbuffers\renderTechniques.hlsli">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="res\shaders\shared\parallaxOcclusionMapping.hlsli">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="res\shaders\shared\cbuffers\lighting.hlsli">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="imgui.ini">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="res\shader\shared\lighting.hlsli" />
+    <None Include="res\shader\shared\POM.hlsli" />
+    <None Include="res\shader\shared\renderTechniques.hlsli" />
+    <None Include="res\shader\shared\standard.hlsli" />
+    <None Include="res\shader\shared\water.hlsli" />
   </ItemGroup>
 </Project>
