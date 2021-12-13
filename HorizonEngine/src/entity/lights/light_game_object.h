@@ -14,7 +14,7 @@ namespace hrzn::entity
 		LightGameObject();
 
 		bool initialize();
-		void virtual updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& cb_ps_pixelShader, size_t lightIndex = 0);
+		void virtual updateShaderVariables(gfx::ConstantBuffer<gfx::SceneCB>& sceneCB, size_t lightIndex = 0);
 
 		void setColour(DirectX::XMFLOAT3 colour);
 		DirectX::XMFLOAT3 getColour();

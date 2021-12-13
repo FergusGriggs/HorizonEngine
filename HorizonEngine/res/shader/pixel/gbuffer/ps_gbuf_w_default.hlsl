@@ -1,6 +1,6 @@
-#include "../../../shared/standard.hlsli"
-#include "../../../shared/scene.hlsli"
-#include "../../../shared/POM.hlsli"
+#include "../../shared/standard.hlsli"
+#include "../../shared/scene.hlsli"
+#include "../../shared/POM.hlsli"
 
 struct PS_OUTPUT
 {

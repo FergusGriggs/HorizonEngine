@@ -21,12 +21,12 @@ namespace hrzn::entity
 		return true;
 	}
 
-	void LightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& cb_ps_pixelShader, size_t lightIndex)
+	void LightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::SceneCB>& sceneCB, size_t lightIndex)
 	{
-		cb_ps_pixelShader.m_data.m_directionalLight.m_colour = m_colour;
-		cb_ps_pixelShader.m_data.m_directionalLight.m_ambientStrength = m_ambientStrength;
+		sceneCB.m_data.m_directionalLight.m_colour = m_colour;
+		sceneCB.m_data.m_directionalLight.m_ambientStrength = m_ambientStrength;
 
-		XMStoreFloat3(&cb_ps_pixelShader.m_data.m_directionalLight.m_direction, m_transform.getFrontVector());
+		XMStoreFloat3(&sceneCB.m_data.m_directionalLight.m_direction, m_transform.getFrontVector());
 	}
 
 	void LightGameObject::setColour(DirectX::XMFLOAT3 colour)

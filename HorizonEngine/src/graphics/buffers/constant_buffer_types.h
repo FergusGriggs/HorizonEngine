@@ -140,7 +140,7 @@ namespace hrzn::gfx
 		DirectX::XMFLOAT3 m_cameraPosition;
 		float             m_padding1;
 
-		DirectX::XMMATRIX m_modelViewProjectionMatrix;
+		DirectX::XMMATRIX m_viewProjectionMatrix;
 	};
 
 	struct PerObjectCB

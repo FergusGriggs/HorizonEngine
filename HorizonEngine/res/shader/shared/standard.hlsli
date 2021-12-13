@@ -12,12 +12,13 @@ cbuffer PerPassCB : register(b8)
 {
 	float3 cb_cameraPosition;
 	float  cb_perPassPadding1;
+
+	float4x4 cb_viewProjectionMatrix;
 }
 
 cbuffer PerObjectCB : register(b12)
 {
 	float4x4 cb_modelMatrix;
-	float4x4 cb_modelViewProjectionMatrix;
 }
 
 struct VS_INPUT

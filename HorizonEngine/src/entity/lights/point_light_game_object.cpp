@@ -16,15 +16,15 @@ namespace hrzn::entity
 		m_type = GameObject::Type::ePointLight;
 	}
 
-	void PointLightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& pixelShaderCB, size_t lightIndex)
+	void PointLightGameObject::updateShaderVariables(gfx::ConstantBuffer<gfx::SceneCB>& sceneCB, size_t lightIndex)
 	{
-		pixelShaderCB.m_data.m_pointLights[lightIndex].m_colour = m_colour;
+		sceneCB.m_data.m_pointLights[lightIndex].m_colour = m_colour;
 
-		pixelShaderCB.m_data.m_pointLights[lightIndex].m_attenuationConstant = m_attenuationConstant;
-		pixelShaderCB.m_data.m_pointLights[lightIndex].m_attenuationLinear = m_attenuationLinear;
-		pixelShaderCB.m_data.m_pointLights[lightIndex].m_attenuationQuadratic = m_attenuationQuadratic;
+		sceneCB.m_data.m_pointLights[lightIndex].m_attenuationConstant = m_attenuationConstant;
+		sceneCB.m_data.m_pointLights[lightIndex].m_attenuationLinear = m_attenuationLinear;
+		sceneCB.m_data.m_pointLights[lightIndex].m_attenuationQuadratic = m_attenuationQuadratic;
 
-		pixelShaderCB.m_data.m_pointLights[lightIndex].m_position = m_transform.getPositionFloat3();
+		sceneCB.m_data.m_pointLights[lightIndex].m_position = m_transform.getPositionFloat3();
 	}
 
 	float* PointLightGameObject::getAttenuationConstantPtr()

@@ -1,6 +1,6 @@
 
-#include "../../../shared/standard.hlsli"
-#include "../../../shared/scene.hlsli"
+#include "../../shared/standard.hlsli"
+#include "../../shared/scene.hlsli"
 
 struct PS_INPUT
 {

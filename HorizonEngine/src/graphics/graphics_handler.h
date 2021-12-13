@@ -87,40 +87,34 @@ namespace hrzn::gfx
 		PixelShader  m_ps_water;
 
 		PixelShader  m_ps_gbuf_w_default;
-		PixelShader  m_ps_gbuf_w_noLight;
-
 		PixelShader  m_ps_gbuf_r_default;
-		PixelShader  m_ps_gbuf_r_noLight;
-		PixelShader  m_ps_gbuf_r_atmospheric;
-		PixelShader  m_ps_gbuf_r_clouds;
-		PixelShader  m_ps_gbuf_r_water;
 
 		ComputeShader  m_cs_noiseGen;
 
-		ConstantBuffer<NoiseTextureCB> m_s0_noiseTextureCB;
+		ConstantBuffer<NoiseTextureCB> m_noiseTextureCB;
 
 		// Main pipeline
 		// Shader-specific frame-independent CBs || Slot 0 -> 3
 		// Slot 0
-		ConstantBuffer<SceneCB>        m_s0_sceneCB;
+		ConstantBuffer<SceneCB>        m_sceneCB;
 
 		// Slot 1
-		ConstantBuffer<NoLightCB>      m_s1_noLightCB;
-		ConstantBuffer<CloudsCB>       m_s1_cloudsCB;
-		ConstantBuffer<WaterCB>        m_s1_waterCB;
-		ConstantBuffer<AtmosphericCB>  m_s1_atmosphericCB;
+		ConstantBuffer<NoLightCB>      m_noLightCB;
+		ConstantBuffer<CloudsCB>       m_cloudsCB;
+		ConstantBuffer<WaterCB>        m_waterCB;
+		ConstantBuffer<AtmosphericCB>  m_atmosphericCB;
 
 		// Shader-specific per-frame CBs || Slot 4 -> 7
 		// Slot 4
-		ConstantBuffer<PerFrameCB>     m_s4_perFrameCB;
+		ConstantBuffer<PerFrameCB>     m_perFrameCB;
 
 		// Shader-specific per-pass CBs || Slot 8 -> 11
 		// Slot 8
-		ConstantBuffer<PerPassCB>      m_s8_perPassCB;
+		ConstantBuffer<PerPassCB>      m_perPassCB;
 
 		// Shader-specific per-object CBs || Slot 12 -> 15
 		// Slot 12
-		ConstantBuffer<PerObjectCB>    m_s12_perObjectCB;
+		ConstantBuffer<PerObjectCB>    m_perObjectCB;
 
 		Microsoft::WRL::ComPtr<ID3D11Texture3D>           m_noiseTexture;
 		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_noiseTextureUnorderedAccessView;

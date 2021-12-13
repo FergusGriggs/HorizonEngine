@@ -12,7 +12,7 @@ namespace hrzn::entity
 	public:
 		SpotLightGameObject();
 
-		virtual void updateShaderVariables(gfx::ConstantBuffer<gfx::PixelShaderCB>& pixelShaderCB, size_t lightIndex = 0) override;
+		virtual void updateShaderVariables(gfx::ConstantBuffer<gfx::SceneCB>& sceneCB, size_t lightIndex = 0) override;
 
 		float* getInnerCutoffPtr();
 		float* getOuterCutoffPtr();

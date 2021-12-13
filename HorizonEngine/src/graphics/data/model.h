@@ -71,9 +71,6 @@ namespace hrzn::gfx
 
 		for (int i = 0; i < m_meshes.size(); i++)
 		{
-			vertexShaderCB->m_data.m_modelViewProjectionMatrix = m_meshes[i].getTransformMatrix() * modelMatrix * viewProjectionMatrix;
-			//vertexShaderCB->data.modelViewProjectionMatrix = XMMatrixTranspose(vertexShaderCB->data.modelViewProjectionMatrix);
-
 			vertexShaderCB->m_data.m_modelMatrix = m_meshes[i].getTransformMatrix() * modelMatrix;
 			//vertexShaderCB->data.modelMatrix = XMMatrixTranspose(vertexShaderCB->data.modelMatrix);
 
