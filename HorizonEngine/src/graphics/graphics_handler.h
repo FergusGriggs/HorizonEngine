@@ -23,9 +23,9 @@
 #include "buffers/constant_buffer_types.h"
 #include "buffers/geometry_buffer.h"
 #include "shaders/shader.h"
-#include "render_pass_config.h"
+#include "render_configs.h"
 
-//comicSansMS16.spritefont
+// comicSansMS16.spritefont
 
 namespace hrzn::gfx
 {
@@ -39,6 +39,9 @@ namespace hrzn::gfx
 		bool initializeScene(scene::SceneManager& sceneManager);
 
 		void update(scene::SceneManager& sceneManager, float deltaTime);
+		void updateSceneShaderValues(scene::SceneManager& sceneManager);
+		void updatePerFrameShaderValues(scene::SceneManager& sceneManager);
+		void updatePerPassShaderValues(DirectX::XMFLOAT3 eyePosition, DirectX::XMMATRIX viewProjection);
 
 		void render(scene::SceneManager& sceneManager);
 		void renderSceneObjects(scene::SceneManager& sceneManager, const RenderPassConfig& renderPassConfig);

@@ -21,7 +21,7 @@ namespace hrzn::gfx
 		bool initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
 		template <class T>
-		void draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<T>* vertexShaderCB, bool bindTextures = true) const;
+		void draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<T>* perObjectCB, bool bindTextures = true) const;
 
 		void drawRaw(bool bindTextures = true);
 
@@ -65,16 +65,16 @@ namespace hrzn::gfx
 namespace hrzn::gfx
 {
 	template<class T>
-	inline void Model::draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<T>* vertexShaderCB, bool bindTextures) const
+	inline void Model::draw(const XMMATRIX& modelMatrix, const XMMATRIX& viewProjectionMatrix, ConstantBuffer<T>* perObjectCB, bool bindTextures) const
 	{
-		m_deviceContext->VSSetConstantBuffers(0, 1, vertexShaderCB->getAddressOf());
+		m_deviceContext->VSSetConstantBuffers(12, 1, perObjectCB->getAddressOf());
 
 		for (int i = 0; i < m_meshes.size(); i++)
 		{
-			vertexShaderCB->m_data.m_modelMatrix = m_meshes[i].getTransformMatrix() * modelMatrix;
+			perObjectCB->m_data.m_modelMatrix = m_meshes[i].getTransformMatrix() * modelMatrix;
 			//vertexShaderCB->data.modelMatrix = XMMatrixTranspose(vertexShaderCB->data.modelMatrix);
 
-			vertexShaderCB->mapToGPU();
+			perObjectCB->mapToGPU();
 
 			m_meshes[i].draw(bindTextures);
 		}

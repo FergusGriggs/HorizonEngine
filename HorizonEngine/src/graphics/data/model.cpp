@@ -105,7 +105,7 @@ namespace hrzn::gfx
 
 		Assimp::Importer importer;
 
-		const aiScene* pScene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded); //
+		const aiScene* pScene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
 
 		//aiProcess_ConvertToLeftHanded
 		// v
@@ -120,9 +120,15 @@ namespace hrzn::gfx
 
 		processNode(pScene->mRootNode, pScene, XMMatrixIdentity());// * XMMatrixScaling(0.025f, 0.025f, 0.025f)
 
+		if (m_vertices.empty())
+		{
+			utils::ErrorLogger::log("Model at path '" + filePath + "' failed to load as it had no vertices");
+			return false;
+		}
+
 		BoundingBox::CreateFromPoints(m_boundingBox, m_vertices.size(), &(m_vertices.at(0)), sizeof(XMFLOAT3));
 
-		loadModelMetaData(filePath.substr(0, filePath.length() - 4) + "_meta.txt");//remove model file extension, add '_meta.txt'
+		loadModelMetaData(filePath.substr(0, filePath.length() - 4) + "_meta.txt"); // Remove model file extension, add '_meta.txt'
 
 		return true;
 	}

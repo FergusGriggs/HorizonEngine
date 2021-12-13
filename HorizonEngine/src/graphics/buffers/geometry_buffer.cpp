@@ -61,12 +61,13 @@ namespace hrzn::gfx
 		R32G32B32A32_FLOAT_TextureDesc.Usage = D3D11_USAGE_DEFAULT;
 		R32G32B32A32_FLOAT_TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
+		// Depth Stencil
 		D3D11_TEXTURE2D_DESC depthStencilTextureDesc;
-		depthStencilTextureDesc.Width = UserConfig::it().getWindowWidthFloat();
-		depthStencilTextureDesc.Height = UserConfig::it().getWindowHeightFloat();
+		depthStencilTextureDesc.Width = UserConfig::it().getWindowWidth();
+		depthStencilTextureDesc.Height = UserConfig::it().getWindowHeight();
 		depthStencilTextureDesc.MipLevels = 1;
 		depthStencilTextureDesc.ArraySize = 1;
-		depthStencilTextureDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthStencilTextureDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 		depthStencilTextureDesc.SampleDesc.Count = 1;
 		depthStencilTextureDesc.SampleDesc.Quality = 0;
 		depthStencilTextureDesc.Usage = D3D11_USAGE_DEFAULT;

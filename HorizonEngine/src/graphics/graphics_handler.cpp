@@ -60,6 +60,9 @@ namespace hrzn::gfx
 			m_sceneCB.m_data.m_depthScale = 0.05f;
 			m_useVSync = false;
 
+			// This slot shouldn't change over the course of the app
+			m_deviceContext->PSSetConstantBuffers(0, 1, m_sceneCB.getAddressOf());
+
 			hr = m_waterCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterVertexShader' constant buffer.");
 			m_waterCB.m_data.m_waveCount = sceneManager.getSceneConfig().getOceanConfig().m_waveCount;
@@ -96,6 +99,15 @@ namespace hrzn::gfx
 			m_cloudsCB.m_data.m_numSteps = sceneManager.getSceneConfig().getCloudConfig().m_numSteps;
 			m_cloudsCB.m_data.m_stepSize = sceneManager.getSceneConfig().getCloudConfig().m_stepSize;
 			m_cloudsCB.m_data.m_cloudHeight = sceneManager.getSceneConfig().getCloudConfig().m_cloudHeight;
+
+			hr = m_perFrameCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'per frame' constant buffer.");
+
+			hr = m_perPassCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'per pass' constant buffer.");
+
+			hr = m_perObjectCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'per object' constant buffer.");
 
 			// Load axis models
 			m_axisTranslateModel = ResourceManager::it().getModelPtr("res/models/axis/fancy_translate.obj");
@@ -162,9 +174,9 @@ namespace hrzn::gfx
 		UINT quadNumElements = ARRAYSIZE(quadLayout);
 
 		// Initialise vertex shaders
-		if (!m_vs_default.initialize(m_device, shaderFolder + L"vs_standard_default.cso", defaultLayout, defaultNumElements)) return false;
-		if (!m_vs_quad.initialize(m_device, shaderFolder + L"vs_standard_quad.cso", quadLayout, quadNumElements)) return false;
-		if (!m_vs_water.initialize(m_device, shaderFolder + L"vs_standard_water.cso", defaultLayout, defaultNumElements)) return false;
+		if (!m_vs_default.initialize(m_device, shaderFolder + L"vs_default.cso", defaultLayout, defaultNumElements)) return false;
+		if (!m_vs_quad.initialize(m_device, shaderFolder + L"vs_quad.cso", quadLayout, quadNumElements)) return false;
+		if (!m_vs_water.initialize(m_device, shaderFolder + L"vs_water.cso", defaultLayout, defaultNumElements)) return false;
 
 		// Initialise standard pixel shaders
 		if (!m_ps_default.initialize(m_device, shaderFolder + L"ps_default.cso")) return false;
@@ -196,12 +208,28 @@ namespace hrzn::gfx
 		m_defaultRenderConfig.m_viewMatrix = sceneManager.getActiveCamera().getViewMatrix();
 		m_defaultRenderConfig.m_projectionMatrix = sceneManager.getActiveCamera().getProjectionMatrix();
 
-		// Set rasterizer state
+		// Slot 0 sanity CB bind
+		updateSceneShaderValues(sceneManager);
+		m_deviceContext->PSSetConstantBuffers(0, 1, m_sceneCB.getAddressOf());
+
+		// Slot 4 per-frame CB bind
+		updatePerFrameShaderValues(sceneManager);
+		m_deviceContext->PSSetConstantBuffers(4, 1, m_perFrameCB.getAddressOf());
+
+		// Update rasterizer state
 		if (m_useWireframe) m_defaultRenderConfig.m_rasterizerState = m_wireframeRasterizerState.Get();
 		else                m_defaultRenderConfig.m_rasterizerState = m_regularRasterizerState.Get();
 
+		// Slot 8 per-pass CB bind
+		updatePerPassShaderValues(sceneManager.getActiveCamera().getTransform().getPositionFloat3(), m_defaultRenderConfig.m_viewMatrix * m_defaultRenderConfig.m_projectionMatrix);
+		m_deviceContext->PSSetConstantBuffers(8, 1, m_perPassCB.getAddressOf());
+
+		// Draw all our objects to the gBuffer
+		// (Slot 12 per-object CB binds inside)
 		renderSceneObjects(sceneManager, m_defaultRenderConfig);
 
+		// Render to the back buffer using a quad
+		// Clear the buffers
 		m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
 		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), blackColour);
 		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -210,34 +238,8 @@ namespace hrzn::gfx
 		m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		m_deviceContext->VSSetShader(m_vs_quad.getShader(), NULL, 0);
-		m_deviceContext->PSSetShader(m_ps_default.getShader(), NULL, 0);
-
-		// Point light shader variables
-		const auto& pointLights = sceneManager.getPointLights();
-		size_t numPointLights = pointLights.size();
-		for (size_t i = 0; i < numPointLights; ++i)
-		{
-			pointLights[i]->updateShaderVariables(m_sceneCB, i);
-		}
-
-		// Spot light shader variables
-		const auto& spotLights = sceneManager.getSpotLights();
-		size_t numSpotLights = spotLights.size();
-		for (size_t i = 0; i < numSpotLights; ++i)
-		{
-			spotLights[i]->updateShaderVariables(m_sceneCB, i);
-		}
-
-		// General shader variables
-		m_sceneCB.m_data.m_numPointLights = static_cast<int>(numPointLights);
-		m_sceneCB.m_data.m_numSpotLights = static_cast<int>(numSpotLights);
-		m_sceneCB.mapToGPU();
-
-		m_perPassCB.m_data.m_cameraPosition = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
-		m_perPassCB.mapToGPU();
+		m_deviceContext->PSSetShader(m_ps_gbuf_r_default.getShader(), NULL, 0);
 		
-		m_deviceContext->PSSetConstantBuffers(0, 1, m_sceneCB.getAddressOf());
-
 		m_quadModel->drawRaw();
 
 		// Update FPS timer
@@ -325,7 +327,7 @@ namespace hrzn::gfx
 
 		// Draw skybox
 		m_deviceContext->PSSetShader(m_ps_atmospheric.getShader(), NULL, 0);
-		m_deviceContext->PSSetConstantBuffers(0, 1, m_atmosphericCB.getAddressOf());
+		m_deviceContext->PSSetConstantBuffers(1, 1, m_atmosphericCB.getAddressOf());
 
 		sceneManager.getWritableSkybox().getWritableTransform().setPosition(sceneManager.getActiveCamera().getTransform().getPositionFloat3());
 		sceneManager.getSkybox().draw(viewProjMat, &m_perObjectCB);
@@ -333,9 +335,6 @@ namespace hrzn::gfx
 		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		// Regular objects
-		m_deviceContext->PSSetConstantBuffers(0, 1, m_sceneCB.getAddressOf());
-		m_deviceContext->PSSetShader(m_ps_gbuf_r_default.getShader(), NULL, 0);
-
 		m_deviceContext->PSSetShaderResources(0, 1, m_defaultDiffuseTexture->getTextureResourceViewAddress());
 		m_deviceContext->PSSetShaderResources(1, 1, m_defaultSpecularTexture->getTextureResourceViewAddress());
 		m_deviceContext->PSSetShaderResources(2, 1, m_defaultNormalTexture->getTextureResourceViewAddress());
@@ -356,11 +355,11 @@ namespace hrzn::gfx
 				m_deviceContext->PSSetShader(m_ps_noLight.getShader(), NULL, 0);
 
 				renderable->draw(viewProjMat, &m_perObjectCB);
-
-				m_deviceContext->PSSetShader(m_ps_default.getShader(), NULL, 0);
 			}
 			else
 			{
+				m_deviceContext->PSSetShader(m_ps_gbuf_w_default.getShader(), NULL, 0);
+
 				renderable->draw(viewProjMat, &m_perObjectCB);
 			}
 		}
@@ -1227,11 +1226,49 @@ namespace hrzn::gfx
 		updateImGui(sceneManager);
 	}
 
+	void GraphicsHandler::updateSceneShaderValues(scene::SceneManager& sceneManager)
+	{
+		// Point light shader variables
+		const auto& pointLights = sceneManager.getPointLights();
+		size_t numPointLights = pointLights.size();
+		for (size_t i = 0; i < numPointLights; ++i)
+		{
+			pointLights[i]->updateShaderVariables(m_sceneCB, i);
+		}
+
+		// Spot light shader variables
+		const auto& spotLights = sceneManager.getSpotLights();
+		size_t numSpotLights = spotLights.size();
+		for (size_t i = 0; i < numSpotLights; ++i)
+		{
+			spotLights[i]->updateShaderVariables(m_sceneCB, i);
+		}
+
+		// General shader variables
+		m_sceneCB.m_data.m_numPointLights = static_cast<int>(numPointLights);
+		m_sceneCB.m_data.m_numSpotLights = static_cast<int>(numSpotLights);
+		m_sceneCB.mapToGPU();
+	}
+
+	void GraphicsHandler::updatePerFrameShaderValues(scene::SceneManager& sceneManager)
+	{
+		m_perFrameCB.m_data.m_gameTime = sceneManager.getGameTime();
+		m_perFrameCB.mapToGPU();
+	}
+
+	void GraphicsHandler::updatePerPassShaderValues(DirectX::XMFLOAT3 eyePosition, DirectX::XMMATRIX viewProjection)
+	{
+		m_perPassCB.m_data.m_cameraPosition = eyePosition;
+		m_perPassCB.m_data.m_viewProjectionMatrix = viewProjection;
+
+		m_perPassCB.mapToGPU();
+	}
+
 	bool GraphicsHandler::initializeDirectX(HWND hwnd)
 	{
 		try
 		{
-			//GET GRAPHICS CARD ADAPTERS
+			// Get graphics card adapters
 			std::vector<utils::AdapterData> adapters = utils::AdapterReader::getAdapters();
 
 			if (adapters.size() < 1)
@@ -1240,7 +1277,7 @@ namespace hrzn::gfx
 				return false;
 			}
 
-			//CREATE DEVICE AND SWAPCHAIN
+			// Create device and swapchain
 			DXGI_SWAP_CHAIN_DESC swapChainDescription;
 			ZeroMemory(&swapChainDescription, sizeof(DXGI_SWAP_CHAIN_DESC));
 
@@ -1275,19 +1312,19 @@ namespace hrzn::gfx
 
 			COM_ERROR_IF_FAILED(hr, "Failed to create device and swapchain.");
 
-			//GET BACKBUFFER
+			// Get backbuffer
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
 
 			hr = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(backBuffer.GetAddressOf()));
 
 			COM_ERROR_IF_FAILED(hr, "Failed to get back buffer.");
 
-			//CREATE RENDER TARGET VIEW
+			// Create render target view
 			hr = m_device->CreateRenderTargetView(backBuffer.Get(), NULL, m_renderTargetView.GetAddressOf());
 
 			COM_ERROR_IF_FAILED(hr, "Failed to create render target view.");
 
-			//CREATE DEPTH STENCIL TEXTURE AND VIEW
+			// Create depth stencil texture and view
 			CD3D11_TEXTURE2D_DESC depthStencilTextureDesc(DXGI_FORMAT_D24_UNORM_S8_UINT, UserConfig::it().getWindowWidth(), UserConfig::it().getWindowHeight());
 			depthStencilTextureDesc.MipLevels = 1;
 			depthStencilTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
@@ -1300,10 +1337,10 @@ namespace hrzn::gfx
 
 			COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil view.");
 
-			// SET THE RENDER TARGET
+			// Set the render target
 			m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
 
-			// CREATE DEPTH STENCIL STATE
+			// Create depth stencil state
 			CD3D11_DEPTH_STENCIL_DESC depthStencilDesc(D3D11_DEFAULT);
 			depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
 
