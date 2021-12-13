@@ -97,16 +97,31 @@ namespace hrzn::gfx
 
 		ComputeShader  m_cs_noiseGen;
 
-		ConstantBuffer<StandardCB> m_standardCB;
-		ConstantBuffer<LightingCB> m_lightingCB;
+		ConstantBuffer<NoiseTextureCB> m_s0_noiseTextureCB;
 
-		ConstantBuffer<WaterVertexShaderCB>         m_waterVertexShaderCB;
-		ConstantBuffer<WaterPixelShaderCB>          m_waterPixelShaderCB;
-		ConstantBuffer<NoLightPixelShaderCB>        m_noLightPixelShaderCB;
-		ConstantBuffer<AtmosphericPixelShaderCB>    m_atmosphericPixelShaderCB;
-		ConstantBuffer<CloudsPixelShaderCB>         m_cloudsPixelShaderCB;
+		// Main pipeline
+		// Shader-specific frame-independent CBs || Slot 0 -> 3
+		// Slot 0
+		ConstantBuffer<SceneCB>        m_s0_sceneCB;
 
-		ConstantBuffer<NoiseTextureComputeShaderCB>       m_noiseTextureComputeShaderCB;
+		// Slot 1
+		ConstantBuffer<NoLightCB>      m_s1_noLightCB;
+		ConstantBuffer<CloudsCB>       m_s1_cloudsCB;
+		ConstantBuffer<WaterCB>        m_s1_waterCB;
+		ConstantBuffer<AtmosphericCB>  m_s1_atmosphericCB;
+
+		// Shader-specific per-frame CBs || Slot 4 -> 7
+		// Slot 4
+		ConstantBuffer<PerFrameCB>     m_s4_perFrameCB;
+
+		// Shader-specific per-pass CBs || Slot 8 -> 11
+		// Slot 8
+		ConstantBuffer<PerPassCB>      m_s8_perPassCB;
+
+		// Shader-specific per-object CBs || Slot 12 -> 15
+		// Slot 12
+		ConstantBuffer<PerObjectCB>    m_s12_perObjectCB;
+
 		Microsoft::WRL::ComPtr<ID3D11Texture3D>           m_noiseTexture;
 		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_noiseTextureUnorderedAccessView;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>  m_noiseTextureShaderResourceView;

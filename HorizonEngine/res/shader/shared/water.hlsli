@@ -1,5 +1,16 @@
 
-cbuffer waterCBuffer : register(b0)
+#ifndef __WATER_HEADER_HLSL__
+#define __WATER_HEADER_HLSL__
+
+#include "standard.hlsli"
+
+struct VSPS_TRANSFER_WATER
+{
+	float4 pos : SV_POSITION;
+	float3 baseWorldPos : BASE_WORLD_POSIITION;
+};
+
+cbuffer WaterCB : register(b1)
 {
     int waveCount;
     float waveScale;
@@ -45,12 +56,12 @@ float3 getFourierOffset(float3 position)
             float windScaleModifier = dot(waveDir, windDir) * 0.35f + 0.7f;
 
             float initialWaveDist = dot(flatPosition, waveDir);
-            float distWaveTravelled = gameTime * waveSpeed * ((float)waveNum * 1.0f + 1.0f) * scale + initialWaveDist;
+            float distWaveTravelled = cb_gameTime * waveSpeed * ((float)waveNum * 1.0f + 1.0f) * scale + initialWaveDist;
 
             float angle = distWaveTravelled / (wavePeriod * scale * pow(1.1f, (float)waveNum - 1.0f));
 
             //float signedDistanceToWaveCentre = dot(waveDirRight, flatPosition);
-            float waveBreakScaleMod = 1.0f;// sin(signedDistanceToWaveCentre * 0.05f + waveAngle * 1024.0f + gameTime * waveSpeed * 0.06f + initialWaveDist * 0.2f) * 0.15f + 0.85f;
+			float waveBreakScaleMod = 1.0f; // sin(signedDistanceToWaveCentre * 0.05f + waveAngle * 1024.0f + cb_gameTime * waveSpeed * 0.06f + initialWaveDist * 0.2f) * 0.15f + 0.85f;
 
             float xOffset = cos(waveAngle) * cos(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
             float yOffset = sin(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
@@ -71,3 +82,5 @@ float3 getFourierOffset(float3 position)
 
     return finalOffset;
 }
+
+#endif // __WATER_HEADER_HLSL__

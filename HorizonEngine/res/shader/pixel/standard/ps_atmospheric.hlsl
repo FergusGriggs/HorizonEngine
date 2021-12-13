@@ -1,48 +1,20 @@
 
-cbuffer constantBuffer : register(b0)
-{
-	float3 sunDirection;
-	float  sunSize;
+#include "../../shared/standard.hlsli"
+#include "../../shared/scene.hlsli"
+#include "../../shared/atmospheric.hlsli"
 
-	float3 cameraPosition;
-	float  gameTime;
-
-	float  density;
-	float  multiScatterPhase;
-	float  anisotropicIntensity;
-	float  zenithOffset;
-
-	float nightDensity;
-	float nightZenithYClamp;
-	float padding2;
-	float padding3;
-};
-
-struct PS_INPUT
-{
-    float4 pos : SV_POSITION;
-    float3 normal : NORMAL;
-    float2 texCoord : TEXCOORD;
-    float3 worldPos : WORLD_POSIITION;
-
-	float3 tangent : TANGENT;
-	float3 bitangent : BITANGENT;
-    //float3x3 TBNMatrix : TBN_MATRIX;
-};
-
-Texture2D diffuseTexture : TEXTURE : register(t0);
 SamplerState samplerState : SAMPLER : register(s0);
 
 static const float pi = 3.1415926f;
 static const float invPi = 1.0f / 3.1415926f;
 
 static const float3 sunColour = float3(1.0f, 1.0f, 1.0f);
-static const float3 skyColour = float3(0.39f, 0.57f, 1.0f) * (1.0f + anisotropicIntensity); //Make sure one of the conponents is never 0.0 //0.180f, 0.725f, 1.0f//0.39f, 0.57f, 1.0f//0.06f, 0.625f, 1.0f
+static const float3 skyColour = float3(0.39f, 0.57f, 1.0f) * (1.0f + cb_anisotropicIntensity); //Make sure one of the conponents is never 0.0 //0.180f, 0.725f, 1.0f//0.39f, 0.57f, 1.0f//0.06f, 0.625f, 1.0f
 static const float3 nightSkyColour = float3(0.1f, 0.15f, 0.25f);// *(1.0f + anisotropicIntensity);
 
 #define smooth(x) x * x * (3.0f - 2.0f * x)
-#define dayZenithDensity(yCoord) density / pow(max(yCoord - zenithOffset, 0.0035f), 0.75f)
-#define nightZenithDensity(yCoord) nightDensity / pow(max(yCoord + 0.05f, nightZenithYClamp), 0.75f)
+#define dayZenithDensity(yCoord) cb_density / pow(max(yCoord - cb_zenithOffset, 0.0035f), 0.75f)
+#define nightZenithDensity(yCoord) cb_nightDensity / pow(max(yCoord + 0.05f, cb_nightZenithYClamp), 0.75f)
 
 float radialDistance(float3 direction1, float3 direction2)
 {
@@ -59,7 +31,7 @@ float3 getSkyAbsorption(float3 x, float y)
 
 float getSunPoint(float3 viewDirection, float3 sunDirection)
 {
-	return smoothstep(sunSize * 0.0006f, sunSize * 0.00052f, radialDistance(viewDirection, sunDirection)) * 50.0f;
+	return smoothstep(cb_sunSize * 0.0006f, cb_sunSize * 0.00052f, radialDistance(viewDirection, sunDirection)) * 50.0f;
 }
 
 float getRayleigMultiplier(float3 viewDirection, float3 sunDirection)
@@ -69,7 +41,7 @@ float getRayleigMultiplier(float3 viewDirection, float3 sunDirection)
 
 float getMie(float3 viewDirection, float3 sunDirection)
 {
-	float scale = 75.0f / sunSize;
+	float scale = 75.0f / cb_sunSize;
 
 	float disk = clamp(1.0f - pow(radialDistance(viewDirection, sunDirection) * scale, 0.1f), 0.0f, 1.0f);
 
@@ -108,12 +80,12 @@ float getLinearProgress(float edge0, float edge1, float x)
 float3 getAtmosphericScattering(float3 viewDirection, float3 sunDirection)
 {
 	float zenith = dayZenithDensity(viewDirection.y);
-	float sunPointDistMult = clamp(length(max(sunDirection.y + multiScatterPhase - zenithOffset, 0.0f)), 0.0f, 1.0f);
+	float sunPointDistMult = clamp(length(max(sunDirection.y + cb_multiScatterPhase - cb_zenithOffset, 0.0f)), 0.0f, 1.0f);
 
 	float rayleighMult = getRayleigMultiplier(viewDirection, sunDirection);
 
 	float3 absorption = getSkyAbsorption(skyColour, zenith) * sunColour;
-	float3 sunAbsorption = getSkyAbsorption(skyColour, dayZenithDensity(sunDirection.y + multiScatterPhase)) * sunColour;
+	float3 sunAbsorption = getSkyAbsorption(skyColour, dayZenithDensity(sunDirection.y + cb_multiScatterPhase)) * sunColour;
 	float3 sky = skyColour * zenith * rayleighMult;
 	float3 sun = getSunPoint(viewDirection, sunDirection) * absorption;
 	float3 mie = getMie(viewDirection, sunDirection) * sunAbsorption;
@@ -122,13 +94,13 @@ float3 getAtmosphericScattering(float3 viewDirection, float3 sunDirection)
 	totalSky += (sun + mie) * sunColour;
 	totalSky *= sunAbsorption * 0.5f + 0.5f * length(sunAbsorption);
 
-	if (sunDirection.y < zenithOffset)
+	if (sunDirection.y < cb_zenithOffset)
 	{
-		float skyRemovalStart = min(1.0f, (-sunDirection.y + zenithOffset) / (0.45f + zenithOffset)) * 2.0f;
+		float skyRemovalStart = min(1.0f, (-sunDirection.y + cb_zenithOffset) / (0.45f + cb_zenithOffset)) * 2.0f;
 		totalSky *= getLinearProgress(skyRemovalStart - 1.0f, skyRemovalStart, dot(viewDirection, sunDirection) * 0.5f + 0.5f);
 
 
-		float nightSkyBlendFactor = min(1.0f, (-sunDirection.y + zenithOffset) / (0.25f + zenithOffset));
+		float nightSkyBlendFactor = min(1.0f, (-sunDirection.y + cb_zenithOffset) / (0.25f + cb_zenithOffset));
 
 		float nightZenith = nightZenithDensity(viewDirection.y);
 		nightZenith *= pow(getLinearProgress(-1.0f, 1.0f, dot(viewDirection, sunDirection)), 1.5f);
@@ -160,14 +132,14 @@ float3 jodieReinhardTonemap(float3 c)
 	return lerp(c / (l + 1.0f), tc, tc);
 }
 
-float4 main(PS_INPUT input) : SV_TARGET
+float4 main(VSPS_TRANSFER input) : SV_TARGET
 {
-	float3 viewDirection = normalize(input.worldPos - cameraPosition);
-	float3 color = getAtmosphericScattering(viewDirection, sunDirection) *pi;
-	//color += max(getAtmosphericScattering(viewDirection, -sunDirection) * pi, 0.0f);
+	float3 viewDirection = normalize(input.worldPos - cb_cameraPosition);
+	float3 colour = getAtmosphericScattering(viewDirection, cb_directionalLight.direction) * pi;
+	//colour += max(getAtmosphericScattering(viewDirection, -cb_directionalLight.direction) * pi, 0.0f);
 
-	color = jodieReinhardTonemap(color);
-	color = pow(color, float3(2.2f, 2.2f, 2.2f)); //Back to linear
+	colour = jodieReinhardTonemap(colour);
+	colour = pow(colour, float3(2.2f, 2.2f, 2.2f)); //Back to linear
 
-	return float4(color, 1.0f);
+	return float4(colour, 1.0f);
 }

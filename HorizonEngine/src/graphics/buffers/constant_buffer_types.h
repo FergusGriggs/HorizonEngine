@@ -4,57 +4,6 @@
 
 namespace hrzn::gfx
 {
-	// Slot 0
-	struct VariablesCB
-	{
-		int    m_useNormalMapping;
-		int    m_useParallaxOcclusionMapping;
-		float  m_depthScale;
-		int    m_showWorldNormals;
-
-		int    m_showUVs;
-		int    m_cullBackNormals;
-		int    m_selfShadowing;
-		int    m_gammaCorrection;
-
-		int    m_miscToggleA;
-		int    m_miscToggleB;
-		int    m_miscToggleC;
-		int    m_roughnessMapping;
-	};
-
-	// Slot 1
-	struct PerFrameCB
-	{
-		DirectX::XMFLOAT3 m_cameraPosition;
-		float             m_gameTime;
-
-		DirectX::XMMATRIX m_modelViewProjectionMatrix;
-	};
-
-	// Slot 2
-	struct PerObjectCB
-	{
-		DirectX::XMMATRIX m_modelMatrix;
-	};
-
-	// Slot 3
-	struct WaterCB
-	{
-		float             m_waveSeed;
-		int               m_waveCount; 
-		float             m_waveScale;
-		float             m_wavePeriod;
-			              
-		float             m_waveSpeed;
-		float             m_waveScaleMultiplier;
-		int               m_iscolateWaveNum;
-		float             m_foamStart;
-			              
-		float             m_colourChangeStart;
-		DirectX::XMFLOAT3 m_padding;
-	};
-
 	struct DirectionalLightCB
 	{
 		DirectX::XMFLOAT3 m_colour;
@@ -64,7 +13,6 @@ namespace hrzn::gfx
 		float             m_padding1;
 	};
 
-	// Lighting
 	struct PointLightCB
 	{
 		DirectX::XMFLOAT3 m_position;
@@ -96,35 +44,36 @@ namespace hrzn::gfx
 		DirectX::XMFLOAT3 m_direction;
 	};
 
-	struct PixelShaderCB
+	struct SceneCB
 	{
-		//PACK_SEAM
-		DirectionalLightCB  m_directionalLight;
-		PointLightCB        m_pointLights[10];
-		SpotLightCB         m_spotLights[20];
+		int    m_useNormalMapping;
+		int    m_useParallaxOcclusionMapping;
+		float  m_depthScale;
+		int    m_showWorldNormals;
 
-		//PACK_SEAM
-		DirectX::XMFLOAT3   m_cameraPosition;
-		float               m_padding2;
+		int    m_showUVs;
+		int    m_cullBackNormals;
+		int    m_selfShadowing;
+		int    m_gammaCorrection;
+
+		int    m_miscToggleA;
+		int    m_miscToggleB;
+		int    m_miscToggleC;
+		int    m_roughnessMapping;
+
+		int               m_numPointLights;
+		int               m_numSpotLights;
+		DirectX::XMFLOAT2 m_padding1;
+
+		DirectionalLightCB m_directionalLight;
+		PointLightCB       m_pointLights[10];
+		SpotLightCB        m_spotLights[20];
 	};
 
-	struct NoLightPixelShaderCB
+	struct NoLightCB
 	{
 		DirectX::XMFLOAT3 m_colour;
 		int               m_justColour;
-	};
-
-	struct AtmosphericCB
-	{
-		float m_sunSize;
-		float m_density;
-		float m_multiScatterPhase;
-		float m_anisotropicIntensity;
-
-		float m_zenithOffset;
-		float m_nightDensity;
-		float m_nightZenithYClamp;
-		float m_padding1;
 	};
 
 	struct CloudsCB
@@ -143,11 +92,59 @@ namespace hrzn::gfx
 		DirectX::XMFLOAT3 m_padding3;
 	};
 
+	struct WaterCB
+	{
+		float             m_waveSeed;
+		int               m_waveCount;
+		float             m_waveScale;
+		float             m_wavePeriod;
+
+		float             m_waveSpeed;
+		float             m_waveScaleMultiplier;
+		int               m_iscolateWaveNum;
+		float             m_foamStart;
+
+		float             m_colourChangeStart;
+		DirectX::XMFLOAT3 m_padding1;
+	};
+
+	struct AtmosphericCB
+	{
+		float m_sunSize;
+		float m_density;
+		float m_multiScatterPhase;
+		float m_anisotropicIntensity;
+
+		float m_zenithOffset;
+		float m_nightDensity;
+		float m_nightZenithYClamp;
+		float m_padding1;
+	};
+
 	struct NoiseTextureCB
 	{
 		float m_size;
 		float m_height;
 		float m_seed;
 		float m_noiseSize;
+	};
+
+	struct PerFrameCB
+	{
+		float             m_gameTime;
+		DirectX::XMFLOAT3 m_padding1;
+	};
+
+	struct PerPassCB
+	{
+		DirectX::XMFLOAT3 m_cameraPosition;
+		float             m_padding1;
+
+		DirectX::XMMATRIX m_modelViewProjectionMatrix;
+	};
+
+	struct PerObjectCB
+	{
+		DirectX::XMMATRIX m_modelMatrix;
 	};
 }

@@ -428,7 +428,6 @@
     <FxCompile Include="res\shader\compute\cs_noise_gen.hlsl" />
     <FxCompile Include="res\shader\pixel\gbuffer\read\ps_gbuf_r_default.hlsl" />
     <FxCompile Include="res\shader\pixel\gbuffer\write\ps_gbuf_w_default.hlsl" />
-    <FxCompile Include="res\shader\pixel\gbuffer\write\ps_gbuf_w_water.hlsl" />
     <FxCompile Include="res\shader\pixel\standard\ps_atmospheric.hlsl" />
     <FxCompile Include="res\shader\pixel\standard\ps_clouds.hlsl" />
     <FxCompile Include="res\shader\pixel\standard\ps_default.hlsl" />
@@ -456,10 +455,11 @@
     <None Include="imgui.ini">
       <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="res\shader\shared\lighting.hlsli" />
+    <None Include="res\shader\shared\scene.hlsli" />
     <None Include="res\shader\shared\POM.hlsli" />
-    <None Include="res\shader\shared\renderTechniques.hlsli" />
     <None Include="res\shader\shared\standard.hlsli" />
     <None Include="res\shader\shared\water.hlsli" />
+    <None Include="res\shader\shared\atmospheric.hlsli" />
+    <None Include="res\shader\shared\clouds.hlsli" />
   </ItemGroup>
 </Project>

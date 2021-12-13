@@ -1,11 +1,7 @@
 
-#include "../../shared/cbuffers/water.hlsli"
-
-struct PS_INPUT
-{
-    float4 pos : SV_POSITION;
-    float3 baseWorldPos : BASE_WORLD_POSIITION;
-};
+#include "../../shared/standard.hlsli"
+#include "../../shared/scene.hlsli"
+#include "../../shared/water.hlsli"
 
 float hash11(float p)
 {
@@ -34,11 +30,11 @@ float getLinearProgress(float edge0, float edge1, float x)
     return clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
 }
 
-float4 main(PS_INPUT input) : SV_TARGET
+float4 main(VSPS_TRANSFER_WATER input) : SV_TARGET
 {
-    float3 modifiedLightColour = float3(max(lightColour.r, 0.05f), max(lightColour.g, 0.1f), max(lightColour.b, 0.15f));
+	float3 modifiedLightColour = float3(max(cb_directionalLight.colour.r, 0.05f), max(cb_directionalLight.colour.g, 0.1f), max(cb_directionalLight.colour.b, 0.15f));
 
-    float3 viewDirection = normalize(input.baseWorldPos - cameraPosition);
+    float3 viewDirection = normalize(input.baseWorldPos - cb_cameraPosition);
 
     float3 tangentFlatWorldPos = float3(input.baseWorldPos.x + sampleOffset, input.baseWorldPos.y, input.baseWorldPos.z);
     float3 bitangentFlatWorldPos = float3(input.baseWorldPos.x, input.baseWorldPos.y, input.baseWorldPos.z + sampleOffset);
@@ -60,7 +56,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     float3 bitangent = normalize(bitangentDiff);
     float3 normal = normalize(cross(bitangent, tangent));
 
-    float cameraDist = distance(mainFourierPosition, cameraPosition);
+    float cameraDist = distance(mainFourierPosition, cb_cameraPosition);
     float waterAlpha = getLinearProgress(1500.0f, 650.0f, cameraDist);
     float foamDistMod = getLinearProgress(450.0f, 10.0f, cameraDist);
     float heightDistMod = -getLinearProgress(450.0f, 1500.0f, cameraDist);
@@ -68,7 +64,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     float fresnel = clamp(1.0f - dot(-normal, viewDirection), 0.0f, 1.0f);
     fresnel = pow(fresnel, 10.0f) * 0.35f;
 
-    float3 refracted = seaBaseColour * modifiedLightColour + diffuse(normal, -lightDirection, 20.0f) * seaWaterColour * 0.12f;
+	float3 refracted = seaBaseColour * modifiedLightColour + diffuse(normal, -cb_directionalLight.direction, 20.0f) * seaWaterColour * 0.12f;
     float3 reflected = modifiedLightColour;//getSkyColor();// max(0.0f, sign(reflect(viewDirection, normal).y))
     float3 colour = refracted;// lerp(refracted, reflected, fresnel);
 
@@ -82,7 +78,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     colour += foam * modifiedLightColour;
 
     float foamSpecular = lerp(1.0f, 80.0f, pow(1.0f - foam, 5.0f));
-    float specularFactor = specular(normal, -lightDirection, viewDirection, foamSpecular) * 0.25f;
+	float specularFactor = specular(normal, -cb_directionalLight.direction, viewDirection, foamSpecular) * 0.25f;
     colour += float3(specularFactor, specularFactor, specularFactor) * modifiedLightColour;
 
     //colour = float3(fresnel, fresnel, fresnel);
