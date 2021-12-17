@@ -2,6 +2,8 @@
 #ifndef __STANDARD_HEADER_HLSL__
 #define __STANDARD_HEADER_HLSL__
 
+#pragma pack_matrix( row_major )
+
 cbuffer PerFrameCB : register(b4)
 {
 	float  cb_gameTime;
@@ -10,10 +12,10 @@ cbuffer PerFrameCB : register(b4)
 
 cbuffer PerPassCB : register(b8)
 {
-	float3 cb_cameraPosition;
-	float  cb_perPassPadding1;
+    float3 cb_cameraPosition;
+    float cb_perPassPadding1;
 
-	float4x4 cb_viewProjectionMatrix;
+    float4x4 cb_viewProjectionMatrix;
 }
 
 cbuffer PerObjectCB : register(b12)

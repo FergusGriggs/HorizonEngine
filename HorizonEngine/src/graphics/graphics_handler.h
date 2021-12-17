@@ -41,7 +41,7 @@ namespace hrzn::gfx
 		void update(scene::SceneManager& sceneManager, float deltaTime);
 		void updateSceneShaderValues(scene::SceneManager& sceneManager);
 		void updatePerFrameShaderValues(scene::SceneManager& sceneManager);
-		void updatePerPassShaderValues(DirectX::XMFLOAT3 eyePosition, DirectX::XMMATRIX viewProjection);
+		void updatePerPassShaderValues(DirectX::XMFLOAT3 eyePosition, DirectX::XMMATRIX view, DirectX::XMMATRIX projection);
 
 		void render(scene::SceneManager& sceneManager);
 		void renderSceneObjects(scene::SceneManager& sceneManager, const RenderPassConfig& renderPassConfig);
@@ -51,7 +51,7 @@ namespace hrzn::gfx
 
 		void updateImGui(scene::SceneManager& sceneManager);
 
-		void drawAxisForObject(const entity::RenderableGameObject& gameObject, const XMMATRIX& viewProjection, const scene::SceneManager& sceneManager);
+		void drawAxisForObject(const entity::RenderableGameObject& gameObject, const scene::SceneManager& sceneManager);
 
 	private:
 		bool  initializeDirectX(HWND hwnd);
@@ -129,7 +129,8 @@ namespace hrzn::gfx
 
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_regularRasterizerState;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_wireframeRasterizerState;
-		Microsoft::WRL::ComPtr<ID3D11BlendState>      m_blendState;
+		Microsoft::WRL::ComPtr<ID3D11BlendState>      m_defaultBlendState;
+		Microsoft::WRL::ComPtr<ID3D11BlendState>      m_gBufferBlendState;
 
 		std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
 		std::unique_ptr<DirectX::SpriteFont>  m_spriteFont;

@@ -1,14 +1,12 @@
 
 // Default vertex shader
 
-#pragma pack_matrix( row_major )
-
 #include "../shared/standard.hlsli"
 
 VSPS_TRANSFER main (VS_INPUT input)
 {
 	VSPS_TRANSFER output;
-    output.pos = mul(float4(input.pos, 1.0f), cb_modelMatrix * cb_viewProjectionMatrix);
+    output.pos = mul(float4(input.pos, 1.0f), mul(cb_modelMatrix, cb_viewProjectionMatrix));
     output.texCoord = input.texCoord;
 	output.normal = normalize(mul(float4(input.normal, 0.0f), cb_modelMatrix).xyz);
 	output.worldPos = mul(float4(input.pos, 1.0f), cb_modelMatrix);

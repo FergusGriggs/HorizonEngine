@@ -13,32 +13,33 @@ SamplerState samplerState : SAMPLER : register(s0);
 Texture2D albedoTexture : TEXTURE: register(t0);
 Texture2D positionRoughnessTexture : TEXTURE: register(t1);
 Texture2D normalAOTexture : TEXTURE: register(t2);
-Texture2D heightTexture : TEXTURE: register(t3);
-Texture2D emissionMetallicTexture : TEXTURE: register(t4);
+Texture2D emissionMetallicTexture : TEXTURE: register(t3);
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
-	float3 albedo = albedoTexture.Sample(samplerState, input.texCoord).rgb;
+    float3 albedo = albedoTexture.Sample(samplerState, input.texCoord).rgb;
     
-	float4 positionRoughnessSample = positionRoughnessTexture.Sample(samplerState, input.texCoord);
+    float4 normalAOSample = normalAOTexture.Sample(samplerState, input.texCoord);
+    float3 normal = normalAOSample.rgb;
+    if (length(normal) < 0.01)
+    {
+        return float4(albedo, 1.0f);
+    }
+    float ambientOcclusion = normalAOSample.a;
+
+    float4 positionRoughnessSample = positionRoughnessTexture.Sample(samplerState, input.texCoord);
 	float3 worldPosition = positionRoughnessSample.rgb;
 	float  roughness = positionRoughnessSample.a;
     
 	float specularMultiplier = (1.0f - roughness);
 	float specularPower = lerp(1.0f, 128.0f, pow(1.0f - roughness, 3.0f));
     
-	float4 normalAOSample = normalAOTexture.Sample(samplerState, input.texCoord);
-	float3 normal = normalAOSample.rgb;
-	float ambientOcclusion = normalAOSample.a;
-    
-	float height = heightTexture.Sample(samplerState, input.texCoord);
-    
 	float4 emissionMetallicSample = emissionMetallicTexture.Sample(samplerState, input.texCoord);
 	float3 emission = emissionMetallicSample.rgb;
 	float metallic = emissionMetallicSample.a;
     
 	float3 viewDirection = normalize(cb_cameraPosition - worldPosition);
-
+    
     if (cb_showWorldNormals)
     {
         return float4(normal * 0.5f + 0.5f, 1.0f);

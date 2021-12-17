@@ -12,18 +12,18 @@ struct VSPS_TRANSFER_WATER
 
 cbuffer WaterCB : register(b1)
 {
-    int waveCount;
-    float waveScale;
-    float wavePeriod;
-    float waveSpeed;
+    int    cb_waveCount;
+    float  cb_waveScale;
+    float  cb_wavePeriod;
+    float  cb_waveSpeed;
 
-    float waveSeed;
-    float waveScaleMultiplier;
-    float foamStart;
-    float colourChangeStart;
+    float  cb_waveSeed;
+    float  cb_waveScaleMultiplier;
+    float  cb_foamStart;
+    float  cb_colourChangeStart;
 
-    int    iscolateWaveNum;
-    float3 padding;
+    int    cb_iscolateWaveNum;
+    float3 cb_padding;
 };
 
 static float windDir = float3(1.0f, 0.0f, 0.0f);
@@ -45,32 +45,32 @@ float3 getFourierOffset(float3 position)
     int waveNum = 0;
 
     [unroll(50)]
-    while (waveNum < waveCount)
+    while (waveNum < cb_waveCount)
     {
-        if (iscolateWaveNum == -1 || iscolateWaveNum == waveNum)
+        if (cb_iscolateWaveNum == -1 || cb_iscolateWaveNum == waveNum)
         {
-            float waveAngle = (float)waveNum * waveSeed;// hash11((float)waveNum * waveSeed)* waveSeed;
+            float waveAngle = (float) waveNum * cb_waveSeed; // hash11((float)waveNum * waveSeed)* waveSeed;
             float3 waveDir = float3(cos(waveAngle), 0.0f, sin(waveAngle));
             //float3 waveDirRight = float3(waveDir.z, 0.0f, -waveDir.x);
 
             float windScaleModifier = dot(waveDir, windDir) * 0.35f + 0.7f;
 
             float initialWaveDist = dot(flatPosition, waveDir);
-            float distWaveTravelled = cb_gameTime * waveSpeed * ((float)waveNum * 1.0f + 1.0f) * scale + initialWaveDist;
+            float distWaveTravelled = cb_gameTime * cb_waveSpeed * ((float) waveNum * 1.0f + 1.0f) * scale + initialWaveDist;
 
-            float angle = distWaveTravelled / (wavePeriod * scale * pow(1.1f, (float)waveNum - 1.0f));
+            float angle = distWaveTravelled / (cb_wavePeriod * scale * pow(1.1f, (float) waveNum - 1.0f));
 
             //float signedDistanceToWaveCentre = dot(waveDirRight, flatPosition);
 			float waveBreakScaleMod = 1.0f; // sin(signedDistanceToWaveCentre * 0.05f + waveAngle * 1024.0f + cb_gameTime * waveSpeed * 0.06f + initialWaveDist * 0.2f) * 0.15f + 0.85f;
 
-            float xOffset = cos(waveAngle) * cos(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
-            float yOffset = sin(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
-            float zOffset = sin(waveAngle) * cos(angle) * waveScale * scale * waveBreakScaleMod * windScaleModifier;
+            float xOffset = cos(waveAngle) * cos(angle) * cb_waveScale * scale * waveBreakScaleMod * windScaleModifier;
+            float yOffset = sin(angle) * cb_waveScale * scale * waveBreakScaleMod * windScaleModifier;
+            float zOffset = sin(waveAngle) * cos(angle) * cb_waveScale * scale * waveBreakScaleMod * windScaleModifier;
 
             finalOffset += float3(xOffset, yOffset, zOffset);
         }
 
-        scale *= waveScaleMultiplier;
+        scale *= cb_waveScaleMultiplier;
 
         waveNum++;
     }

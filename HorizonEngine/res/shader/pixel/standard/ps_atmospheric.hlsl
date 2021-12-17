@@ -135,11 +135,14 @@ float3 jodieReinhardTonemap(float3 c)
 float4 main(VSPS_TRANSFER input) : SV_TARGET
 {
 	float3 viewDirection = normalize(input.worldPos - cb_cameraPosition);
-	float3 colour = getAtmosphericScattering(viewDirection, cb_directionalLight.direction) * pi;
+    //float dirDot = dot(viewDirection, cb_directionalLight.direction);
+    //return float4(dirDot, dirDot, dirDot, 0.0f);
+	
+	float3 colour = getAtmosphericScattering(viewDirection, -cb_directionalLight.direction) * pi;
 	//colour += max(getAtmosphericScattering(viewDirection, -cb_directionalLight.direction) * pi, 0.0f);
 
 	colour = jodieReinhardTonemap(colour);
 	colour = pow(colour, float3(2.2f, 2.2f, 2.2f)); //Back to linear
 
-	return float4(colour, 1.0f);
+    return float4(colour, 1.0f);
 }

@@ -70,11 +70,11 @@ float4 main(VSPS_TRANSFER_WATER input) : SV_TARGET
 
    // float height = getLinearProgress(-1.0f, 1.0f, (mainFourierOffset.y - input.baseWorldPos.y) / waveScale);
    // height = clamp(height + colourChangeStart + heightDistMod, 0.0f, 1.0f);
-    float height = clamp((mainFourierOffset.y - input.baseWorldPos.y + waveScale * 1.0f - colourChangeStart * waveScale * 2.0f) / (waveScale * 2.0f) + heightDistMod, 0.0f, 1.0f);
+    float height = clamp((mainFourierOffset.y - input.baseWorldPos.y + cb_waveScale * 1.0f - cb_colourChangeStart * cb_waveScale * 2.0f) / (cb_waveScale * 2.0f) + heightDistMod, 0.0f, 1.0f);
     colour += seaWaterColour * height * modifiedLightColour;
 
     float lengthOfDiffs = (length(tangentDiff) * length(bitangentDiff)) / pow(sampleOffset, 2.0f);
-    float foam = getLinearProgress(foamStart, 0.0f, lengthOfDiffs) * foamDistMod;
+    float foam = getLinearProgress(cb_foamStart, 0.0f, lengthOfDiffs) * foamDistMod;
     colour += foam * modifiedLightColour;
 
     float foamSpecular = lerp(1.0f, 80.0f, pow(1.0f - foam, 5.0f));

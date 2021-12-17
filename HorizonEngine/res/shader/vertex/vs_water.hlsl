@@ -27,7 +27,7 @@ VSPS_TRANSFER_WATER main(VS_INPUT input)
     //float3 bitangent = normalize(bitangentFourierPosition - mainFourierPosition);
     //float3 normal = normalize(cross(bitangent, tangent));
 
-    output.pos = mul(float4(input.pos + mainFourierOffset, 1.0f), cb_modelMatrix * cb_viewProjectionMatrix);
+    output.pos = mul(float4(input.pos + mainFourierOffset, 1.0f), mul(cb_modelMatrix, cb_viewProjectionMatrix));
     //output.texCoord = float2(input.texCoord.x, input.texCoord.y * 0.75f); //float2(input.texCoord.x - gameTime * 0.0001f, input.texCoord.y * 0.5f + gameTime * 0.0001f);
     //output.normal = normal;
     output.baseWorldPos = baseFlatWorldPos;

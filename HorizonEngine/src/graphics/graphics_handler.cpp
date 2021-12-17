@@ -87,6 +87,7 @@ namespace hrzn::gfx
 			m_atmosphericCB.m_data.m_zenithOffset = sceneManager.getSceneConfig().getAtmosphereConfig().m_zenithOffset;
 			m_atmosphericCB.m_data.m_nightDensity = sceneManager.getSceneConfig().getAtmosphereConfig().m_nightDensity;
 			m_atmosphericCB.m_data.m_nightZenithYClamp = sceneManager.getSceneConfig().getAtmosphereConfig().m_nightZenithYClamp;
+			m_atmosphericCB.mapToGPU();
 
 			hr = m_cloudsCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'clouds' constant buffer."); //                                                           Fluffy 1 // Fluffy 2 // Bulky bois
@@ -142,16 +143,17 @@ namespace hrzn::gfx
 		//{
 	#ifdef _DEBUG //Debug Mode
 	#ifdef _WIN64 //x64
-			shaderFolder = L"../x64/Debug/";
+			//shaderFolder = L"../x64/Debug/";
+		shaderFolder = L"../x64/Debug/res/shader/compiled/";
 	#else  //x86 (Win32)
-			shaderFolder = L"../Debug/";
+		shaderFolder = L"../Debug/";
 	#endif
 	#else //Release Mode
 	#ifdef _WIN64 //x64
 			//shaderFolder = L"../x64/Release/";
-		shaderFolder = L"res/shaders/compiled/";
+		shaderFolder = L"res/shader/compiled/";
 	#else  //x86 (Win32)
-			shaderFolder = L"../Release/";
+		shaderFolder = L"../Release/";
 	#endif
 	#endif
 		//}
@@ -167,15 +169,9 @@ namespace hrzn::gfx
 		};
 		UINT defaultNumElements = ARRAYSIZE(defaultLayout);
 
-		D3D11_INPUT_ELEMENT_DESC quadLayout[] =
-		{
-			{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-		};
-		UINT quadNumElements = ARRAYSIZE(quadLayout);
-
 		// Initialise vertex shaders
 		if (!m_vs_default.initialize(m_device, shaderFolder + L"vs_default.cso", defaultLayout, defaultNumElements)) return false;
-		if (!m_vs_quad.initialize(m_device, shaderFolder + L"vs_quad.cso", quadLayout, quadNumElements)) return false;
+		if (!m_vs_quad.initialize(m_device, shaderFolder + L"vs_quad.cso", defaultLayout, defaultNumElements)) return false;
 		if (!m_vs_water.initialize(m_device, shaderFolder + L"vs_water.cso", defaultLayout, defaultNumElements)) return false;
 
 		// Initialise standard pixel shaders
@@ -202,35 +198,51 @@ namespace hrzn::gfx
 
 	void GraphicsHandler::render(scene::SceneManager& sceneManager)
 	{
-		float blackColour[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-		// Render geometry from main camera to the GBuffer
-		m_defaultRenderConfig.m_viewMatrix = sceneManager.getActiveCamera().getViewMatrix();
-		m_defaultRenderConfig.m_projectionMatrix = sceneManager.getActiveCamera().getProjectionMatrix();
+		sceneManager.getWritableActiveCamera().updateView();
 
 		// Slot 0 sanity CB bind
 		updateSceneShaderValues(sceneManager);
+		m_deviceContext->VSSetConstantBuffers(0, 1, m_sceneCB.getAddressOf());
 		m_deviceContext->PSSetConstantBuffers(0, 1, m_sceneCB.getAddressOf());
 
 		// Slot 4 per-frame CB bind
 		updatePerFrameShaderValues(sceneManager);
+		m_deviceContext->VSSetConstantBuffers(4, 1, m_perFrameCB.getAddressOf());
 		m_deviceContext->PSSetConstantBuffers(4, 1, m_perFrameCB.getAddressOf());
-
+		
 		// Update rasterizer state
 		if (m_useWireframe) m_defaultRenderConfig.m_rasterizerState = m_wireframeRasterizerState.Get();
 		else                m_defaultRenderConfig.m_rasterizerState = m_regularRasterizerState.Get();
 
+		XMMATRIX viewMatrix = sceneManager.getActiveCamera().getViewMatrix();
+		XMMATRIX projectionMatrix = sceneManager.getActiveCamera().getProjectionMatrix();
+
+		XMMATRIX viewProjectionMatrix = viewMatrix * projectionMatrix;
+
 		// Slot 8 per-pass CB bind
-		updatePerPassShaderValues(sceneManager.getActiveCamera().getTransform().getPositionFloat3(), m_defaultRenderConfig.m_viewMatrix * m_defaultRenderConfig.m_projectionMatrix);
+		updatePerPassShaderValues(sceneManager.getActiveCamera().getTransform().getPositionFloat3(), viewMatrix, projectionMatrix);
+		m_deviceContext->VSSetConstantBuffers(8, 1, m_perPassCB.getAddressOf());
 		m_deviceContext->PSSetConstantBuffers(8, 1, m_perPassCB.getAddressOf());
 
-		// Draw all our objects to the gBuffer
+		// Slot 12 per-object CB bind
+		m_deviceContext->VSSetConstantBuffers(12, 1, m_perObjectCB.getAddressOf());
+		m_deviceContext->PSSetConstantBuffers(12, 1, m_perObjectCB.getAddressOf());
+
+		// Render geometry from main camera to the GBuffer
 		// (Slot 12 per-object CB binds inside)
 		renderSceneObjects(sceneManager, m_defaultRenderConfig);
 
+		// Unset render targets and set as shader resource views
+		ID3D11RenderTargetView* const nullRenderTargetViews[8] = { NULL };
+		m_deviceContext->OMSetRenderTargets(m_defaultRenderConfig.m_numRenderTargetViews, nullRenderTargetViews, nullptr);
+		m_deviceContext->PSSetShaderResources(0, m_defaultRenderConfig.m_numRenderTargetViews, m_geometryBuffer.m_shaderResourceViews);
+
 		// Render to the back buffer using a quad
 		// Clear the buffers
+		float blackColour[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
 		m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
+		m_deviceContext->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
 		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), blackColour);
 		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -239,8 +251,12 @@ namespace hrzn::gfx
 
 		m_deviceContext->VSSetShader(m_vs_quad.getShader(), NULL, 0);
 		m_deviceContext->PSSetShader(m_ps_gbuf_r_default.getShader(), NULL, 0);
-		
-		m_quadModel->drawRaw();
+
+		m_quadModel->drawRaw(false);
+
+		// Unset gbuffer shader resource views
+		ID3D11ShaderResourceView* const nullShaderResourceViews[8] = { NULL };
+		m_deviceContext->PSSetShaderResources(0, m_defaultRenderConfig.m_numRenderTargetViews, nullShaderResourceViews);
 
 		// Update FPS timer
 		m_fpsCounter++;
@@ -296,12 +312,11 @@ namespace hrzn::gfx
 		m_deviceContext->OMSetDepthStencilState(renderPassConfig.m_depthStencilState, 0);
 		m_deviceContext->OMSetBlendState(renderPassConfig.m_blendState, NULL, 0xFFFFFFFF);
 
-		sceneManager.getWritableActiveCamera().updateView();
-
 		sceneManager.getWritableDirectionalLight().updateShaderVariables(m_sceneCB);
 
 		// Clear render target views and depth stencil view
-		float backgroundColour[4] = { 0.62f * sceneManager.getDirectionalLight().m_colour.x, 0.9f * sceneManager.getDirectionalLight().m_colour.y, 1.0f * sceneManager.getDirectionalLight().m_colour.z, 1.0f };
+		//float backgroundColour[4] = { 0.62f * sceneManager.getDirectionalLight().m_colour.x, 0.9f * sceneManager.getDirectionalLight().m_colour.y, 1.0f * sceneManager.getDirectionalLight().m_colour.z, 1.0f };
+		float backgroundColour[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		m_deviceContext->OMSetRenderTargets(renderPassConfig.m_numRenderTargetViews, renderPassConfig.m_renderTargetViews, renderPassConfig.m_depthStencilView);
 		for (int renderTargetIndex = 0; renderTargetIndex < renderPassConfig.m_numRenderTargetViews; ++renderTargetIndex)
@@ -309,7 +324,7 @@ namespace hrzn::gfx
 			m_deviceContext->ClearRenderTargetView(renderPassConfig.m_renderTargetViews[renderTargetIndex], backgroundColour);
 		}
 
-		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		m_deviceContext->ClearDepthStencilView(renderPassConfig.m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		// Update input assembler
 		m_deviceContext->IASetInputLayout(m_vs_default.getInputLayout());
@@ -317,22 +332,23 @@ namespace hrzn::gfx
 
 		// Set sampler state
 		m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
+		m_deviceContext->PSSetSamplers(1, 1, m_samplerState.GetAddressOf());
 
 		// Set vertex and pixel shaders
 		m_deviceContext->VSSetShader(m_vs_default.getShader(), NULL, 0);
 	
 		UINT offset = 0;
 
-		XMMATRIX viewProjMat = sceneManager.getActiveCamera().getViewMatrix() * sceneManager.getActiveCamera().getProjectionMatrix();
-
 		// Draw skybox
 		m_deviceContext->PSSetShader(m_ps_atmospheric.getShader(), NULL, 0);
+
+		m_atmosphericCB.mapToGPU();
 		m_deviceContext->PSSetConstantBuffers(1, 1, m_atmosphericCB.getAddressOf());
 
 		sceneManager.getWritableSkybox().getWritableTransform().setPosition(sceneManager.getActiveCamera().getTransform().getPositionFloat3());
-		sceneManager.getSkybox().draw(viewProjMat, &m_perObjectCB);
+		sceneManager.getSkybox().draw(&m_perObjectCB);
 
-		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		m_deviceContext->ClearDepthStencilView(renderPassConfig.m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		// Regular objects
 		m_deviceContext->PSSetShaderResources(0, 1, m_defaultDiffuseTexture->getTextureResourceViewAddress());
@@ -354,18 +370,18 @@ namespace hrzn::gfx
 
 				m_deviceContext->PSSetShader(m_ps_noLight.getShader(), NULL, 0);
 
-				renderable->draw(viewProjMat, &m_perObjectCB);
+				renderable->draw(&m_perObjectCB);
 			}
 			else
 			{
 				m_deviceContext->PSSetShader(m_ps_gbuf_w_default.getShader(), NULL, 0);
 
-				renderable->draw(viewProjMat, &m_perObjectCB);
+				renderable->draw(&m_perObjectCB);
 			}
 		}
 
 		// Draw particles
-		sceneManager.getParticleSystem().drawParticles(viewProjMat, &m_perObjectCB);
+		sceneManager.getParticleSystem().drawParticles(&m_perObjectCB);
 
 		// Draw Springs
 		XMMATRIX springModelMatrix;
@@ -391,7 +407,7 @@ namespace hrzn::gfx
 				springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMATRIX(up, right, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
 			}
 			
-			m_springModel->draw(springModelMatrix, viewProjMat, &m_perObjectCB);
+			m_springModel->draw(springModelMatrix, &m_perObjectCB);
 		}
 
 		// Draw ocean
@@ -400,6 +416,8 @@ namespace hrzn::gfx
 			m_deviceContext->VSSetShader(m_vs_water.getShader(), NULL, 0);
 			m_deviceContext->PSSetShader(m_ps_water.getShader(), NULL, 0);
 
+			m_waterCB.mapToGPU();
+			m_deviceContext->VSSetConstantBuffers(1, 1, m_waterCB.getAddressOf());
 			m_deviceContext->PSSetConstantBuffers(1, 1, m_waterCB.getAddressOf());
 
 			// Put the centre a bit in front of the camera where the best fidelity is in the mesh
@@ -411,7 +429,7 @@ namespace hrzn::gfx
 			//float scaleMod = fmaxf(1.0f, m_camera.getTransform().getPositionFloat3().y * 0.01f);
 			//m_ocean.setScale(XMFLOAT3(scaleMod, scaleMod, scaleMod));
 
-			sceneManager.getOcean().draw(viewProjMat, &m_perObjectCB, false);
+			sceneManager.getOcean().draw(&m_perObjectCB, false);
 		}
 
 		// Draw clouds
@@ -427,7 +445,7 @@ namespace hrzn::gfx
 
 			sceneManager.getWritableClouds().getWritableTransform().setPosition(cameraPosFloat.x, sceneManager.getClouds().getTransform().getPositionFloat3().y, cameraPosFloat.z);
 
-			sceneManager.getClouds().draw(viewProjMat, &m_perObjectCB, false);
+			sceneManager.getClouds().draw(&m_perObjectCB, false);
 		}
 	
 		// Draw axis
@@ -435,12 +453,12 @@ namespace hrzn::gfx
 		{
 			m_deviceContext->PSSetShader(m_ps_noLight.getShader(), NULL, 0);
 			m_deviceContext->PSSetConstantBuffers(1, 1, m_noLightCB.getAddressOf());
-			m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+			m_deviceContext->ClearDepthStencilView(renderPassConfig.m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 			m_noLightCB.m_data.m_colour = XMFLOAT3(1.0f, 1.0f, 1.0f);
 			m_noLightCB.mapToGPU();
 
-			drawAxisForObject(*(sceneManager.getSelectedObject()), viewProjMat, sceneManager);
+			drawAxisForObject(*(sceneManager.getSelectedObject()), sceneManager);
 		}
 	}
 
@@ -529,10 +547,7 @@ namespace hrzn::gfx
 
 		m_defaultRenderConfig.m_depthStencilState = m_depthStencilState.Get();
 		m_defaultRenderConfig.m_rasterizerState = m_regularRasterizerState.Get();
-		m_defaultRenderConfig.m_blendState = m_blendState.Get();
-
-		m_defaultRenderConfig.m_viewMatrix = XMMatrixIdentity();
-		m_defaultRenderConfig.m_projectionMatrix = XMMatrixIdentity();
+		m_defaultRenderConfig.m_blendState = m_gBufferBlendState.Get();
 
 		m_defaultRenderConfig.m_highestLOD = 0;
 	}
@@ -1256,10 +1271,11 @@ namespace hrzn::gfx
 		m_perFrameCB.mapToGPU();
 	}
 
-	void GraphicsHandler::updatePerPassShaderValues(DirectX::XMFLOAT3 eyePosition, DirectX::XMMATRIX viewProjection)
+	void GraphicsHandler::updatePerPassShaderValues(DirectX::XMFLOAT3 eyePosition, DirectX::XMMATRIX view, DirectX::XMMATRIX projection)
 	{
 		m_perPassCB.m_data.m_cameraPosition = eyePosition;
-		m_perPassCB.m_data.m_viewProjectionMatrix = viewProjection;
+
+		m_perPassCB.m_data.m_viewProjectionMatrix = view * projection;
 
 		m_perPassCB.mapToGPU();
 	}
@@ -1309,106 +1325,132 @@ namespace hrzn::gfx
 														NULL, D3D11_CREATE_DEVICE_DEBUG, NULL, 0, D3D11_SDK_VERSION, &swapChainDescription,
 														m_swapChain.GetAddressOf(), m_device.GetAddressOf(),
 														NULL, m_deviceContext.GetAddressOf());
-
 			COM_ERROR_IF_FAILED(hr, "Failed to create device and swapchain.");
 
 			// Get backbuffer
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
 
 			hr = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(backBuffer.GetAddressOf()));
-
 			COM_ERROR_IF_FAILED(hr, "Failed to get back buffer.");
 
 			// Create render target view
 			hr = m_device->CreateRenderTargetView(backBuffer.Get(), NULL, m_renderTargetView.GetAddressOf());
-
 			COM_ERROR_IF_FAILED(hr, "Failed to create render target view.");
 
 			// Create depth stencil texture and view
-			CD3D11_TEXTURE2D_DESC depthStencilTextureDesc(DXGI_FORMAT_D24_UNORM_S8_UINT, UserConfig::it().getWindowWidth(), UserConfig::it().getWindowHeight());
-			depthStencilTextureDesc.MipLevels = 1;
-			depthStencilTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+			{
+				CD3D11_TEXTURE2D_DESC depthStencilTextureDesc(DXGI_FORMAT_D24_UNORM_S8_UINT, UserConfig::it().getWindowWidth(), UserConfig::it().getWindowHeight());
+				depthStencilTextureDesc.MipLevels = 1;
+				depthStencilTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
-			hr = m_device->CreateTexture2D(&depthStencilTextureDesc, NULL, m_depthStencilBuffer.GetAddressOf());
+				hr = m_device->CreateTexture2D(&depthStencilTextureDesc, NULL, m_depthStencilBuffer.GetAddressOf());
+				COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil buffer.");
 
-			COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil buffer.");
-
-			hr = m_device->CreateDepthStencilView(m_depthStencilBuffer.Get(), NULL, m_depthStencilView.GetAddressOf());
-
-			COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil view.");
-
-			// Set the render target
-			m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
+				hr = m_device->CreateDepthStencilView(m_depthStencilBuffer.Get(), NULL, m_depthStencilView.GetAddressOf());
+				COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil view.");
+			}
 
 			// Create depth stencil state
-			CD3D11_DEPTH_STENCIL_DESC depthStencilDesc(D3D11_DEFAULT);
-			depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+			{
+				CD3D11_DEPTH_STENCIL_DESC depthStencilDesc(D3D11_DEFAULT);
+				depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
 
-			hr = m_device->CreateDepthStencilState(&depthStencilDesc, m_depthStencilState.GetAddressOf());
-
-			COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil state.");
+				hr = m_device->CreateDepthStencilState(&depthStencilDesc, m_depthStencilState.GetAddressOf());
+				COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil state.");
+			}
 
 			// Create viewport
 			m_defaultViewport = CD3D11_VIEWPORT(0.0f, 0.0f, static_cast<float>(UserConfig::it().getWindowWidth()), static_cast<float>(UserConfig::it().getWindowHeight()));
 
 			// Create default rasterizer state
-			D3D11_RASTERIZER_DESC regularRasterizerDesc;
-			ZeroMemory(&regularRasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
+			{
+				D3D11_RASTERIZER_DESC regularRasterizerDesc;
+				ZeroMemory(&regularRasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 
-			regularRasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
-			regularRasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
+				regularRasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+				regularRasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
 
-			hr = m_device->CreateRasterizerState(&regularRasterizerDesc, m_regularRasterizerState.GetAddressOf());
-
-			COM_ERROR_IF_FAILED(hr, "Failed to create default rasterizer state.");
+				hr = m_device->CreateRasterizerState(&regularRasterizerDesc, m_regularRasterizerState.GetAddressOf());
+				COM_ERROR_IF_FAILED(hr, "Failed to create default rasterizer state.");
+			}
 
 			// Create wireframe rasterizer state
-			D3D11_RASTERIZER_DESC wireFrameRasterizerDesc;
-			ZeroMemory(&wireFrameRasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
+			{
+				D3D11_RASTERIZER_DESC wireFrameRasterizerDesc;
+				ZeroMemory(&wireFrameRasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 
-			wireFrameRasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
-			wireFrameRasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
+				wireFrameRasterizerDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_WIREFRAME;
+				wireFrameRasterizerDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 
-			hr = m_device->CreateRasterizerState(&wireFrameRasterizerDesc, m_wireframeRasterizerState.GetAddressOf());
+				hr = m_device->CreateRasterizerState(&wireFrameRasterizerDesc, m_wireframeRasterizerState.GetAddressOf());
 
-			COM_ERROR_IF_FAILED(hr, "Failed to create wireframe rasterizer state.");
+				COM_ERROR_IF_FAILED(hr, "Failed to create wireframe rasterizer state.");
+			}
 
 			// Create default blend state
-			D3D11_BLEND_DESC blendDesc;
-			ZeroMemory(&blendDesc, sizeof(blendDesc));
+			{
+				D3D11_BLEND_DESC defaultBlendDesc;
+				ZeroMemory(&defaultBlendDesc, sizeof(defaultBlendDesc));
 
-			D3D11_RENDER_TARGET_BLEND_DESC renderTargetBlendDesc;
-			ZeroMemory(&renderTargetBlendDesc, sizeof(renderTargetBlendDesc));
+				D3D11_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc;
+				ZeroMemory(&defaultRenderTargetBlendDesc, sizeof(defaultRenderTargetBlendDesc));
 
-			renderTargetBlendDesc.BlendEnable = true;
-			renderTargetBlendDesc.SrcBlend = D3D11_BLEND::D3D11_BLEND_SRC_ALPHA;
-			renderTargetBlendDesc.DestBlend = D3D11_BLEND::D3D11_BLEND_INV_SRC_ALPHA;
-			renderTargetBlendDesc.BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
-			renderTargetBlendDesc.SrcBlendAlpha = D3D11_BLEND::D3D11_BLEND_ONE;
-			renderTargetBlendDesc.DestBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;
-			renderTargetBlendDesc.BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
-			renderTargetBlendDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::D3D11_COLOR_WRITE_ENABLE_ALL;
+				defaultRenderTargetBlendDesc.BlendEnable = true;
+				defaultRenderTargetBlendDesc.SrcBlend = D3D11_BLEND::D3D11_BLEND_SRC_ALPHA;
+				defaultRenderTargetBlendDesc.DestBlend = D3D11_BLEND::D3D11_BLEND_INV_SRC_ALPHA;
+				defaultRenderTargetBlendDesc.BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
+				defaultRenderTargetBlendDesc.SrcBlendAlpha = D3D11_BLEND::D3D11_BLEND_ONE;
+				defaultRenderTargetBlendDesc.DestBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;
+				defaultRenderTargetBlendDesc.BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
+				defaultRenderTargetBlendDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::D3D11_COLOR_WRITE_ENABLE_ALL;
 
-			blendDesc.RenderTarget[0] = renderTargetBlendDesc;
+				defaultBlendDesc.RenderTarget[0] = defaultRenderTargetBlendDesc;
 
-			hr = m_device->CreateBlendState(&blendDesc, m_blendState.GetAddressOf());
+				hr = m_device->CreateBlendState(&defaultBlendDesc, m_defaultBlendState.GetAddressOf());
+				COM_ERROR_IF_FAILED(hr, "Failed to create default blend state.");
+			}
 
-			COM_ERROR_IF_FAILED(hr, "Failed to create blend state.");
+			// Create gbuffer blendstate
+			{
+				D3D11_BLEND_DESC gBufferBlendDesc;
+				ZeroMemory(&gBufferBlendDesc, sizeof(gBufferBlendDesc));
+
+				D3D11_RENDER_TARGET_BLEND_DESC gBufferRenderTargetBlendDesc;
+				ZeroMemory(&gBufferRenderTargetBlendDesc, sizeof(gBufferRenderTargetBlendDesc));
+
+				gBufferRenderTargetBlendDesc.BlendEnable = true;
+				gBufferRenderTargetBlendDesc.SrcBlend = D3D11_BLEND::D3D11_BLEND_ONE;
+				gBufferRenderTargetBlendDesc.DestBlend = D3D11_BLEND::D3D11_BLEND_ZERO;
+				gBufferRenderTargetBlendDesc.BlendOp = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
+				gBufferRenderTargetBlendDesc.SrcBlendAlpha = D3D11_BLEND::D3D11_BLEND_ONE;
+				gBufferRenderTargetBlendDesc.DestBlendAlpha = D3D11_BLEND::D3D11_BLEND_ZERO;
+				gBufferRenderTargetBlendDesc.BlendOpAlpha = D3D11_BLEND_OP::D3D11_BLEND_OP_ADD;
+				gBufferRenderTargetBlendDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE::D3D11_COLOR_WRITE_ENABLE_ALL;
+
+				for (int RTVIndex = 0; RTVIndex < 8; ++RTVIndex)
+				{
+					gBufferBlendDesc.RenderTarget[0] = gBufferRenderTargetBlendDesc;
+				}
+
+				hr = m_device->CreateBlendState(&gBufferBlendDesc, m_gBufferBlendState.GetAddressOf());
+				COM_ERROR_IF_FAILED(hr, "Failed to create gbuffer blend state.");
+			}
+
+			// Create sampler state
+			{
+				CD3D11_SAMPLER_DESC samplerDesc(D3D11_DEFAULT);
+				samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;//D3D11_FILTER_MIN_MAG_MIP_LINEAR
+				samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+				samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+				samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+
+				hr = m_device->CreateSamplerState(&samplerDesc, m_samplerState.GetAddressOf());
+				COM_ERROR_IF_FAILED(hr, "Failed to create sampler state.");
+			}
 
 			// Create sprite batch and sprite font instances
 			m_spriteBatch = std::make_unique<DirectX::SpriteBatch>(m_deviceContext.Get());
 			m_spriteFont = std::make_unique<DirectX::SpriteFont>(m_device.Get(), L"res\\fonts\\consolas16.spritefont");//comicSansMS16.spritefont
-
-			// Create sampler state
-			CD3D11_SAMPLER_DESC samplerDesc(D3D11_DEFAULT);
-			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;//D3D11_FILTER_MIN_MAG_MIP_LINEAR
-			samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-			samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-			samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-
-			hr = m_device->CreateSamplerState(&samplerDesc, m_samplerState.GetAddressOf());
-
-			COM_ERROR_IF_FAILED(hr, "Failed to create sampler state.");
 		}
 		catch (utils::COMException & exception)
 		{
@@ -1418,7 +1460,7 @@ namespace hrzn::gfx
 		return true;
 	}
 
-	void GraphicsHandler::drawAxisForObject(const entity::RenderableGameObject& gameObject, const XMMATRIX& viewProjection, const scene::SceneManager& sceneManager)
+	void GraphicsHandler::drawAxisForObject(const entity::RenderableGameObject& gameObject, const scene::SceneManager& sceneManager)
 	{
 		XMFLOAT3 gameObjectPosition = gameObject.getTransform().getPositionFloat3();
 		XMMATRIX translationMatrix = XMMatrixTranslation(gameObjectPosition.x, gameObjectPosition.y, gameObjectPosition.z);
@@ -1433,12 +1475,12 @@ namespace hrzn::gfx
 
 		if (sceneManager.getAxisEditState() == scene::AxisEditState::eEditTranslate)
 		{
-			m_axisTranslateModel->draw(XMMatrixScaling(scale, scale, scale) * translationMatrix, viewProjection, &m_perObjectCB);
+			m_axisTranslateModel->draw(XMMatrixScaling(scale, scale, scale) * translationMatrix, &m_perObjectCB);
 		}
 		else if (sceneManager.getAxisEditState() == scene::AxisEditState::eEditRotate)
 		{
 			// Multiply by rotation matrix when rotating
-			m_axisRotateModel->draw(XMMatrixScaling(scale * 0.75f, scale * 0.75f, scale * 0.75f) * gameObject.getTransform().getRotationMatrix() * translationMatrix, viewProjection, &m_perObjectCB);
+			m_axisRotateModel->draw(XMMatrixScaling(scale * 0.75f, scale * 0.75f, scale * 0.75f) * gameObject.getTransform().getRotationMatrix() * translationMatrix, &m_perObjectCB);
 		}
 	}
 }

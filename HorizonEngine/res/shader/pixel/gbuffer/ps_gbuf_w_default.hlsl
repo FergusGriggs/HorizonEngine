@@ -1,3 +1,4 @@
+
 #include "../../shared/standard.hlsli"
 #include "../../shared/scene.hlsli"
 #include "../../shared/POM.hlsli"
@@ -7,8 +8,7 @@ struct PS_OUTPUT
     float4 albedo : SV_TARGET0;
     float4 positionRoughness : SV_TARGET1;
     float4 normalAO : SV_TARGET2;
-    float  depth : SV_TARGET3;
-    float4 emissionMetallic : SV_TARGET4;
+    float4 emissionMetallic : SV_TARGET3;
 };
 
 SamplerState samplerState : SAMPLER : register(s0);
@@ -50,9 +50,8 @@ PS_OUTPUT main(VSPS_TRANSFER input)
 	}
 	
     // Output albedo
-	float4 albedo = albedoTexture.Sample(samplerState, input.texCoord);
-    output.albedo = float4(pow(albedo.rgb, 2.2f), albedo.a);
-
+    output.albedo = albedoTexture.Sample(samplerState, input.texCoord);
+    
     // Output position
     output.positionRoughness.rgb = input.worldPos;
 
@@ -76,19 +75,16 @@ PS_OUTPUT main(VSPS_TRANSFER input)
 	}
 	
     // Output normal
-	output.normalAO.rgb = normal;
+    output.normalAO.rgb = normal;
 
     // Output ambient occlusion
-	output.normalAO.a = ambientOcclusionTexture.Sample(samplerState, input.texCoord).r;
-
-    // Output depth
-	output.depth.r = depthTexture.Sample(samplerState, input.texCoord).r;
+    output.normalAO.a = 1.0f; //ambientOcclusionTexture.Sample(samplerState, input.texCoord).r;
 
     // Output emission
-	output.emissionMetallic.rgb = emissionTexture.Sample(samplerState, input.texCoord).rgb;
+    output.emissionMetallic.rgb = float3(0.0f, 1.0f, 0.0f); //emissionTexture.Sample(samplerState, input.texCoord).rgb;
 
     // Output metallic
-	output.emissionMetallic.a = metallicTexture.Sample(samplerState, input.texCoord).r;
+    output.emissionMetallic.a = 1.0f; //metallicTexture.Sample(samplerState, input.texCoord).r;
 
     return output;
 }

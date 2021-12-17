@@ -94,18 +94,18 @@ namespace hrzn::gfx
 
 	struct WaterCB
 	{
-		float             m_waveSeed;
 		int               m_waveCount;
 		float             m_waveScale;
 		float             m_wavePeriod;
-
 		float             m_waveSpeed;
-		float             m_waveScaleMultiplier;
-		int               m_iscolateWaveNum;
-		float             m_foamStart;
 
+		float             m_waveSeed;
+		float             m_waveScaleMultiplier;
+		float             m_foamStart;
 		float             m_colourChangeStart;
-		DirectX::XMFLOAT3 m_padding1;
+
+		int               m_iscolateWaveNum;
+		DirectX::XMFLOAT3 m_padding;
 	};
 
 	struct AtmosphericCB

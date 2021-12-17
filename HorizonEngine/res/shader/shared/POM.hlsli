@@ -2,12 +2,7 @@
 #ifndef __PARALLAX_OCCLUSION_HEADER_HLSL__
 #define __PARALLAX_OCCLUSION_HEADER_HLSL__
 
-SamplerState LinearWrapSampleState
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = Wrap;
-	AddressV = Wrap;
-};
+SamplerState POMSampler : SAMPLER : register(s1);
 
 float2 getParallaxTextureCoords(float3 viewDir, float2 texCoords, Texture2D depthTexture, float depthScale)
 {
@@ -28,7 +23,7 @@ float2 getParallaxTextureCoords(float3 viewDir, float2 texCoords, Texture2D dept
 
     // get initial values
     float2 currentTexCoords = texCoords;
-	float currentDepthMapValue = depthTexture.Sample(LinearWrapSampleState, currentTexCoords).r;
+    float currentDepthMapValue = depthTexture.Sample(POMSampler, currentTexCoords).r;
     
     [unroll(32)]
     while (currentLayerDepth < currentDepthMapValue)
@@ -36,7 +31,7 @@ float2 getParallaxTextureCoords(float3 viewDir, float2 texCoords, Texture2D dept
         // shift texture coordinates along direction of P
         currentTexCoords -= deltaTexCoords;
         // get depthmap value at current texture coordinates
-		currentDepthMapValue = depthTexture.Sample(LinearWrapSampleState, currentTexCoords).r;
+        currentDepthMapValue = depthTexture.Sample(POMSampler, currentTexCoords).r;
         // get depth of next layer
         currentLayerDepth += layerDepth;
     }
@@ -46,7 +41,7 @@ float2 getParallaxTextureCoords(float3 viewDir, float2 texCoords, Texture2D dept
 
     // get depth after and before collision for linear interpolation
     float afterDepth = currentDepthMapValue - currentLayerDepth;
-	float beforeDepth = depthTexture.Sample(LinearWrapSampleState, prevTexCoords).r - currentLayerDepth + layerDepth;
+    float beforeDepth = depthTexture.Sample(POMSampler, prevTexCoords).r - currentLayerDepth + layerDepth;
 
     // interpolation of texture coordinates
     float weight = afterDepth / (afterDepth - beforeDepth);
@@ -65,7 +60,7 @@ float getShadowFactorForLightAtCoord(float3 toLight, float2 texCoord, bool softS
 
     float2 dx = ddx(texCoord);
     float2 dy = ddy(texCoord);
-	float initialDepth = depthTexture.Sample(LinearWrapSampleState, texCoord).r;
+    float initialDepth = depthTexture.Sample(POMSampler, texCoord).r;
 
     float lightNormalDot = dot(float3(0.0f, 0.0f, 1.0f), toLight);
     if (lightNormalDot > 0.0f)
@@ -89,7 +84,7 @@ float getShadowFactorForLightAtCoord(float3 toLight, float2 texCoord, bool softS
 
             float currLayerDepth = initialDepth - layerHeight;
             float2 currentTexCoord = texCoord + texStep;
-			float depthFromTex = depthTexture.SampleGrad(LinearWrapSampleState, currentTexCoord, dx, dy).r;
+            float depthFromTex = depthTexture.SampleGrad(POMSampler, currentTexCoord, dx, dy).r;
             int stepIndex = 1;
             int numIter = 0;
 
@@ -107,8 +102,8 @@ float getShadowFactorForLightAtCoord(float3 toLight, float2 texCoord, bool softS
                 stepIndex += 1;
                 currLayerDepth -= layerHeight;
                 currentTexCoord += texStep;
-				depthFromTex = depthTexture.SampleGrad(LinearWrapSampleState, currentTexCoord, dx, dy).r;
-			}
+                depthFromTex = depthTexture.SampleGrad(POMSampler, currentTexCoord, dx, dy).r;
+            }
 
             if (numSamplesUnderSurface < 1)
             {

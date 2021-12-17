@@ -29,37 +29,26 @@ namespace hrzn::gfx
 		R8G8B8A8_UNORM_TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
 		// Normal AO
-		D3D11_TEXTURE2D_DESC R16G16B16A16_UNORM_TextureDesc{};
-		R16G16B16A16_UNORM_TextureDesc.Width = UserConfig::it().getWindowWidthFloat();
-		R16G16B16A16_UNORM_TextureDesc.Height = UserConfig::it().getWindowHeightFloat();
-		R16G16B16A16_UNORM_TextureDesc.MipLevels = 1;
-		R16G16B16A16_UNORM_TextureDesc.ArraySize = 1;
-		R16G16B16A16_UNORM_TextureDesc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
-		R16G16B16A16_UNORM_TextureDesc.SampleDesc.Count = 1;
-		R16G16B16A16_UNORM_TextureDesc.Usage = D3D11_USAGE_DEFAULT;
-		R16G16B16A16_UNORM_TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		D3D11_TEXTURE2D_DESC R16G16B16A16_FLOAT_TextureDesc{};
+		R16G16B16A16_FLOAT_TextureDesc.Width = UserConfig::it().getWindowWidthFloat();
+		R16G16B16A16_FLOAT_TextureDesc.Height = UserConfig::it().getWindowHeightFloat();
+		R16G16B16A16_FLOAT_TextureDesc.MipLevels = 1;
+		R16G16B16A16_FLOAT_TextureDesc.ArraySize = 1;
+		R16G16B16A16_FLOAT_TextureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		R16G16B16A16_FLOAT_TextureDesc.SampleDesc.Count = 1;
+		R16G16B16A16_FLOAT_TextureDesc.Usage = D3D11_USAGE_DEFAULT;
+		R16G16B16A16_FLOAT_TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
-		// Height
-		D3D11_TEXTURE2D_DESC R16_UNORM_TextureDesc{};
-		R16_UNORM_TextureDesc.Width = UserConfig::it().getWindowWidthFloat();
-		R16_UNORM_TextureDesc.Height = UserConfig::it().getWindowHeightFloat();
-		R16_UNORM_TextureDesc.MipLevels = 1;
-		R16_UNORM_TextureDesc.ArraySize = 1;
-		R16_UNORM_TextureDesc.Format = DXGI_FORMAT_R16_UNORM;
-		R16_UNORM_TextureDesc.SampleDesc.Count = 1;
-		R16_UNORM_TextureDesc.Usage = D3D11_USAGE_DEFAULT;
-		R16_UNORM_TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-
-		// Position
-		D3D11_TEXTURE2D_DESC R32G32B32A32_FLOAT_TextureDesc{};
-		R32G32B32A32_FLOAT_TextureDesc.Width = UserConfig::it().getWindowWidthFloat();
-		R32G32B32A32_FLOAT_TextureDesc.Height = UserConfig::it().getWindowHeightFloat();
-		R32G32B32A32_FLOAT_TextureDesc.MipLevels = 1;
-		R32G32B32A32_FLOAT_TextureDesc.ArraySize = 1;
-		R32G32B32A32_FLOAT_TextureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		R32G32B32A32_FLOAT_TextureDesc.SampleDesc.Count = 1;
-		R32G32B32A32_FLOAT_TextureDesc.Usage = D3D11_USAGE_DEFAULT;
-		R32G32B32A32_FLOAT_TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		//// Position
+		//D3D11_TEXTURE2D_DESC R16G16B16A16_FLOAT_TextureDesc{};
+		//R32G32B32A32_FLOAT_TextureDesc.Width = UserConfig::it().getWindowWidthFloat();
+		//R32G32B32A32_FLOAT_TextureDesc.Height = UserConfig::it().getWindowHeightFloat();
+		//R32G32B32A32_FLOAT_TextureDesc.MipLevels = 1;
+		//R32G32B32A32_FLOAT_TextureDesc.ArraySize = 1;
+		//R32G32B32A32_FLOAT_TextureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		//R32G32B32A32_FLOAT_TextureDesc.SampleDesc.Count = 1;
+		//R32G32B32A32_FLOAT_TextureDesc.Usage = D3D11_USAGE_DEFAULT;
+		//R32G32B32A32_FLOAT_TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
 		// Depth Stencil
 		D3D11_TEXTURE2D_DESC depthStencilTextureDesc;
@@ -81,16 +70,12 @@ namespace hrzn::gfx
 		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer albedo texture creation failed");
 
 		// PositionRoughness
-		hr = device->CreateTexture2D(&R32G32B32A32_FLOAT_TextureDesc, nullptr, m_positionRoughness.m_texture2D.GetAddressOf());
+		hr = device->CreateTexture2D(&R16G16B16A16_FLOAT_TextureDesc, nullptr, m_positionRoughness.m_texture2D.GetAddressOf());
 		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer position roughness texture creation failed");
 
 		// NormalAO
-		hr = device->CreateTexture2D(&R16G16B16A16_UNORM_TextureDesc, nullptr, m_normalAO.m_texture2D.GetAddressOf());
+		hr = device->CreateTexture2D(&R16G16B16A16_FLOAT_TextureDesc, nullptr, m_normalAO.m_texture2D.GetAddressOf());
 		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer normal ao texture creation failed");
-
-		// Height
-		hr = device->CreateTexture2D(&R16_UNORM_TextureDesc, nullptr, m_height.m_texture2D.GetAddressOf());
-		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer height texture creation failed");
 
 		// EmissionMetallic
 		hr = device->CreateTexture2D(&R8G8B8A8_UNORM_TextureDesc, nullptr, m_emissionMetallic.m_texture2D.GetAddressOf());
@@ -106,17 +91,13 @@ namespace hrzn::gfx
 		R8G8B8A8_UNORM_RenderTargetViewDesc.Format = R8G8B8A8_UNORM_TextureDesc.Format;
 		R8G8B8A8_UNORM_RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-		D3D11_RENDER_TARGET_VIEW_DESC R16G16B16A16_UNORM_RenderTargetViewDesc{};
-		R16G16B16A16_UNORM_RenderTargetViewDesc.Format = R16G16B16A16_UNORM_TextureDesc.Format;
-		R16G16B16A16_UNORM_RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		D3D11_RENDER_TARGET_VIEW_DESC R16G16B16A16_FLOAT_RenderTargetViewDesc{};
+		R16G16B16A16_FLOAT_RenderTargetViewDesc.Format = R16G16B16A16_FLOAT_TextureDesc.Format;
+		R16G16B16A16_FLOAT_RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-		D3D11_RENDER_TARGET_VIEW_DESC R16_UNORM_RenderTargetViewDesc{};
-		R16_UNORM_RenderTargetViewDesc.Format = R16_UNORM_TextureDesc.Format;
-		R16_UNORM_RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-
-		D3D11_RENDER_TARGET_VIEW_DESC R32G32B32A32_FLOAT_RenderTargetViewDesc{};
+		/*D3D11_RENDER_TARGET_VIEW_DESC R32G32B32A32_FLOAT_RenderTargetViewDesc{};
 		R32G32B32A32_FLOAT_RenderTargetViewDesc.Format = R32G32B32A32_FLOAT_TextureDesc.Format;
-		R32G32B32A32_FLOAT_RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		R32G32B32A32_FLOAT_RenderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;*/
 
 		// Create render target views
 		// Albedo
@@ -124,16 +105,12 @@ namespace hrzn::gfx
 		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer albedo render target view creation failed");
 
 		// PositionRoughness
-		hr = device->CreateRenderTargetView(m_positionRoughness.m_texture2D.Get(), &R32G32B32A32_FLOAT_RenderTargetViewDesc, m_positionRoughness.m_renderTargetView.GetAddressOf());
+		hr = device->CreateRenderTargetView(m_positionRoughness.m_texture2D.Get(), &R16G16B16A16_FLOAT_RenderTargetViewDesc, m_positionRoughness.m_renderTargetView.GetAddressOf());
 		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer position roughness render target view creation failed");
 
 		// NormalAO
-		hr = device->CreateRenderTargetView(m_normalAO.m_texture2D.Get(), &R16G16B16A16_UNORM_RenderTargetViewDesc, m_normalAO.m_renderTargetView.GetAddressOf());
+		hr = device->CreateRenderTargetView(m_normalAO.m_texture2D.Get(), &R16G16B16A16_FLOAT_RenderTargetViewDesc, m_normalAO.m_renderTargetView.GetAddressOf());
 		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer normal ao render target view creation failed");
-
-		// Height
-		hr = device->CreateRenderTargetView(m_height.m_texture2D.Get(), &R16_UNORM_RenderTargetViewDesc, m_height.m_renderTargetView.GetAddressOf());
-		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer height render target view creation failed");
 
 		// EmissionMetallic
 		hr = device->CreateRenderTargetView(m_emissionMetallic.m_texture2D.Get(), &R8G8B8A8_UNORM_RenderTargetViewDesc, m_emissionMetallic.m_renderTargetView.GetAddressOf());
@@ -158,20 +135,15 @@ namespace hrzn::gfx
 		R8G8B8A8_UNORM_ShaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		R8G8B8A8_UNORM_ShaderResourceViewDesc.Texture2D.MipLevels = 1;
 
-		D3D11_SHADER_RESOURCE_VIEW_DESC R16G16B16A16_UNORM_ShaderResourceViewDesc{};
-		R16G16B16A16_UNORM_ShaderResourceViewDesc.Format = R16G16B16A16_UNORM_TextureDesc.Format;
-		R16G16B16A16_UNORM_ShaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		R16G16B16A16_UNORM_ShaderResourceViewDesc.Texture2D.MipLevels = 1;
+		D3D11_SHADER_RESOURCE_VIEW_DESC R16G16B16A16_FLOAT_ShaderResourceViewDesc{};
+		R16G16B16A16_FLOAT_ShaderResourceViewDesc.Format = R16G16B16A16_FLOAT_TextureDesc.Format;
+		R16G16B16A16_FLOAT_ShaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		R16G16B16A16_FLOAT_ShaderResourceViewDesc.Texture2D.MipLevels = 1;
 
-		D3D11_SHADER_RESOURCE_VIEW_DESC R16_UNORM_ShaderResourceViewDesc{};
-		R16_UNORM_ShaderResourceViewDesc.Format = R16_UNORM_TextureDesc.Format;
-		R16_UNORM_ShaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		R16_UNORM_ShaderResourceViewDesc.Texture2D.MipLevels = 1;
-
-		D3D11_SHADER_RESOURCE_VIEW_DESC R32G32B32A32_FLOAT_ShaderResourceViewDesc{};
+		/*D3D11_SHADER_RESOURCE_VIEW_DESC R32G32B32A32_FLOAT_ShaderResourceViewDesc{};
 		R32G32B32A32_FLOAT_ShaderResourceViewDesc.Format = R32G32B32A32_FLOAT_TextureDesc.Format;
 		R32G32B32A32_FLOAT_ShaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		R32G32B32A32_FLOAT_ShaderResourceViewDesc.Texture2D.MipLevels = 1;
+		R32G32B32A32_FLOAT_ShaderResourceViewDesc.Texture2D.MipLevels = 1;*/
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC depthStencilShaderResourceViewDesc;
 		depthStencilShaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
@@ -185,16 +157,12 @@ namespace hrzn::gfx
 		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer albedo shader resource view creation failed");
 
 		// PositionRoughness
-		hr = device->CreateShaderResourceView(m_positionRoughness.m_texture2D.Get(), &R32G32B32A32_FLOAT_ShaderResourceViewDesc, m_positionRoughness.m_shaderResourceView.GetAddressOf());
+		hr = device->CreateShaderResourceView(m_positionRoughness.m_texture2D.Get(), &R16G16B16A16_FLOAT_ShaderResourceViewDesc, m_positionRoughness.m_shaderResourceView.GetAddressOf());
 		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer position roughness shader resource view creation failed");
 
 		// NormalAO
-		hr = device->CreateShaderResourceView(m_normalAO.m_texture2D.Get(), &R16G16B16A16_UNORM_ShaderResourceViewDesc, m_normalAO.m_shaderResourceView.GetAddressOf());
+		hr = device->CreateShaderResourceView(m_normalAO.m_texture2D.Get(), &R16G16B16A16_FLOAT_ShaderResourceViewDesc, m_normalAO.m_shaderResourceView.GetAddressOf());
 		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer normal ao shader resource view creation failed");
-
-		// Height
-		hr = device->CreateShaderResourceView(m_height.m_texture2D.Get(), &R16_UNORM_ShaderResourceViewDesc, m_height.m_shaderResourceView.GetAddressOf());
-		utils::ErrorLogger::logIfFailed(hr, "Geometry buffer height shader resource view creation failed");
 
 		// EmissionMetallic
 		hr = device->CreateShaderResourceView(m_emissionMetallic.m_texture2D.Get(), &R8G8B8A8_UNORM_ShaderResourceViewDesc, m_emissionMetallic.m_shaderResourceView.GetAddressOf());
@@ -209,14 +177,12 @@ namespace hrzn::gfx
 		m_renderTargetViews[0] = m_albedo.m_renderTargetView.Get();
 		m_renderTargetViews[1] = m_positionRoughness.m_renderTargetView.Get();
 		m_renderTargetViews[2] = m_normalAO.m_renderTargetView.Get();
-		m_renderTargetViews[3] = m_height.m_renderTargetView.Get();
-		m_renderTargetViews[4] = m_emissionMetallic.m_renderTargetView.Get();
+		m_renderTargetViews[3] = m_emissionMetallic.m_renderTargetView.Get();
 
 		// Fill geometry buffer shader resource view array
 		m_shaderResourceViews[0] = m_albedo.m_shaderResourceView.Get();
 		m_shaderResourceViews[1] = m_positionRoughness.m_shaderResourceView.Get();
 		m_shaderResourceViews[2] = m_normalAO.m_shaderResourceView.Get();
-		m_shaderResourceViews[3] = m_height.m_shaderResourceView.Get();
-		m_shaderResourceViews[4] = m_emissionMetallic.m_shaderResourceView.Get();
+		m_shaderResourceViews[3] = m_emissionMetallic.m_shaderResourceView.Get();
 	}
 }
