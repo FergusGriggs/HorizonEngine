@@ -11,6 +11,7 @@
 #include "post_process/bloom_post_process.h"
 #include "post_process/grayscale_post_process.h"
 #include "post_process/sepia_post_process.h"
+#include "post_process/depth_of_field_post_process.h"
 
 #include "../user_config.h"
 
@@ -143,8 +144,11 @@ namespace hrzn::gfx
 
 		m_activeCameraImageRenderer.initialise(m_defaultViewport, m_depthStencilState.Get(), m_regularRasterizerState.Get());
 
-		m_activeCameraImageRenderer.addPostProcess(new GaussianBlurPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
-		m_activeCameraImageRenderer.addPostProcess(new SepiaPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+		m_activeCameraImageRenderer.addPostProcess(new DepthOfFieldPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
+		//m_activeCameraImageRenderer.addPostProcess(new GaussianBlurPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+		//m_activeCameraImageRenderer.addPostProcess(new SepiaPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+		//m_activeCameraImageRenderer.addPostProcess(new GrayscalePostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+		//m_activeCameraImageRenderer.addPostProcess(new SepiaPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
 
 		// Init imgui
 		IMGUI_CHECKVERSION();

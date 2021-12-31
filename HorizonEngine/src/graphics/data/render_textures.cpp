@@ -9,7 +9,9 @@
 namespace hrzn::gfx
 {
     IRenderTexture::IRenderTexture() :
-        m_format(DXGI_FORMAT_UNKNOWN)
+        m_format(DXGI_FORMAT_UNKNOWN),
+		m_width(0),
+		m_height(0)
     {
 	}
 

@@ -6,9 +6,9 @@
 namespace hrzn::gfx
 {
     GaussianBlurPostProcess::GaussianBlurPostProcess(UINT width, UINT height) :
-        PostProcess(width * 0.45f, height * 0.45f)
+        PostProcess(width * 0.35f, height * 0.35f)
     {
-        m_intermediateTexture.initialise(DXGI_FORMAT_R8G8B8A8_UNORM, width * 0.75, height * 0.75);
+        m_intermediateTexture.initialise(DXGI_FORMAT_R8G8B8A8_UNORM, width * 0.65f, height * 0.65f);
     }
 
     GaussianBlurPostProcess::~GaussianBlurPostProcess()

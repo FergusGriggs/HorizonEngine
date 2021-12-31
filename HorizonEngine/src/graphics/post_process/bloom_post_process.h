@@ -18,4 +18,3 @@ namespace hrzn::gfx
         GaussianBlurPostProcess m_gaussianBlur;
     };
 }
-

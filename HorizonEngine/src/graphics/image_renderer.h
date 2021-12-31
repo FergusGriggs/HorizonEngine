@@ -24,10 +24,12 @@ namespace hrzn::gfx
 		void setRasterizerState(ID3D11RasterizerState* rasterizerState);
 
 		void addPostProcess(PostProcess* postProcess);
+		void clearPostProcesses();
 
 		void render(const DirectX::XMVECTOR& eyePos, const DirectX::XMVECTOR& eyeFacing, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix);
 
-		RenderTexture& getFinalImage();
+		RenderTexture&  getFinalImage();
+		GeometryBuffer* getGBuffer();
 
 		void release();
 

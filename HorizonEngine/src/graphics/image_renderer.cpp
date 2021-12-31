@@ -16,6 +16,7 @@ namespace hrzn::gfx
 
     ImageRenderer::~ImageRenderer()
     {
+        clearPostProcesses();
     }
 
     void ImageRenderer::initialise(CD3D11_VIEWPORT viewport, ID3D11DepthStencilState* depthStencilState,
@@ -55,6 +56,16 @@ namespace hrzn::gfx
     void ImageRenderer::addPostProcess(PostProcess* postProcess)
     {
         m_postProcesses.push_back(postProcess);
+    }
+
+    void ImageRenderer::clearPostProcesses()
+    {
+        for (int postProcessIndex = 0; postProcessIndex < m_postProcesses.size(); ++postProcessIndex)
+        {
+            delete m_postProcesses[postProcessIndex];
+        }
+
+        m_postProcesses.clear();
     }
 
     void ImageRenderer::render(const DirectX::XMVECTOR& eyePos, const DirectX::XMVECTOR& eyeFacing, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix)
@@ -143,8 +154,15 @@ namespace hrzn::gfx
         return m_finalImage;
     }
 
+    GeometryBuffer* ImageRenderer::getGBuffer()
+    {
+        return &m_geometryBuffer;
+    }
+
     void hrzn::gfx::ImageRenderer::release()
     {
+        clearPostProcesses();
+
         m_geometryBuffer.release();
 
         m_finalImage.release();
@@ -164,7 +182,8 @@ namespace hrzn::gfx
 
         GraphicsHandler::it().renderSceneObjects(RenderPassType::eStandardPass, eyePos, eyeFacing);
 
-        deviceContext->ClearDepthStencilView(m_geometryBuffer.m_depthStencil.m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        deviceContext->ClearDepthStencilView(GraphicsHandler::it().getDefaultDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        deviceContext->OMSetRenderTargets(4, m_geometryBuffer.m_renderTargetViews, GraphicsHandler::it().getDefaultDepthStencilView());
 
         GraphicsHandler::it().renderGizmos();
 
