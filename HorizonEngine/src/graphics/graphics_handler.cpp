@@ -5,12 +5,89 @@
 
 #include <shobjidl.h>
 
+#include "data/resource_manager.h"
+#include "../scene/scene_manager.h"
+
+#include "post_process/bloom_post_process.h"
+#include "post_process/grayscale_post_process.h"
+#include "post_process/sepia_post_process.h"
+
 #include "../user_config.h"
 
 #define _SOLUTIONDIR R"($(SolutionDir))"
 
 namespace hrzn::gfx
 {
+	GraphicsHandler& GraphicsHandler::it()
+	{
+		static GraphicsHandler instance;
+		return instance;
+	}
+
+	GraphicsHandler::GraphicsHandler() :
+		m_device(nullptr),
+		m_deviceContext(nullptr),
+		
+		m_swapChain(nullptr),
+		m_swapChainRenderTargetView(nullptr),
+		m_backBuffer(nullptr),
+		
+		m_depthStencilView(nullptr),
+		m_depthStencilBuffer(nullptr),
+		m_depthStencilState(nullptr),
+		
+		m_defaultViewport(),
+		
+		m_activeCameraImageRenderer(),
+		
+		m_axisTranslateModel(nullptr),
+		m_axisRotateModel(nullptr),
+		m_springModel(nullptr),
+		m_screenQuad(nullptr),
+		
+		m_compiledShaderFolder(),
+		m_defaultVSLayout(nullptr),
+		m_defaultVSLayoutSize(0),
+		
+		m_ps_gbuf_r_default(nullptr),
+		
+		m_cs_noiseGen(nullptr),
+		
+		m_noiseTextureCB(),
+		m_sceneCB(),
+		m_cloudsCB(),
+		m_waterCB(),
+		m_atmosphericCB(),
+		m_perFrameCB(),
+		m_perPassCB(),
+		m_perMaterialCB(),
+		m_perObjectCB(),
+		
+		m_noiseTexture(nullptr),
+		m_noiseTextureUnorderedAccessView(nullptr),
+		m_noiseTextureShaderResourceView(nullptr),
+		
+		m_regularRasterizerState(nullptr),
+		m_wireframeRasterizerState(nullptr),
+
+		m_defaultBlendState(nullptr),
+		m_gBufferBlendState(nullptr),
+
+		m_samplerState(nullptr),
+
+		m_spriteBatch(nullptr),
+		m_spriteFont(nullptr),
+
+		m_useWireframe(false),
+		m_useVSync(true),
+		m_useDeferredShading(false),
+
+		m_fpsTimer(),
+		m_fpsCounter(0),
+		m_fpsString()
+	{
+	}
+
 	bool GraphicsHandler::initialize(HWND hwnd)
 	{
 		m_fpsTimer.start();
@@ -20,21 +97,56 @@ namespace hrzn::gfx
 			return false;
 		}
 
-		if (!ResourceManager::it().initialize(m_device.Get(), m_deviceContext.Get()))
+		m_compiledShaderFolder = L"";
+#pragma region DetermineShaderPath
+#ifdef _DEBUG //Debug Mode
+#ifdef _WIN64 //x64
+		//shaderFolder = L"../x64/Debug/";
+		m_compiledShaderFolder = L"../x64/Debug/res/shader/compiled/";
+#else  //x86 (Win32)
+		m_compiledShaderFolder = L"../Debug/";
+#endif
+#else //Release Mode
+#ifdef _WIN64 //x64
+		//shaderFolder = L"../x64/Release/";
+		m_compiledShaderFolder = L"res/shader/compiled/";
+#else  //x86 (Win32)
+		m_compiledShaderFolder = L"../Release/";
+#endif
+#endif
+
+		//Create vertex shader input layout
+		m_defaultVSLayout = new D3D11_INPUT_ELEMENT_DESC[5]{
+			{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+			{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+			{"TANGENT", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+			{"BITANGENT", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+			{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
+		};
+		m_defaultVSLayoutSize = 5;
+
+		if (!ResourceManager::it().initialise())
 		{
 			return false;
 		}
 
-		if (!initializeShaders())
-		{
-			return false;
-		}
+		// Initialise gbuffer write shader
+		m_ps_gbuf_r_default = ResourceManager::it().getGBufferReadPSPtr();
 
-		m_geometryBuffer.initialise(m_device.Get());
+		// Initialise compute shaders
+		m_cs_noiseGen = ResourceManager::it().getCSPtr("noise_gen");
 
-		createRenderPassConfigs();
+		// Initialise global shader vars
+		HRESULT hr = m_noiseTextureCB.initialize(m_device.Get(), m_deviceContext.Get());
+		COM_ERROR_IF_FAILED(hr, "Failed to create 'noiseTextureComputeShader' constant buffer.");
+		create3DNoiseTexture();
 
-		//INIT IMGUI
+		m_activeCameraImageRenderer.initialise(m_defaultViewport, m_depthStencilState.Get(), m_regularRasterizerState.Get());
+
+		m_activeCameraImageRenderer.addPostProcess(new GaussianBlurPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+		m_activeCameraImageRenderer.addPostProcess(new SepiaPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+
+		// Init imgui
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
@@ -45,7 +157,7 @@ namespace hrzn::gfx
 		return true;
 	}
 
-	bool GraphicsHandler::initializeScene(scene::SceneManager& sceneManager)
+	bool GraphicsHandler::initializeScene()
 	{
 		try
 		{
@@ -65,41 +177,47 @@ namespace hrzn::gfx
 
 			hr = m_waterCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterVertexShader' constant buffer.");
-			m_waterCB.m_data.m_waveCount = sceneManager.getSceneConfig().getOceanConfig().m_waveCount;
-			m_waterCB.m_data.m_waveScale = sceneManager.getSceneConfig().getOceanConfig().m_waveScale;   //14.3f
-			m_waterCB.m_data.m_wavePeriod = sceneManager.getSceneConfig().getOceanConfig().m_wavePeriod; //50.5f
-			m_waterCB.m_data.m_waveSpeed = sceneManager.getSceneConfig().getOceanConfig().m_waveSpeed;   //25.0f
-			m_waterCB.m_data.m_waveSeed = sceneManager.getSceneConfig().getOceanConfig().m_waveSeed;
-			m_waterCB.m_data.m_waveScaleMultiplier = sceneManager.getSceneConfig().getOceanConfig().m_waveScaleMultiplier;
-			m_waterCB.m_data.m_iscolateWaveNum = -1;
-			m_waterCB.m_data.m_foamStart = sceneManager.getSceneConfig().getOceanConfig().m_foamStart;
-			m_waterCB.m_data.m_colourChangeStart = sceneManager.getSceneConfig().getOceanConfig().m_colourChangeStart; //1.123f
 
-			hr = m_noLightCB.initialize(m_device.Get(), m_deviceContext.Get());
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'noLight' constant buffer.");
+			const scene::config::OceanConfig& oceanConfig = scene::SceneManager::it().getSceneConfig().getOceanConfig();
+
+			m_waterCB.m_data.m_waveCount = oceanConfig.m_waveCount;
+			m_waterCB.m_data.m_waveScale = oceanConfig.m_waveScale;   //14.3f
+			m_waterCB.m_data.m_wavePeriod = oceanConfig.m_wavePeriod; //50.5f
+			m_waterCB.m_data.m_waveSpeed = oceanConfig.m_waveSpeed;   //25.0f
+			m_waterCB.m_data.m_waveSeed = oceanConfig.m_waveSeed;
+			m_waterCB.m_data.m_waveScaleMultiplier = oceanConfig.m_waveScaleMultiplier;
+			m_waterCB.m_data.m_iscolateWaveNum = -1;
+			m_waterCB.m_data.m_foamStart = oceanConfig.m_foamStart;
+			m_waterCB.m_data.m_colourChangeStart = oceanConfig.m_colourChangeStart; //1.123f
 
 			hr = m_atmosphericCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'atmospheric' constant buffer.");
-			m_atmosphericCB.m_data.m_sunSize = sceneManager.getSceneConfig().getAtmosphereConfig().m_sunSize;
-			m_atmosphericCB.m_data.m_density = sceneManager.getSceneConfig().getAtmosphereConfig().m_density;
-			m_atmosphericCB.m_data.m_multiScatterPhase = sceneManager.getSceneConfig().getAtmosphereConfig().m_multiScatterPhase;
-			m_atmosphericCB.m_data.m_anisotropicIntensity = sceneManager.getSceneConfig().getAtmosphereConfig().m_anisotropicIntensity;
-			m_atmosphericCB.m_data.m_zenithOffset = sceneManager.getSceneConfig().getAtmosphereConfig().m_zenithOffset;
-			m_atmosphericCB.m_data.m_nightDensity = sceneManager.getSceneConfig().getAtmosphereConfig().m_nightDensity;
-			m_atmosphericCB.m_data.m_nightZenithYClamp = sceneManager.getSceneConfig().getAtmosphereConfig().m_nightZenithYClamp;
+
+			const scene::config::AtmosphereConfig& atmosphereConfig = scene::SceneManager::it().getSceneConfig().getAtmosphereConfig();
+
+			m_atmosphericCB.m_data.m_sunSize = atmosphereConfig.m_sunSize;
+			m_atmosphericCB.m_data.m_density = atmosphereConfig.m_density;
+			m_atmosphericCB.m_data.m_multiScatterPhase = atmosphereConfig.m_multiScatterPhase;
+			m_atmosphericCB.m_data.m_anisotropicIntensity = atmosphereConfig.m_anisotropicIntensity;
+			m_atmosphericCB.m_data.m_zenithOffset = atmosphereConfig.m_zenithOffset;
+			m_atmosphericCB.m_data.m_nightDensity = atmosphereConfig.m_nightDensity;
+			m_atmosphericCB.m_data.m_nightZenithYClamp = atmosphereConfig.m_nightZenithYClamp;
 			m_atmosphericCB.mapToGPU();
 
 			hr = m_cloudsCB.initialize(m_device.Get(), m_deviceContext.Get());
-			COM_ERROR_IF_FAILED(hr, "Failed to create 'clouds' constant buffer."); //                                                           Fluffy 1 // Fluffy 2 // Bulky bois
-			m_cloudsCB.m_data.m_lightAbsorbtionThroughClouds = sceneManager.getSceneConfig().getCloudConfig().m_lightAbsorbtionThroughClouds; // 0.084f      0.084f      0.338f
-			m_cloudsCB.m_data.m_lightAbsorbtionTowardsSun = sceneManager.getSceneConfig().getCloudConfig().m_lightAbsorbtionTowardsSun; //       0.273f      0.392f      0.559f
-			m_cloudsCB.m_data.m_phaseFactor = sceneManager.getSceneConfig().getCloudConfig().m_phaseFactor; //                                   0.208f      0.266f      0.428f
-			m_cloudsCB.m_data.m_darknessThreshold = sceneManager.getSceneConfig().getCloudConfig().m_darknessThreshold; //                       0.09f       0.073f      0.09f
-			m_cloudsCB.m_data.m_cloudCoverage = sceneManager.getSceneConfig().getCloudConfig().m_cloudCoverage; //                               0.465f      0.497f      0.446f
-			m_cloudsCB.m_data.m_cloudSpeed = sceneManager.getSceneConfig().getCloudConfig().m_cloudSpeed;
-			m_cloudsCB.m_data.m_numSteps = sceneManager.getSceneConfig().getCloudConfig().m_numSteps;
-			m_cloudsCB.m_data.m_stepSize = sceneManager.getSceneConfig().getCloudConfig().m_stepSize;
-			m_cloudsCB.m_data.m_cloudHeight = sceneManager.getSceneConfig().getCloudConfig().m_cloudHeight;
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'clouds' constant buffer.");
+
+			const scene::config::CloudConfig& cloudConfig = scene::SceneManager::it().getSceneConfig().getCloudConfig(); // Fluffy 1 // Fluffy 2 // Bulky bois
+			
+			m_cloudsCB.m_data.m_lightAbsorbtionThroughClouds = cloudConfig.m_lightAbsorbtionThroughClouds; //                0.084f      0.084f      0.338f
+			m_cloudsCB.m_data.m_lightAbsorbtionTowardsSun = cloudConfig.m_lightAbsorbtionTowardsSun; //                      0.273f      0.392f      0.559f
+			m_cloudsCB.m_data.m_phaseFactor = cloudConfig.m_phaseFactor; //                                                  0.208f      0.266f      0.428f
+			m_cloudsCB.m_data.m_darknessThreshold = cloudConfig.m_darknessThreshold; //                                      0.09f       0.073f      0.09f
+			m_cloudsCB.m_data.m_cloudCoverage = cloudConfig.m_cloudCoverage; //                                              0.465f      0.497f      0.446f
+			m_cloudsCB.m_data.m_cloudSpeed = cloudConfig.m_cloudSpeed;
+			m_cloudsCB.m_data.m_numSteps = cloudConfig.m_numSteps;
+			m_cloudsCB.m_data.m_stepSize = cloudConfig.m_stepSize;
+			m_cloudsCB.m_data.m_cloudHeight = cloudConfig.m_cloudHeight;
 
 			hr = m_perFrameCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'per frame' constant buffer.");
@@ -107,24 +225,19 @@ namespace hrzn::gfx
 			hr = m_perPassCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'per pass' constant buffer.");
 
+			hr = m_perMaterialCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'per material' constant buffer.");
+
 			hr = m_perObjectCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'per object' constant buffer.");
 
 			// Load axis models
-			m_axisTranslateModel = ResourceManager::it().getModelPtr("res/models/axis/fancy_translate.obj");
-			m_axisRotateModel = ResourceManager::it().getModelPtr("res/models/axis/rotate2.obj");
+			m_axisTranslateModel = ResourceManager::it().getModelPtr("res/models/engine/axis/translate.obj");
+			m_axisRotateModel = ResourceManager::it().getModelPtr("res/models/engine/axis/rotate.obj");
 
-			m_springModel = ResourceManager::it().getModelPtr("res/models/spring.obj");
+			m_springModel = ResourceManager::it().getModelPtr("res/models/engine/spring.obj");
 
-			m_quadModel = ResourceManager::it().getModelPtr("res/models/misc/screen_quad.obj");
-
-			m_defaultDiffuseTexture = new Texture(m_device.Get(), "res/textures/scales/diffuse.jpg", aiTextureType::aiTextureType_DIFFUSE);
-			m_defaultSpecularTexture = new Texture(m_device.Get(), "res/textures/scales/specular.jpg", aiTextureType::aiTextureType_DIFFUSE);
-			m_defaultNormalTexture = new Texture(m_device.Get(), "res/textures/scales/normal.jpg", aiTextureType::aiTextureType_DIFFUSE);
-
-			m_highlightDiffuseTexture = new Texture(m_device.Get(), "res/textures/hrzn_statue/diffuse.jpg", aiTextureType::aiTextureType_DIFFUSE);
-			m_highlightSpecularTexture = new Texture(m_device.Get(), "res/textures/hrzn_statue/roughness.jpg", aiTextureType::aiTextureType_DIFFUSE);
-			m_highlightNormalTexture = new Texture(m_device.Get(), "res/textures/hrzn_statue/normal.png", aiTextureType::aiTextureType_DIFFUSE);
+			m_screenQuad = ResourceManager::it().getModelPtr("res/models/engine/screen_quad.obj");
 		}
 		catch (utils::COMException& exception)
 		{
@@ -135,128 +248,64 @@ namespace hrzn::gfx
 		return true;
 	}
 
-	bool GraphicsHandler::initializeShaders()
+	ID3D11Device* GraphicsHandler::getDevice() const
 	{
-		std::wstring shaderFolder = L"";
-	#pragma region DetermineShaderPath
-		//if (IsDebuggerPresent() == TRUE)
-		//{
-	#ifdef _DEBUG //Debug Mode
-	#ifdef _WIN64 //x64
-			//shaderFolder = L"../x64/Debug/";
-		shaderFolder = L"../x64/Debug/res/shader/compiled/";
-	#else  //x86 (Win32)
-		shaderFolder = L"../Debug/";
-	#endif
-	#else //Release Mode
-	#ifdef _WIN64 //x64
-			//shaderFolder = L"../x64/Release/";
-		shaderFolder = L"res/shader/compiled/";
-	#else  //x86 (Win32)
-		shaderFolder = L"../Release/";
-	#endif
-	#endif
-		//}
-
-		//Create vertex shader input layout
-		D3D11_INPUT_ELEMENT_DESC defaultLayout[] =
-		{
-			{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"TANGENT", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"BITANGENT", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-		};
-		UINT defaultNumElements = ARRAYSIZE(defaultLayout);
-
-		// Initialise vertex shaders
-		if (!m_vs_default.initialize(m_device, shaderFolder + L"vs_default.cso", defaultLayout, defaultNumElements)) return false;
-		if (!m_vs_quad.initialize(m_device, shaderFolder + L"vs_quad.cso", defaultLayout, defaultNumElements)) return false;
-		if (!m_vs_water.initialize(m_device, shaderFolder + L"vs_water.cso", defaultLayout, defaultNumElements)) return false;
-
-		// Initialise standard pixel shaders
-		if (!m_ps_default.initialize(m_device, shaderFolder + L"ps_default.cso")) return false;
-		if (!m_ps_noLight.initialize(m_device, shaderFolder + L"ps_no_light.cso")) return false;
-		if (!m_ps_atmospheric.initialize(m_device, shaderFolder + L"ps_atmospheric.cso")) return false;
-		if (!m_ps_clouds.initialize(m_device, shaderFolder + L"ps_clouds.cso")) return false;
-		if (!m_ps_water.initialize(m_device, shaderFolder + L"ps_water.cso")) return false;
-		
-		// Initialise gbuffer write and read pixel shaders
-		if (!m_ps_gbuf_w_default.initialize(m_device, shaderFolder + L"ps_gbuf_w_default.cso")) return false;
-		if (!m_ps_gbuf_r_default.initialize(m_device, shaderFolder + L"ps_gbuf_r_default.cso")) return false;
-
-		// Initialise compute shaders
-		if (!m_cs_noiseGen.initialize(m_device, shaderFolder + L"cs_noise_gen.cso")) return false;
-
-		// Initialise global shader vars
-		HRESULT hr = m_noiseTextureCB.initialize(m_device.Get(), m_deviceContext.Get());
-		COM_ERROR_IF_FAILED(hr, "Failed to create 'noiseTextureComputeShader' constant buffer.");
-		create3DNoiseTexture();
-
-		return true;
+		return m_device.Get();
 	}
 
-	void GraphicsHandler::render(scene::SceneManager& sceneManager)
+	ID3D11DeviceContext* GraphicsHandler::getDeviceContext() const
 	{
-		sceneManager.getWritableActiveCamera().updateView();
+		return m_deviceContext.Get();
+	}
 
-		// Slot 0 sanity CB bind
-		updateSceneShaderValues(sceneManager);
-		m_deviceContext->VSSetConstantBuffers(0, 1, m_sceneCB.getAddressOf());
-		m_deviceContext->PSSetConstantBuffers(0, 1, m_sceneCB.getAddressOf());
+	ID3D11DepthStencilView* GraphicsHandler::getDefaultDepthStencilView() const
+	{
+		return m_depthStencilView.Get();
+	}
 
-		// Slot 4 per-frame CB bind
-		updatePerFrameShaderValues(sceneManager);
-		m_deviceContext->VSSetConstantBuffers(4, 1, m_perFrameCB.getAddressOf());
-		m_deviceContext->PSSetConstantBuffers(4, 1, m_perFrameCB.getAddressOf());
-		
-		// Update rasterizer state
-		if (m_useWireframe) m_defaultRenderConfig.m_rasterizerState = m_wireframeRasterizerState.Get();
-		else                m_defaultRenderConfig.m_rasterizerState = m_regularRasterizerState.Get();
+	ID3D11DepthStencilState* GraphicsHandler::getDefaultDepthStencilState() const
+	{
+		return m_depthStencilState.Get();
+	}
 
-		XMMATRIX viewMatrix = sceneManager.getActiveCamera().getViewMatrix();
-		XMMATRIX projectionMatrix = sceneManager.getActiveCamera().getProjectionMatrix();
+	bool GraphicsHandler::isUsingDeferredShading() const
+	{
+		return m_useDeferredShading;
+	}
+
+	const std::wstring& GraphicsHandler::getCompiledShaderFolder() const
+	{
+		return m_compiledShaderFolder;
+	}
+
+	D3D11_INPUT_ELEMENT_DESC* GraphicsHandler::getDefaultVSLayout() const
+	{
+		return m_defaultVSLayout;
+	}
+
+	UINT GraphicsHandler::getDefaultVSLayoutSize() const
+	{
+		return m_defaultVSLayoutSize;
+	}
+
+	void GraphicsHandler::render()
+	{
+		scene::SceneManager::it().getWritableActiveCamera().updateView();
+
+		// Grab active camera data
+		XMMATRIX viewMatrix = scene::SceneManager::it().getActiveCamera().getViewMatrix();
+		XMMATRIX projectionMatrix = scene::SceneManager::it().getActiveCamera().getProjectionMatrix();
 
 		XMMATRIX viewProjectionMatrix = viewMatrix * projectionMatrix;
 
-		// Slot 8 per-pass CB bind
-		updatePerPassShaderValues(sceneManager.getActiveCamera().getTransform().getPositionFloat3(), viewMatrix, projectionMatrix);
-		m_deviceContext->VSSetConstantBuffers(8, 1, m_perPassCB.getAddressOf());
-		m_deviceContext->PSSetConstantBuffers(8, 1, m_perPassCB.getAddressOf());
+		DirectX::XMVECTOR activeCamPos = scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector();
+		DirectX::XMVECTOR activeCamFacing = scene::SceneManager::it().getActiveCamera().getTransform().getFrontVector();
 
-		// Slot 12 per-object CB bind
-		m_deviceContext->VSSetConstantBuffers(12, 1, m_perObjectCB.getAddressOf());
-		m_deviceContext->PSSetConstantBuffers(12, 1, m_perObjectCB.getAddressOf());
+		// Render scene from active camera
+		m_activeCameraImageRenderer.render(activeCamPos, activeCamFacing, viewMatrix, projectionMatrix);
 
-		// Render geometry from main camera to the GBuffer
-		// (Slot 12 per-object CB binds inside)
-		renderSceneObjects(sceneManager, m_defaultRenderConfig);
-
-		// Unset render targets and set as shader resource views
-		ID3D11RenderTargetView* const nullRenderTargetViews[8] = { NULL };
-		m_deviceContext->OMSetRenderTargets(m_defaultRenderConfig.m_numRenderTargetViews, nullRenderTargetViews, nullptr);
-		m_deviceContext->PSSetShaderResources(0, m_defaultRenderConfig.m_numRenderTargetViews, m_geometryBuffer.m_shaderResourceViews);
-
-		// Render to the back buffer using a quad
-		// Clear the buffers
-		float blackColour[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-		m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
-		m_deviceContext->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
-		m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), blackColour);
-		m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-		m_deviceContext->IASetInputLayout(m_vs_quad.getInputLayout());
-		m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		m_deviceContext->VSSetShader(m_vs_quad.getShader(), NULL, 0);
-		m_deviceContext->PSSetShader(m_ps_gbuf_r_default.getShader(), NULL, 0);
-
-		m_quadModel->drawRaw(false);
-
-		// Unset gbuffer shader resource views
-		ID3D11ShaderResourceView* const nullShaderResourceViews[8] = { NULL };
-		m_deviceContext->PSSetShaderResources(0, m_defaultRenderConfig.m_numRenderTargetViews, nullShaderResourceViews);
+		// Copy final image to the back buffer
+		m_deviceContext->CopyResource(m_backBuffer.Get(), m_activeCameraImageRenderer.getFinalImage().m_texture2D.Get());
 
 		// Update FPS timer
 		m_fpsCounter++;
@@ -268,197 +317,187 @@ namespace hrzn::gfx
 			m_fpsTimer.restart();
 		}
 
-		// Render UI (not ImGui)
-		m_spriteBatch->Begin();
-
-		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(1.0f, 0.5f), DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-
-		if (sceneManager.objectIsSelected())
-		{
-			// Stop text being drawn behind camera
-			if (XMVectorGetX(XMVector3Dot(sceneManager.getSelectedObject()->getTransform().getPositionVector() - sceneManager.getActiveCamera().getTransform().getPositionVector(), sceneManager.getActiveCamera().getTransform().getFrontVector())) >= 0.0f)
-			{
-				XMFLOAT2 screenNDC = sceneManager.getActiveCamera().getNDCFrom3DPos(sceneManager.getSelectedObject()->getTransform().getPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f)); // XMFLOAT2(-0.5,0.5);
-				XMFLOAT2 screenPos = DirectX::XMFLOAT2((screenNDC.x * 0.5f + 0.5f) * UserConfig::it().getWindowWidth(), (1.0f - (screenNDC.y * 0.5f + 0.5f)) * UserConfig::it().getWindowHeight());
-				XMVECTOR size = m_spriteFont->MeasureString(utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str());
-				
-				screenPos.x -= XMVectorGetX(size) * 0.5f;
-				screenPos.y -= XMVectorGetY(size) * 0.5f;
-				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-				
-				screenPos.y -= 0.5f;
-				screenPos.x -= 1.0f;
-				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(sceneManager.getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-			}
-		}
-
-		m_spriteBatch->End();
-
 		ImGui::Render();
 
 		// Render imgui
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
+		// Render UI (not ImGui)
+		//m_spriteBatch->Begin();
+
+		//m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(1.0f, 0.5f), DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+		//m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+
+		//if (scene::SceneManager::it().objectIsSelected())
+		//{
+		//	// Stop text being drawn behind camera
+		//	if (XMVectorGetX(XMVector3Dot(scene::SceneManager::it().getSelectedObject()->getTransform().getPositionVector() - scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector(), scene::SceneManager::it().getActiveCamera().getTransform().getFrontVector())) >= 0.0f)
+		//	{
+		//		XMFLOAT2 screenNDC = scene::SceneManager::it().getActiveCamera().getNDCFrom3DPos(scene::SceneManager::it().getSelectedObject()->getTransform().getPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f)); // XMFLOAT2(-0.5,0.5);
+		//		XMFLOAT2 screenPos = DirectX::XMFLOAT2((screenNDC.x * 0.5f + 0.5f) * UserConfig::it().getWindowWidth(), (1.0f - (screenNDC.y * 0.5f + 0.5f)) * UserConfig::it().getWindowHeight());
+		//		XMVECTOR size = m_spriteFont->MeasureString(utils::string_helpers::stringToWide(scene::SceneManager::it().getSelectedObject()->getLabel()).c_str());
+		//		
+		//		screenPos.x -= XMVectorGetX(size) * 0.5f;
+		//		screenPos.y -= XMVectorGetY(size) * 0.5f;
+		//		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(scene::SceneManager::it().getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+		//		
+		//		screenPos.y -= 0.5f;
+		//		screenPos.x -= 1.0f;
+		//		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(scene::SceneManager::it().getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+		//	}
+		//}
+
+		//m_spriteBatch->End();
+
 		// Present image
 		m_swapChain->Present(m_useVSync, NULL);// using vsync
 	}
 
-	void GraphicsHandler::renderSceneObjects(scene::SceneManager& sceneManager, const RenderPassConfig& renderPassConfig)
+	void GraphicsHandler::renderSkybox(const DirectX::XMVECTOR& eyePos)
 	{
-		m_deviceContext->RSSetViewports(1, &renderPassConfig.m_viewport);
-
-		m_deviceContext->RSSetState(renderPassConfig.m_rasterizerState);
-		m_deviceContext->OMSetDepthStencilState(renderPassConfig.m_depthStencilState, 0);
-		m_deviceContext->OMSetBlendState(renderPassConfig.m_blendState, NULL, 0xFFFFFFFF);
-
-		sceneManager.getWritableDirectionalLight().updateShaderVariables(m_sceneCB);
-
-		// Clear render target views and depth stencil view
-		//float backgroundColour[4] = { 0.62f * sceneManager.getDirectionalLight().m_colour.x, 0.9f * sceneManager.getDirectionalLight().m_colour.y, 1.0f * sceneManager.getDirectionalLight().m_colour.z, 1.0f };
-		float backgroundColour[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-		m_deviceContext->OMSetRenderTargets(renderPassConfig.m_numRenderTargetViews, renderPassConfig.m_renderTargetViews, renderPassConfig.m_depthStencilView);
-		for (int renderTargetIndex = 0; renderTargetIndex < renderPassConfig.m_numRenderTargetViews; ++renderTargetIndex)
-		{
-			m_deviceContext->ClearRenderTargetView(renderPassConfig.m_renderTargetViews[renderTargetIndex], backgroundColour);
-		}
-
-		m_deviceContext->ClearDepthStencilView(renderPassConfig.m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-		// Update input assembler
-		m_deviceContext->IASetInputLayout(m_vs_default.getInputLayout());
-		m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		// Set sampler state
-		m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
-		m_deviceContext->PSSetSamplers(1, 1, m_samplerState.GetAddressOf());
-
-		// Set vertex and pixel shaders
-		m_deviceContext->VSSetShader(m_vs_default.getShader(), NULL, 0);
-	
-		UINT offset = 0;
-
-		// Draw skybox
-		m_deviceContext->PSSetShader(m_ps_atmospheric.getShader(), NULL, 0);
-
 		m_atmosphericCB.mapToGPU();
 		m_deviceContext->PSSetConstantBuffers(1, 1, m_atmosphericCB.getAddressOf());
 
-		sceneManager.getWritableSkybox().getWritableTransform().setPosition(sceneManager.getActiveCamera().getTransform().getPositionFloat3());
-		sceneManager.getSkybox().draw(&m_perObjectCB);
+		scene::SceneManager::it().getWritableSkybox().getWritableTransform().setPosition(eyePos);
+		scene::SceneManager::it().getSkybox().draw(&m_perObjectCB);
+	}
 
-		m_deviceContext->ClearDepthStencilView(renderPassConfig.m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	void GraphicsHandler::renderSceneObjects(RenderPassType renderPassType, const DirectX::XMVECTOR& eyePos, const DirectX::XMVECTOR& eyeFacing) // const RenderPassConfig& renderPassConfig
+	{
+		XMFLOAT3 eyePosFloat = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		XMStoreFloat3(&eyePosFloat, eyePos);
+
+		bool bindPSData = true;
+		if (renderPassType == RenderPassType::eShadowPass)
+		{
+			bindPSData = false;
+		}
 
 		// Regular objects
-		m_deviceContext->PSSetShaderResources(0, 1, m_defaultDiffuseTexture->getTextureResourceViewAddress());
-		m_deviceContext->PSSetShaderResources(1, 1, m_defaultSpecularTexture->getTextureResourceViewAddress());
-		m_deviceContext->PSSetShaderResources(2, 1, m_defaultNormalTexture->getTextureResourceViewAddress());
-
-		const auto& renderables = sceneManager.getRenderables();
-		size_t numRenderables = renderables.size();
-		for (size_t i = 0; i < numRenderables; ++i)
+		if (renderPassType == RenderPassType::eGBufferCompatiblePass)
 		{
-			entity::RenderableGameObject* renderable = renderables[i];
-
-			if (auto* light = dynamic_cast<entity::LightGameObject*>(renderable))
+			const auto& gBufferRenderables = scene::SceneManager::it().getGBufferRenderables();
+			for (size_t i = 0; i < gBufferRenderables.size(); ++i)
 			{
-				m_noLightCB.m_data.m_colour = light->getColour();
-				m_noLightCB.mapToGPU();
-
-				m_deviceContext->PSSetConstantBuffers(1, 1, m_noLightCB.getAddressOf());
-
-				m_deviceContext->PSSetShader(m_ps_noLight.getShader(), NULL, 0);
-
-				renderable->draw(&m_perObjectCB);
+				gBufferRenderables[i]->draw(&m_perObjectCB, bindPSData);
 			}
-			else
+		}
+		else if (renderPassType == RenderPassType::eNonGBufferCompatiblePass)
+		{
+			const auto& nonGBufferRenderables = scene::SceneManager::it().getNonGBufferRenderables();
+			for (size_t i = 0; i < nonGBufferRenderables.size(); ++i)
 			{
-				m_deviceContext->PSSetShader(m_ps_gbuf_w_default.getShader(), NULL, 0);
+				entity::RenderableGameObject* renderable = nonGBufferRenderables[i];
 
-				renderable->draw(&m_perObjectCB);
+				if (auto* light = dynamic_cast<entity::LightGameObject*>(renderable))
+				{
+					XMFLOAT3 lightCol = light->getColour();
+					m_perMaterialCB.m_data.m_colour = XMFLOAT4(lightCol.x, lightCol.y, lightCol.z, 1.0f);
+					m_perMaterialCB.mapToGPU();
+				}
+				renderable->draw(&m_perObjectCB, bindPSData);
+			}
+		}
+		else if (renderPassType == RenderPassType::eShadowPass)
+		{
+			const auto& allRenderables = scene::SceneManager::it().getAllRenderables();
+			for (size_t i = 0; i < allRenderables.size(); ++i)
+			{
+				allRenderables[i]->draw(&m_perObjectCB, bindPSData);
+			}
+		}
+		else if (renderPassType == RenderPassType::eStandardPass)
+		{
+			const auto& allRenderables = scene::SceneManager::it().getAllRenderables();
+			for (size_t i = 0; i < allRenderables.size(); ++i)
+			{
+				entity::RenderableGameObject* renderable = allRenderables[i];
+				if (auto* light = dynamic_cast<entity::LightGameObject*>(renderable))
+				{
+					XMFLOAT3 lightCol = light->getColour();
+					m_perMaterialCB.m_data.m_colour = XMFLOAT4(lightCol.x, lightCol.y, lightCol.z, 1.0f);
+					m_perMaterialCB.mapToGPU();
+				}
+				renderable->draw(&m_perObjectCB, bindPSData);
+			}
+		}
+		
+		// Draw Springs
+		if (renderPassType == RenderPassType::eGBufferCompatiblePass || renderPassType == RenderPassType::eStandardPass)
+		{
+			XMMATRIX springModelMatrix;
+
+			const auto& springs = scene::SceneManager::it().getSprings();
+			for (int i = 0; i < springs.size(); ++i)
+			{
+				XMVECTOR springStart = springs[i]->getSpringStart()->getTransformReference()->getPositionVector();
+				XMVECTOR springEnd = springs[i]->getSpringEnd()->getTransformReference()->getPositionVector();
+
+				float scale = XMVectorGetX(XMVector3Length(springEnd - springStart)) / 5.0f;
+
+				XMVECTOR front = XMVectorSetW(XMVector3Normalize(springEnd - springStart), 0.0f);
+				XMVECTOR up = XMVectorSetW(XMVector3Normalize(XMVector3Cross(front, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f))), 0.0f);
+				XMVECTOR right = XMVectorSetW(XMVector3Cross(front, up), 0.0f);
+
+				if (abs(XMVectorGetZ(front)) == 1.0f)
+				{
+					springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
+				}
+				else
+				{
+					springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMATRIX(up, right, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
+				}
+
+				m_springModel->draw(springModelMatrix, &m_perObjectCB, bindPSData);
+			}
+		}
+
+		// Draw ocean
+		if (renderPassType == RenderPassType::eNonGBufferCompatiblePass || renderPassType == RenderPassType::eStandardPass)
+		{
+			if (scene::SceneManager::it().getSceneConfig().getOceanConfig().m_enabled)
+			{
+				m_waterCB.mapToGPU();
+				m_deviceContext->VSSetConstantBuffers(1, 1, m_waterCB.getAddressOf());
+				m_deviceContext->PSSetConstantBuffers(1, 1, m_waterCB.getAddressOf());
+
+				// Put the centre a bit in front of the camera where the best fidelity is in the mesh
+				//float fovDistMod = (1.0f - (fminf(70.0f, scene::SceneManager::it().getActiveCamera().getFOV()) / 70.0f)) * 150.0f;
+				XMVECTOR oceanPosition = eyePos + eyeFacing * (abs(eyePosFloat.y) + 30.0f /* + fovDistMod*/) * 1.2f;
+
+				scene::SceneManager::it().getWritableOcean().getWritableTransform().setPosition(XMVectorGetX(oceanPosition), scene::SceneManager::it().getOcean().getTransform().getPositionFloat3().y, XMVectorGetZ(oceanPosition));
+				scene::SceneManager::it().getOcean().draw(&m_perObjectCB, bindPSData);
+			}
+		}
+
+		// Draw clouds
+		if (renderPassType == RenderPassType::eNonGBufferCompatiblePass || renderPassType == RenderPassType::eStandardPass)
+		{
+			if (scene::SceneManager::it().getSceneConfig().getCloudConfig().m_enabled)
+			{
+				m_deviceContext->PSSetConstantBuffers(1, 1, m_cloudsCB.getAddressOf());
+				m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
+
+				scene::SceneManager::it().getWritableClouds().getWritableTransform().setPosition(eyePosFloat.x, scene::SceneManager::it().getClouds().getTransform().getPositionFloat3().y, eyePosFloat.z);
+				scene::SceneManager::it().getClouds().draw(&m_perObjectCB, bindPSData);
 			}
 		}
 
 		// Draw particles
-		sceneManager.getParticleSystem().drawParticles(&m_perObjectCB);
-
-		// Draw Springs
-		XMMATRIX springModelMatrix;
-
-		const auto& springs = sceneManager.getSprings();
-		for (int i = 0; i < springs.size(); ++i)
+		if (renderPassType == RenderPassType::eNonGBufferCompatiblePass || renderPassType == RenderPassType::eStandardPass)
 		{
-			XMVECTOR springStart = springs[i]->getSpringStart()->getTransformReference()->getPositionVector();
-			XMVECTOR springEnd = springs[i]->getSpringEnd()->getTransformReference()->getPositionVector();
-
-			float scale = XMVectorGetX(XMVector3Length(springEnd - springStart)) / 5.0f;
-
-			XMVECTOR front = XMVectorSetW(XMVector3Normalize(springEnd - springStart), 0.0f);
-			XMVECTOR up = XMVectorSetW(XMVector3Normalize(XMVector3Cross(front, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f))), 0.0f);
-			XMVECTOR right = XMVectorSetW(XMVector3Cross(front, up), 0.0f);
-
-			if (abs(XMVectorGetZ(front)) == 1.0f)
-			{
-				springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
-			}
-			else
-			{
-				springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMATRIX(up, right, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
-			}
-			
-			m_springModel->draw(springModelMatrix, &m_perObjectCB);
+			scene::SceneManager::it().getParticleSystem().drawParticles(&m_perObjectCB, bindPSData);
 		}
+	}
 
-		// Draw ocean
-		if (sceneManager.getSceneConfig().getOceanConfig().m_enabled)
+	void GraphicsHandler::renderGizmos()
+	{
+		if (scene::SceneManager::it().objectIsSelected())
 		{
-			m_deviceContext->VSSetShader(m_vs_water.getShader(), NULL, 0);
-			m_deviceContext->PSSetShader(m_ps_water.getShader(), NULL, 0);
+			m_perMaterialCB.m_data.m_colour = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			m_perMaterialCB.mapToGPU();
 
-			m_waterCB.mapToGPU();
-			m_deviceContext->VSSetConstantBuffers(1, 1, m_waterCB.getAddressOf());
-			m_deviceContext->PSSetConstantBuffers(1, 1, m_waterCB.getAddressOf());
-
-			// Put the centre a bit in front of the camera where the best fidelity is in the mesh
-			float fovDistMod = (1.0f - (fminf(70.0f, sceneManager.getActiveCamera().getFOV()) / 70.0f)) * 150.0f;
-			XMVECTOR oceanPosition = sceneManager.getActiveCamera().getTransform().getPositionVector() + sceneManager.getActiveCamera().getTransform().getFrontVector() * (abs(sceneManager.getActiveCamera().getTransform().getPositionFloat3().y) + 30.0f + fovDistMod) * 1.2f;
-
-			sceneManager.getWritableOcean().getWritableTransform().setPosition(XMVectorGetX(oceanPosition), sceneManager.getOcean().getTransform().getPositionFloat3().y, XMVectorGetZ(oceanPosition));
-
-			//float scaleMod = fmaxf(1.0f, m_camera.getTransform().getPositionFloat3().y * 0.01f);
-			//m_ocean.setScale(XMFLOAT3(scaleMod, scaleMod, scaleMod));
-
-			sceneManager.getOcean().draw(&m_perObjectCB, false);
-		}
-
-		// Draw clouds
-		if (sceneManager.getSceneConfig().getCloudConfig().m_enabled)
-		{
-			m_deviceContext->VSSetShader(m_vs_default.getShader(), NULL, 0);
-			m_deviceContext->PSSetShader(m_ps_clouds.getShader(), NULL, 0);
-
-			XMFLOAT3 cameraPosFloat = sceneManager.getActiveCamera().getTransform().getPositionFloat3();
-
-			m_deviceContext->PSSetConstantBuffers(1, 1, m_cloudsCB.getAddressOf());
-			m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
-
-			sceneManager.getWritableClouds().getWritableTransform().setPosition(cameraPosFloat.x, sceneManager.getClouds().getTransform().getPositionFloat3().y, cameraPosFloat.z);
-
-			sceneManager.getClouds().draw(&m_perObjectCB, false);
-		}
-	
-		// Draw axis
-		if (sceneManager.objectIsSelected())
-		{
-			m_deviceContext->PSSetShader(m_ps_noLight.getShader(), NULL, 0);
-			m_deviceContext->PSSetConstantBuffers(1, 1, m_noLightCB.getAddressOf());
-			m_deviceContext->ClearDepthStencilView(renderPassConfig.m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-			m_noLightCB.m_data.m_colour = XMFLOAT3(1.0f, 1.0f, 1.0f);
-			m_noLightCB.mapToGPU();
-
-			drawAxisForObject(*(sceneManager.getSelectedObject()), sceneManager);
+			drawAxisForObject(*(scene::SceneManager::it().getSelectedObject()));
 		}
 	}
 
@@ -468,7 +507,7 @@ namespace hrzn::gfx
 		int height = 32;
 
 		// Set up the constant buffer
-		m_deviceContext->CSSetShader(m_cs_noiseGen.getShader(), nullptr, 0);
+		m_deviceContext->CSSetShader(m_cs_noiseGen->getShader(), nullptr, 0);
 
 		m_noiseTextureCB.m_data.m_size = static_cast<float>(size);
 		m_noiseTextureCB.m_data.m_height = static_cast<float>(height);
@@ -535,24 +574,7 @@ namespace hrzn::gfx
 		COM_ERROR_IF_FAILED(hr, "Failed to create noise texture SRV");
 	}
 
-	void GraphicsHandler::createRenderPassConfigs()
-	{
-		// Default render config
-		m_defaultRenderConfig.m_viewport = m_defaultViewport;
-
-		m_defaultRenderConfig.m_renderTargetViews = m_geometryBuffer.m_renderTargetViews;
-		m_defaultRenderConfig.m_numRenderTargetViews = 4;
-
-		m_defaultRenderConfig.m_depthStencilView = m_geometryBuffer.m_depthStencil.m_depthStencilView.Get();
-
-		m_defaultRenderConfig.m_depthStencilState = m_depthStencilState.Get();
-		m_defaultRenderConfig.m_rasterizerState = m_regularRasterizerState.Get();
-		m_defaultRenderConfig.m_blendState = m_gBufferBlendState.Get();
-
-		m_defaultRenderConfig.m_highestLOD = 0;
-	}
-
-	void GraphicsHandler::updateImGui(scene::SceneManager& sceneManager)
+	void GraphicsHandler::updateImGui()
 	{
 		// Start new ImGui frame
 		ImGui_ImplDX11_NewFrame();
@@ -574,15 +596,15 @@ namespace hrzn::gfx
 		}*/
 
 		// Selected object menu
-		if (sceneManager.objectIsSelected())
+		if (scene::SceneManager::it().objectIsSelected())
 		{
-			entity::GameObject::Type selectedObjectType = sceneManager.getSelectedObject()->getType();
+			entity::GameObject::Type selectedObjectType = scene::SceneManager::it().getSelectedObject()->getType();
 
 			ImGui::Begin("Game Object Settings");
 
-			ImGui::Text(("Label: " + sceneManager.getSelectedObject()->getLabel()).c_str());
+			ImGui::Text(("Label: " + scene::SceneManager::it().getSelectedObject()->getLabel()).c_str());
 
-			ImGui::InputText("Object Label", &sceneManager.getWritableSelectedObject()->getLabelPtr()->at(0), 20);
+			ImGui::InputText("Object Label", &scene::SceneManager::it().getWritableSelectedObject()->getLabelPtr()->at(0), 20);
 
 			if (ImGui::CollapsingHeader("Transform"))
 			{
@@ -592,11 +614,11 @@ namespace hrzn::gfx
 				{
 					ImGui::TreePush();
 
-					sceneManager.getWritableSelectedObject()->getWritableTransform().editPositionImGui();
+					scene::SceneManager::it().getWritableSelectedObject()->getWritableTransform().editPositionImGui();
 
 					if (ImGui::Button("Edit Translation"))
 					{
-						sceneManager.setAxisEditState(scene::AxisEditState::eEditTranslate);
+						scene::SceneManager::it().setAxisEditState(scene::AxisEditState::eEditTranslate);
 					}
 
 					ImGui::TreePop();
@@ -606,18 +628,18 @@ namespace hrzn::gfx
 				{
 					ImGui::TreePush();
 
-					sceneManager.getWritableSelectedObject()->getWritableTransform().displayOrientationImGui();
+					scene::SceneManager::it().getWritableSelectedObject()->getWritableTransform().displayOrientationImGui();
 
 					if (ImGui::Button("Edit Orientation"))
 					{
-						sceneManager.setAxisEditState(scene::AxisEditState::eEditRotate);
+						scene::SceneManager::it().setAxisEditState(scene::AxisEditState::eEditRotate);
 					}
 
 					ImGui::SameLine();
 
 					if (ImGui::Button("Reset Orientation"))
 					{
-						sceneManager.getWritableSelectedObject()->getWritableTransform().setOrientationQuaternion(XMQuaternionIdentity());
+						scene::SceneManager::it().getWritableSelectedObject()->getWritableTransform().setOrientationQuaternion(XMQuaternionIdentity());
 					}
 
 					if (ImGui::CollapsingHeader("Axis Rotate"))
@@ -639,7 +661,7 @@ namespace hrzn::gfx
 						ImGui::SameLine();
 						if (ImGui::Button("Rotate about axis by angle"))
 						{
-							sceneManager.getWritableSelectedObject()->getWritableTransform().rotateUsingAxis(XMLoadFloat3(&axis), angle);
+							scene::SceneManager::it().getWritableSelectedObject()->getWritableTransform().rotateUsingAxis(XMLoadFloat3(&axis), angle);
 						}
 
 						ImGui::TreePop();
@@ -655,13 +677,13 @@ namespace hrzn::gfx
 					{
 						ImGui::TreePush();
 
-						XMFLOAT3 scale = sceneManager.getSelectedObject()->getScale();
+						XMFLOAT3 scale = scene::SceneManager::it().getSelectedObject()->getScale();
 						ImGui::DragFloat3("Scale", &scale.x, 0.05f, 0.1f, 10.0f);
-						sceneManager.getWritableSelectedObject()->setScale(scale);
+						scene::SceneManager::it().getWritableSelectedObject()->setScale(scale);
 
 						if (ImGui::Button("Edit Scaling"))
 						{
-							sceneManager.setAxisEditState(scene::AxisEditState::eEditScale);
+							scene::SceneManager::it().setAxisEditState(scene::AxisEditState::eEditScale);
 						}
 
 						ImGui::TreePop();
@@ -678,7 +700,7 @@ namespace hrzn::gfx
 				{
 					ImGui::TreePush();
 
-					entity::LightGameObject* lightObj = reinterpret_cast<entity::LightGameObject*>(sceneManager.getWritableSelectedObject());
+					entity::LightGameObject* lightObj = reinterpret_cast<entity::LightGameObject*>(scene::SceneManager::it().getWritableSelectedObject());
 					ImGui::ColorEdit3("Colour", &(lightObj->m_colour.x));
 
 					entity::PointLightGameObject* pointLightObj = reinterpret_cast<entity::PointLightGameObject*>(lightObj);
@@ -695,10 +717,10 @@ namespace hrzn::gfx
 
 					if (ImGui::Button("Move to Camera"))
 					{
-						XMVECTOR lightPosition = sceneManager.getActiveCamera().getTransform().getPositionVector();
-						lightPosition += sceneManager.getActiveCamera().getTransform().getFrontVector();
+						XMVECTOR lightPosition = scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector();
+						lightPosition += scene::SceneManager::it().getActiveCamera().getTransform().getFrontVector();
 						lightObj->getWritableTransform().setPosition(lightPosition);
-						lightObj->getWritableTransform().copyOrientationFrom(sceneManager.getActiveCamera().getTransform());
+						lightObj->getWritableTransform().copyOrientationFrom(scene::SceneManager::it().getActiveCamera().getTransform());
 						lightObj->setFollowingObjectTrack(false);
 					}
 
@@ -712,7 +734,7 @@ namespace hrzn::gfx
 				{
 					ImGui::TreePush();
 
-					entity::PhysicsGameObject* object = dynamic_cast<entity::PhysicsGameObject*>(sceneManager.getWritableSelectedObject());
+					entity::PhysicsGameObject* object = dynamic_cast<entity::PhysicsGameObject*>(scene::SceneManager::it().getWritableSelectedObject());
 					ImGui::Checkbox("Static", object->getRigidBody()->isStaticPtr());
 					if (ImGui::Button("Apply Upwards Thrust"))
 					{
@@ -720,17 +742,17 @@ namespace hrzn::gfx
 					}
 					if (ImGui::Button("Apply Forward Thrust"))
 					{
-						object->getRigidBody()->addThrust(XMVector3Normalize(object->getTransform().getPositionVector() - sceneManager.getActiveCamera().getTransform().getPositionVector()) * 800.0f, 0.5f);
+						object->getRigidBody()->addThrust(XMVector3Normalize(object->getTransform().getPositionVector() - scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector()) * 800.0f, 0.5f);
 					}
 					if (ImGui::Button("Apply Torque"))
 					{
-						XMVECTOR worldPos = (object->getTransform().getPositionVector() + sceneManager.getActiveCamera().getTransform().getPositionVector()) * 0.5f;
+						XMVECTOR worldPos = (object->getTransform().getPositionVector() + scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector()) * 0.5f;
 						object->getRigidBody()->addTorque(worldPos - object->getTransform().getPositionVector(), XMVectorSet(0.0f, 100.0f, 0.0f, 0.0f));
 					}
 					if (ImGui::Button("Apply Split Force"))
 					{
-						XMVECTOR worldPos = sceneManager.getActiveCamera().getTransform().getPositionVector();
-						object->getRigidBody()->addForceSplit(worldPos, sceneManager.getActiveCamera().getTransform().getFrontVector() * 10000.0f);
+						XMVECTOR worldPos = scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector();
+						object->getRigidBody()->addForceSplit(worldPos, scene::SceneManager::it().getActiveCamera().getTransform().getFrontVector() * 10000.0f);
 					}
 
 					ImGui::TreePop();
@@ -741,36 +763,36 @@ namespace hrzn::gfx
 			{
 				ImGui::TreePush();
 
-				if (sceneManager.getSelectedObject()->hasObjectTrack())
+				if (scene::SceneManager::it().getSelectedObject()->hasObjectTrack())
 				{
-					bool followingTrack = sceneManager.getSelectedObject()->isFollowingObjectTrack();
+					bool followingTrack = scene::SceneManager::it().getSelectedObject()->isFollowingObjectTrack();
 					ImGui::Checkbox("Follow Track", &followingTrack);
-					sceneManager.getWritableSelectedObject()->setFollowingObjectTrack(followingTrack);
+					scene::SceneManager::it().getWritableSelectedObject()->setFollowingObjectTrack(followingTrack);
 				}
 
-				bool floatingObject = sceneManager.getSelectedObject()->getFloating();
+				bool floatingObject = scene::SceneManager::it().getSelectedObject()->getFloating();
 				ImGui::Checkbox("Float Object", &floatingObject);
-				sceneManager.getWritableSelectedObject()->setFloating(floatingObject);
+				scene::SceneManager::it().getWritableSelectedObject()->setFloating(floatingObject);
 
-				if (sceneManager.getSelectedObject()->isFollowingObject())
+				if (scene::SceneManager::it().getSelectedObject()->isFollowingObject())
 				{
 					if (ImGui::Button("Stop Following Object"))
 					{
-						sceneManager.getWritableSelectedObject()->setObjectToFollow(nullptr);
+						scene::SceneManager::it().getWritableSelectedObject()->setObjectToFollow(nullptr);
 					}
 				}
 				else
 				{
 					if (ImGui::TreeNode("Followable Objects"))
 					{
-						auto mapIterator = sceneManager.getObjectMap().begin();
-						while (mapIterator != sceneManager.getObjectMap().end())
+						auto mapIterator = scene::SceneManager::it().getObjectMap().begin();
+						while (mapIterator != scene::SceneManager::it().getObjectMap().end())
 						{
 							std::string label = "Follow " + mapIterator->second->getLabel();
 
 							if (ImGui::Button(label.c_str()))
 							{
-								sceneManager.getWritableSelectedObject()->setObjectToFollow(mapIterator->second);
+								scene::SceneManager::it().getWritableSelectedObject()->setObjectToFollow(mapIterator->second);
 							}
 
 							mapIterator++;
@@ -779,7 +801,7 @@ namespace hrzn::gfx
 					}
 				}
 
-				size_t numRelativeCameras = sceneManager.getSelectedObject()->getRelativePositions().size();
+				size_t numRelativeCameras = scene::SceneManager::it().getSelectedObject()->getRelativePositions().size();
 				if (numRelativeCameras != 0)
 				{
 					ImGui::Text("Relative Cameras");
@@ -788,8 +810,8 @@ namespace hrzn::gfx
 				{
 					if (ImGui::Button(("Camera " + std::to_string(i + 1)).c_str()))
 					{
-						sceneManager.getWritableActiveCamera().setRelativeObject(sceneManager.getSelectedObject(), sceneManager.getSelectedObject()->getRelativePositions()[i]);
-						sceneManager.getWritableActiveCamera().setFollowingObjectTrack(false);
+						scene::SceneManager::it().getWritableActiveCamera().setRelativeObject(scene::SceneManager::it().getSelectedObject(), scene::SceneManager::it().getSelectedObject()->getRelativePositions()[i]);
+						scene::SceneManager::it().getWritableActiveCamera().setFollowingObjectTrack(false);
 					}
 					if (i < numRelativeCameras - 1)
 					{
@@ -797,7 +819,7 @@ namespace hrzn::gfx
 					}
 				}
 
-				entity::GameObjectController* controller = sceneManager.getWritableSelectedObject()->getWritableController();
+				entity::GameObjectController* controller = scene::SceneManager::it().getWritableSelectedObject()->getWritableController();
 				if (controller != nullptr)
 				{
 					ImGui::Checkbox("Control Object", controller->isActivePtr());
@@ -805,8 +827,8 @@ namespace hrzn::gfx
 
 				if (ImGui::Button("Delete Object"))
 				{
-					sceneManager.removeGameObject(sceneManager.getSelectedObject()->getLabel());
-					sceneManager.setSelectedObject(nullptr);
+					scene::SceneManager::it().removeGameObject(scene::SceneManager::it().getSelectedObject()->getLabel());
+					scene::SceneManager::it().setSelectedObject(nullptr);
 				}
 
 				ImGui::TreePop();
@@ -814,393 +836,464 @@ namespace hrzn::gfx
 
 			if (ImGui::Button("Close"))
 			{
-				sceneManager.setSelectedObject(nullptr);
+				scene::SceneManager::it().setSelectedObject(nullptr);
 			}
-		
+
 			ImGui::End();
 		}
 
-		ImGui::Begin("Object Selection");
-	
-		auto mapIterator = sceneManager.getObjectMap().begin();
-		while (mapIterator != sceneManager.getObjectMap().end())
+		if (ImGui::Begin("Object Selection"))
 		{
-			if (entity::RenderableGameObject* gameObject = dynamic_cast<entity::RenderableGameObject*>(mapIterator->second))
+			auto mapIterator = scene::SceneManager::it().getObjectMap().begin();
+			while (mapIterator != scene::SceneManager::it().getObjectMap().end())
 			{
-				std::string label = gameObject->getLabel();
+				if (entity::RenderableGameObject* gameObject = dynamic_cast<entity::RenderableGameObject*>(mapIterator->second))
+				{
+					std::string label = gameObject->getLabel();
 
-				if (sceneManager.getSelectedObject() == gameObject)
-				{
-					ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), ("> " + label).c_str());
+					if (scene::SceneManager::it().getSelectedObject() == gameObject)
+					{
+						ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), ("> " + label).c_str());
+					}
+					else if (ImGui::MenuItem(label.c_str()))
+					{
+						scene::SceneManager::it().setSelectedObject(gameObject);
+					}
 				}
-				else if (ImGui::MenuItem(label.c_str()))
-				{
-					sceneManager.setSelectedObject(gameObject);
-				}
+
+				mapIterator++;
 			}
-
-			mapIterator++;
 		}
 
 		ImGui::End();
 
-		ImGui::Begin("Scene Settings");
-	
-		/*if (ImGui::Button("Save Scene"))
+		if (ImGui::Begin("Scene Settings"))
 		{
-			sceneManager.saveScene(sceneManager.getSceneName().c_str());
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Load Scene"))
-		{
-			sceneManager.loadScene("test");
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Unload Scene"))
-		{
-			sceneManager.unloadScene();
-		}*/
-		
-		// Directional light colour
-		ImGui::ColorEdit3("Dir Light Colour", &(sceneManager.getWritableDirectionalLight().m_colour.x));
-		m_sceneCB.m_data.m_directionalLight.m_colour = sceneManager.getWritableDirectionalLight().m_colour;
-
-		ImGui::Checkbox("Use VSync", &m_useVSync);
-
-		ImGui::SameLine();
-
-		ImGui::Checkbox("Day/Night Cycle", sceneManager.getDayNightCyclePtr());
-
-		ImGui::SameLine();
-
-		ImGui::Checkbox("Pause", sceneManager.getPausedPtr());
-		ImGui::SliderFloat("Day Progress", sceneManager.getDayProgressPtr(), 0.0f, 1.0f);
-
-		if (ImGui::CollapsingHeader("Object Spawning"))
-		{
-			ImGui::TreePush();
-
-			static char label[20] = "";
-			static char path[50] = "city/wall/frames/left/r.obj";
-			ImGui::InputText("New Object Label", &label[0], 20);
-			ImGui::InputText("New Object Path", &path[0], 50);
-
-			if (ImGui::Button("Spawn Object"))
+			/*if (ImGui::Button("Save Scene"))
 			{
-				IFileOpenDialog* pFileOpen;
+				sceneManager.saveScene(sceneManager.getSceneName().c_str());
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Load Scene"))
+			{
+				sceneManager.loadScene("test");
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Unload Scene"))
+			{
+				sceneManager.unloadScene();
+			}*/
 
-				// Create the FileOpenDialog object.
-				HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+			// Directional light colour
+			ImGui::ColorEdit3("Dir Light Colour", &(scene::SceneManager::it().getWritableDirectionalLight().m_colour.x));
+			m_sceneCB.m_data.m_directionalLight.m_colour = scene::SceneManager::it().getWritableDirectionalLight().m_colour;
 
-				if (SUCCEEDED(hr))
+			ImGui::Checkbox("Use VSync", &m_useVSync);
+
+			ImGui::SameLine();
+
+			ImGui::Checkbox("Day/Night Cycle", scene::SceneManager::it().getDayNightCyclePtr());
+
+			ImGui::SameLine();
+
+			ImGui::Checkbox("Pause", scene::SceneManager::it().getPausedPtr());
+			ImGui::SliderFloat("Day Progress", scene::SceneManager::it().getDayProgressPtr(), 0.0f, 1.0f);
+
+			if (ImGui::CollapsingHeader("Object Spawning"))
+			{
+				ImGui::TreePush();
+
+				static char label[20] = "";
+				static char path[50] = "city/wall/frames/left/r.obj";
+				ImGui::InputText("New Object Label", &label[0], 20);
+				ImGui::InputText("New Object Path", &path[0], 50);
+
+				if (ImGui::Button("Spawn Object"))
 				{
-					//LPCWSTR modelPath = utils::string_helpers::stringToWide(_SOLUTIONDIR).c_str();
-					LPCWSTR modelPath = L"C:\\Users\\g012090i\\source\\repos\\FergusGriggs\\HorizonEngine\\HorizonEngine\\res\\models\\";
+					IFileOpenDialog* pFileOpen;
 
-					Microsoft::WRL::ComPtr<IShellItem> location;
-					hr = SHCreateItemFromParsingName(modelPath, nullptr, IID_PPV_ARGS(&location));
+					// Create the FileOpenDialog object.
+					HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
 
-					pFileOpen->SetFolder(location.Get());
-
-					// Show the Open dialog box.
-					hr = pFileOpen->Show(NULL);
-
-					// Get the file name from the dialog box.
 					if (SUCCEEDED(hr))
 					{
-						IShellItem* pItem;
-						hr = pFileOpen->GetResult(&pItem);
+						//LPCWSTR modelPath = utils::string_helpers::stringToWide(_SOLUTIONDIR).c_str();
+						LPCWSTR modelPath = L"C:\\Users\\g012090i\\source\\repos\\FergusGriggs\\HorizonEngine\\HorizonEngine\\res\\models\\";
+
+						Microsoft::WRL::ComPtr<IShellItem> location;
+						hr = SHCreateItemFromParsingName(modelPath, nullptr, IID_PPV_ARGS(&location));
+
+						pFileOpen->SetFolder(location.Get());
+
+						// Show the Open dialog box.
+						hr = pFileOpen->Show(NULL);
+
+						// Get the file name from the dialog box.
 						if (SUCCEEDED(hr))
 						{
-							PWSTR pszFilePath;
-							hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-
-							// Display the file name to the user.
+							IShellItem* pItem;
+							hr = pFileOpen->GetResult(&pItem);
 							if (SUCCEEDED(hr))
 							{
-								MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
-								CoTaskMemFree(pszFilePath);
+								PWSTR pszFilePath;
+								hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+								// Display the file name to the user.
+								if (SUCCEEDED(hr))
+								{
+									MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
+									CoTaskMemFree(pszFilePath);
+								}
+								pItem->Release();
 							}
-							pItem->Release();
 						}
+						pFileOpen->Release();
 					}
-					pFileOpen->Release();
+
+					std::string labelChosen = label;
+					if (labelChosen != "" && scene::SceneManager::it().getObjectMap().find(labelChosen) == scene::SceneManager::it().getObjectMap().end())
+					{
+						entity::RenderableGameObject* newObject = new entity::RenderableGameObject();
+						std::string pathstr = path;
+						newObject->initialize(label, "res/models/environment/meshes/" + pathstr);
+
+						newObject->getWritableTransform().setPosition(scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector() + scene::SceneManager::it().getActiveCamera().getTransform().getFrontVector() * 5.0f);
+
+						scene::SceneManager::it().addGameObject(newObject);
+						scene::SceneManager::it().setSelectedObject(newObject);
+					}
 				}
 
-				std::string labelChosen = label;
-				if (labelChosen != "" && sceneManager.getObjectMap().find(labelChosen) == sceneManager.getObjectMap().end())
-				{
-					entity::RenderableGameObject* newObject = new entity::RenderableGameObject();
-					std::string pathstr = path;
-					newObject->initialize(label, "res/models/environment/meshes/" + pathstr);
-
-					newObject->getWritableTransform().setPosition(sceneManager.getActiveCamera().getTransform().getPositionVector() + sceneManager.getActiveCamera().getTransform().getFrontVector() * 5.0f);
-
-					sceneManager.addGameObject(newObject);
-					sceneManager.setSelectedObject(newObject);
-				}
+				ImGui::TreePop();
 			}
 
-			ImGui::TreePop();
-		}
-
-		if (ImGui::CollapsingHeader("Render Options"))
-		{
-			ImGui::TreePush();
-
-			// Normal Mapping
-			bool useNormalMapping = static_cast<bool>(m_sceneCB.m_data.m_useNormalMapping);
-			ImGui::Checkbox("Normal Mapping", &useNormalMapping);
-			m_sceneCB.m_data.m_useNormalMapping = useNormalMapping;
-
-			ImGui::SameLine();
-
-			// PO Mapping
-			bool useParallaxOcclusionMapping = static_cast<bool>(m_sceneCB.m_data.m_useParallaxOcclusionMapping);
-			ImGui::Checkbox("PO Mapping", &useParallaxOcclusionMapping);
-			m_sceneCB.m_data.m_useParallaxOcclusionMapping = useParallaxOcclusionMapping;
-
-			ImGui::SameLine();
-
-			// Self shadowing
-			bool selfShadowing = static_cast<bool>(m_sceneCB.m_data.m_selfShadowing);
-			ImGui::Checkbox("Self Shadowing", &selfShadowing);
-			m_sceneCB.m_data.m_selfShadowing = selfShadowing;
-
-			// Roughness Mapping
-			bool roughnessMapping = static_cast<bool>(m_sceneCB.m_data.m_roughnessMapping);
-			ImGui::Checkbox("Roughness Mapping", &roughnessMapping);
-			m_sceneCB.m_data.m_roughnessMapping = roughnessMapping;
-
-			ImGui::SameLine();
-
-			ImGui::Checkbox("Wireframe", &m_useWireframe);
-
-			ImGui::SameLine();
-
-			// Show Normals
-			bool showWorldNormals = static_cast<bool>(m_sceneCB.m_data.m_showWorldNormals);
-			ImGui::Checkbox("Normals", &showWorldNormals);
-			m_sceneCB.m_data.m_showWorldNormals = showWorldNormals;
-
-			ImGui::SameLine();
-
-			// Show UVs
-			bool showUVs = static_cast<bool>(m_sceneCB.m_data.m_showUVs);
-			ImGui::Checkbox("Show UVs", &showUVs);
-			m_sceneCB.m_data.m_showUVs = showUVs;
-
-			// Cull back normals
-			bool cullBackNormals = static_cast<bool>(m_sceneCB.m_data.m_cullBackNormals);
-			ImGui::Checkbox("Cull Back Normals", &cullBackNormals);
-			m_sceneCB.m_data.m_cullBackNormals = cullBackNormals;
-
-			ImGui::SameLine();
-
-			// Gamma correction
-			bool gammaCorrection = static_cast<bool>(m_sceneCB.m_data.m_gammaCorrection);
-			ImGui::Checkbox("Gamma Corr", &gammaCorrection);
-			m_sceneCB.m_data.m_gammaCorrection = gammaCorrection;
-
-			ImGui::SameLine();
-
-			// Misc toggle A
-			bool miscToggleA = static_cast<bool>(m_sceneCB.m_data.m_miscToggleA);
-			ImGui::Checkbox("Misc A", &miscToggleA);
-			m_sceneCB.m_data.m_miscToggleA = miscToggleA;
-
-			ImGui::SameLine();
-
-			// Misc toggle B
-			bool miscToggleB = static_cast<bool>(m_sceneCB.m_data.m_miscToggleB);
-			ImGui::Checkbox("Misc B", &miscToggleB);
-			m_sceneCB.m_data.m_miscToggleB = miscToggleB;
-
-			// Misc toggle C
-			bool miscToggleC = static_cast<bool>(m_sceneCB.m_data.m_miscToggleC);
-			ImGui::Checkbox("Misc C", &miscToggleC);
-			m_sceneCB.m_data.m_miscToggleC = miscToggleC;
-
-			// Depth scale
-			ImGui::DragFloat("Depth Scale", &m_sceneCB.m_data.m_depthScale, 0.001f, 0.0f, 0.5f);
-
-			ImGui::TreePop();
-		}
-		
-		if (ImGui::CollapsingHeader("Ocean Options"))
-		{
-			ImGui::TreePush();
-
-			ImGui::Checkbox("Enabled", &sceneManager.getWritableSceneConfig().getWritableOceanConfig().m_enabled);
-
-			ImGui::SliderInt("Wave Count", &m_waterCB.m_data.m_waveCount, 0, 50);
-			ImGui::SliderFloat("Wave Scale", &m_waterCB.m_data.m_waveScale, 0.0f, 25.0f);
-			ImGui::SliderFloat("Wave Period", &m_waterCB.m_data.m_wavePeriod, 0.0f, 100.0f);
-			ImGui::SliderFloat("Wave Speed", &m_waterCB.m_data.m_waveSpeed, 0.0f, 100.0f);
-			ImGui::SliderFloat("Wave Seed", &m_waterCB.m_data.m_waveSeed, 100.0f, 1000.0f);
-			ImGui::SliderFloat("Wave Scale Multiplier", &m_waterCB.m_data.m_waveScaleMultiplier, 0.0f, 1.0f);
-			ImGui::SliderInt("Iscolate Wave Num", &m_waterCB.m_data.m_iscolateWaveNum, -1, 20);
-			ImGui::SliderFloat("Foam Start", &m_waterCB.m_data.m_foamStart, 0.0f, 5.0f);
-			ImGui::SliderFloat("Colour Change Start", &m_waterCB.m_data.m_colourChangeStart, 0.0f, 2.0f);
-
-			ImGui::TreePop();
-		}
-
-		if (ImGui::CollapsingHeader("Atmosphere Options"))
-		{
-			ImGui::TreePush();
-
-			ImGui::SliderFloat("Sun Size", &m_atmosphericCB.m_data.m_sunSize, 10.0f, 200.0f);
-			ImGui::SliderFloat("Density", &m_atmosphericCB.m_data.m_density, 0.0f, 3.0f);
-			ImGui::SliderFloat("Multi Scatter Phase", &m_atmosphericCB.m_data.m_multiScatterPhase, 0.0f, 3.0f);
-			ImGui::SliderFloat("Anisotropic Intensity", &m_atmosphericCB.m_data.m_anisotropicIntensity, -1.0f, 5.0f);
-			ImGui::SliderFloat("Zenith Offset", &m_atmosphericCB.m_data.m_zenithOffset, -1.0f, 1.0f);
-			ImGui::SliderFloat("Night Density", &m_atmosphericCB.m_data.m_nightDensity, 0.0f, 2.0f);
-			ImGui::SliderFloat("Night Zenith Y Clamp", &m_atmosphericCB.m_data.m_nightZenithYClamp, 0.0f, 0.1f);
-
-			ImGui::TreePop();
-		}
-
-		if (ImGui::CollapsingHeader("Clouds Options"))
-		{
-			ImGui::TreePush();
-
-			ImGui::Checkbox("Enabled", &sceneManager.getWritableSceneConfig().getWritableCloudConfig().m_enabled);
-
-			ImGui::SliderFloat("Absorbtion Through Clouds", &m_cloudsCB.m_data.m_lightAbsorbtionThroughClouds, 0.0f, 2.0f);
-			ImGui::SliderFloat("Absorbtion Towards Sun", &m_cloudsCB.m_data.m_lightAbsorbtionTowardsSun, 0.0f, 2.0f);
-			ImGui::SliderFloat("Phase Factor", &m_cloudsCB.m_data.m_phaseFactor, 0.0f, 2.0f);
-			ImGui::SliderFloat("Darkness Threshold", &m_cloudsCB.m_data.m_darknessThreshold, 0.0f, 1.0f);
-			ImGui::SliderFloat("Cloud Coverage", &m_cloudsCB.m_data.m_cloudCoverage, 0.0f, 1.0f);
-			ImGui::SliderFloat("Cloud Speed", &m_cloudsCB.m_data.m_cloudSpeed, 0.0f, 0.25f);
-			ImGui::SliderFloat("Cloud Height", &m_cloudsCB.m_data.m_cloudHeight, 100.0f, 2000.0f);
-			ImGui::SliderInt("Num Steps", &m_cloudsCB.m_data.m_numSteps, 1, 100);
-			ImGui::SliderFloat("Step Size", &m_cloudsCB.m_data.m_stepSize, 5.0f, 100.0f);
-
-			ImGui::TreePop();
-		}
-
-		ImGui::End();
-
-
-		ImGui::Begin("Particle System Settings");
-
-		physics::ParticleSystem& particleSystem = sceneManager.getWritableParticleSystem();
-
-		if (!particleSystem.getEmitters().empty())
-		{
-			static int emitterIndex = 0;
-			ImGui::SliderInt("Emitter Index", &emitterIndex, 0, static_cast<int>(particleSystem.getEmitters().size()) - 1);
-
-			physics::ParticleSystemEmitter& particleEmitter = *(particleSystem.getEmitters()[emitterIndex]);
-
-			ImGui::Checkbox("Active", particleEmitter.getActiveWritablePtr());
-
-			ImGui::SliderFloat3("Position", &particleEmitter.getPositionWritablePtr()->m128_f32[0], -10.0f, 10.0f);
-
-			XMVECTOR* particleEmitterDirection = particleEmitter.getDirectionWritablePtr();
-			ImGui::SliderFloat3("Direction", &particleEmitterDirection->m128_f32[0], -1.0f, 1.0f);
-			*particleEmitterDirection = XMVector3Normalize(*particleEmitterDirection);
-
-			ImGui::SliderFloat("Direction Randomness", particleEmitter.getDirectionRandomnessWritablePtr(), 0.0f, 1.0f);
-
-			ImGui::SliderFloat("Power", particleEmitter.getPowerWritablePtr(), 0.0f, 10.0f);
-			ImGui::SliderFloat("Power Randomness", particleEmitter.getPowerRandomModifierWritablePtr(), 0.0f, 1.0f);
-
-			ImGui::SliderFloat("Max Age", particleEmitter.getMaxAgeWritablePtr(), 0.0f, 5.0f);
-			ImGui::SliderFloat("Max Age Randomness", particleEmitter.getMaxAgeRandomModifierWritablePtr(), 0.0f, 1.0f);
-
-			ImGui::SliderFloat("Spawn Delay", particleEmitter.getSpawnDelayWritablePtr(), 0.0f, 0.5f);
-			ImGui::SliderFloat("Spawn Delay Rand", particleEmitter.getSpawnDelayRandomModifierWritablePtr(), 0.0f, 1.0f);
-		}
-		else
-		{
-			ImGui::Text("No emitters to show/edit");
-		}
-		
-	
-		ImGui::End();
-
-
-		ImGui::Begin("Camera Settings");
-
-		sceneManager.getWritableActiveCamera().getWritableTransform().editPositionImGui();
-		sceneManager.getActiveCamera().getTransform().displayOrientationImGui();
-
-		ImGui::NewLine();
-
-		if (sceneManager.getActiveCamera().hasObjectTrack())
-		{
-			// Camera track checkbox
-			bool followTrack = sceneManager.getActiveCamera().isFollowingObjectTrack();
-			ImGui::Checkbox("Camera Follow Track", &followTrack);
-			sceneManager.getWritableActiveCamera().setFollowingObjectTrack(followTrack);
-
-			if (followTrack)
+			if (ImGui::CollapsingHeader("Render Options"))
 			{
-				// Camera track delta
-				float cameraTrackDelta = sceneManager.getActiveCamera().getObjectTrackDelta();
-				ImGui::DragFloat("Camera Track Delta", &cameraTrackDelta, 0.005f, -0.5f, 10.0f);
-				sceneManager.getWritableActiveCamera().setObjectTrackDelta(cameraTrackDelta);
-			}
-		}
+				ImGui::TreePush();
 
-		// Relative camera checkbox
-		ImGui::SameLine();
-		if (ImGui::Button("Exit Relative Camera"))
-		{
-			sceneManager.getWritableActiveCamera().unsetRelativeObject();
-		}
-
-		entity::GameObjectController* controller = sceneManager.getWritableActiveCamera().getWritableController();
-		if (controller != nullptr)
-		{
-			ImGui::Checkbox("Control Camera", controller->isActivePtr());
-		}
-
-		if (ImGui::CollapsingHeader("Camera List"))
-		{
-			int count = 0;
-			auto& cameras = sceneManager.getWritableCameraList();
-			for (auto& camera : cameras)
-			{
-				ImGui::Text(camera->getLabel().c_str());
+				// Normal Mapping
+				bool useNormalMapping = static_cast<bool>(m_sceneCB.m_data.m_useNormalMapping);
+				ImGui::Checkbox("Normal Mapping", &useNormalMapping);
+				m_sceneCB.m_data.m_useNormalMapping = useNormalMapping;
 
 				ImGui::SameLine();
 
-				if (&(sceneManager.getActiveCamera()) != camera)
+				// PO Mapping
+				bool useParallaxOcclusionMapping = static_cast<bool>(m_sceneCB.m_data.m_useParallaxOcclusionMapping);
+				ImGui::Checkbox("PO Mapping", &useParallaxOcclusionMapping);
+				m_sceneCB.m_data.m_useParallaxOcclusionMapping = useParallaxOcclusionMapping;
+
+				ImGui::SameLine();
+
+				// Self shadowing
+				bool selfShadowing = static_cast<bool>(m_sceneCB.m_data.m_selfShadowing);
+				ImGui::Checkbox("Self Shadowing", &selfShadowing);
+				m_sceneCB.m_data.m_selfShadowing = selfShadowing;
+
+				// Roughness Mapping
+				bool roughnessMapping = static_cast<bool>(m_sceneCB.m_data.m_roughnessMapping);
+				ImGui::Checkbox("Roughness Mapping", &roughnessMapping);
+				m_sceneCB.m_data.m_roughnessMapping = roughnessMapping;
+
+				ImGui::SameLine();
+
+				if (ImGui::Button("Toggle Wireframe"))
 				{
-					ImGui::PushID(count);
-					if (ImGui::Button("Make Active"))
-					{
-						sceneManager.setActiveCamera(camera);
-					}
-					ImGui::PopID();
-				}
-				else
-				{
-					ImGui::Text(" *Active*");
+					m_useWireframe = !m_useWireframe;
+
+					if (m_useWireframe) m_activeCameraImageRenderer.setRasterizerState(m_wireframeRasterizerState.Get());
+					else                m_activeCameraImageRenderer.setRasterizerState(m_regularRasterizerState.Get());
 				}
 
-				++count;
+				ImGui::SameLine();
+
+				ImGui::Checkbox("Deferred Shading", &m_useDeferredShading);
+
+				ImGui::SameLine();
+
+				// Show Normals
+				bool showWorldNormals = static_cast<bool>(m_sceneCB.m_data.m_showWorldNormals);
+				ImGui::Checkbox("Normals", &showWorldNormals);
+				m_sceneCB.m_data.m_showWorldNormals = showWorldNormals;
+
+				ImGui::SameLine();
+
+				// Show UVs
+				bool showUVs = static_cast<bool>(m_sceneCB.m_data.m_showUVs);
+				ImGui::Checkbox("Show UVs", &showUVs);
+				m_sceneCB.m_data.m_showUVs = showUVs;
+
+				// Cull back normals
+				bool cullBackNormals = static_cast<bool>(m_sceneCB.m_data.m_cullBackNormals);
+				ImGui::Checkbox("Cull Back Normals", &cullBackNormals);
+				m_sceneCB.m_data.m_cullBackNormals = cullBackNormals;
+
+				ImGui::SameLine();
+
+				// Gamma correction
+				bool gammaCorrection = static_cast<bool>(m_sceneCB.m_data.m_gammaCorrection);
+				ImGui::Checkbox("Gamma Corr", &gammaCorrection);
+				m_sceneCB.m_data.m_gammaCorrection = gammaCorrection;
+
+				ImGui::SameLine();
+
+				// Misc toggle A
+				bool miscToggleA = static_cast<bool>(m_sceneCB.m_data.m_miscToggleA);
+				ImGui::Checkbox("Misc A", &miscToggleA);
+				m_sceneCB.m_data.m_miscToggleA = miscToggleA;
+
+				ImGui::SameLine();
+
+				// Misc toggle B
+				bool miscToggleB = static_cast<bool>(m_sceneCB.m_data.m_miscToggleB);
+				ImGui::Checkbox("Misc B", &miscToggleB);
+				m_sceneCB.m_data.m_miscToggleB = miscToggleB;
+
+				// Misc toggle C
+				bool miscToggleC = static_cast<bool>(m_sceneCB.m_data.m_miscToggleC);
+				ImGui::Checkbox("Misc C", &miscToggleC);
+				m_sceneCB.m_data.m_miscToggleC = miscToggleC;
+
+				// Depth scale
+				ImGui::DragFloat("Depth Scale", &m_sceneCB.m_data.m_depthScale, 0.001f, 0.0f, 0.5f);
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::CollapsingHeader("Ocean Options"))
+			{
+				ImGui::TreePush();
+
+				ImGui::Checkbox("Enabled", &scene::SceneManager::it().getWritableSceneConfig().getWritableOceanConfig().m_enabled);
+
+				ImGui::SliderInt("Wave Count", &m_waterCB.m_data.m_waveCount, 0, 50);
+				ImGui::SliderFloat("Wave Scale", &m_waterCB.m_data.m_waveScale, 0.0f, 25.0f);
+				ImGui::SliderFloat("Wave Period", &m_waterCB.m_data.m_wavePeriod, 0.0f, 100.0f);
+				ImGui::SliderFloat("Wave Speed", &m_waterCB.m_data.m_waveSpeed, 0.0f, 100.0f);
+				ImGui::SliderFloat("Wave Seed", &m_waterCB.m_data.m_waveSeed, 100.0f, 1000.0f);
+				ImGui::SliderFloat("Wave Scale Multiplier", &m_waterCB.m_data.m_waveScaleMultiplier, 0.0f, 1.0f);
+				ImGui::SliderInt("Iscolate Wave Num", &m_waterCB.m_data.m_iscolateWaveNum, -1, 20);
+				ImGui::SliderFloat("Foam Start", &m_waterCB.m_data.m_foamStart, 0.0f, 5.0f);
+				ImGui::SliderFloat("Colour Change Start", &m_waterCB.m_data.m_colourChangeStart, 0.0f, 2.0f);
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::CollapsingHeader("Atmosphere Options"))
+			{
+				ImGui::TreePush();
+
+				ImGui::SliderFloat("Sun Size", &m_atmosphericCB.m_data.m_sunSize, 10.0f, 200.0f);
+				ImGui::SliderFloat("Density", &m_atmosphericCB.m_data.m_density, 0.0f, 3.0f);
+				ImGui::SliderFloat("Multi Scatter Phase", &m_atmosphericCB.m_data.m_multiScatterPhase, 0.0f, 3.0f);
+				ImGui::SliderFloat("Anisotropic Intensity", &m_atmosphericCB.m_data.m_anisotropicIntensity, -1.0f, 5.0f);
+				ImGui::SliderFloat("Zenith Offset", &m_atmosphericCB.m_data.m_zenithOffset, -1.0f, 1.0f);
+				ImGui::SliderFloat("Night Density", &m_atmosphericCB.m_data.m_nightDensity, 0.0f, 2.0f);
+				ImGui::SliderFloat("Night Zenith Y Clamp", &m_atmosphericCB.m_data.m_nightZenithYClamp, 0.0f, 0.1f);
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::CollapsingHeader("Clouds Options"))
+			{
+				ImGui::TreePush();
+
+				ImGui::Checkbox("Enabled", &scene::SceneManager::it().getWritableSceneConfig().getWritableCloudConfig().m_enabled);
+
+				ImGui::SliderFloat("Absorbtion Through Clouds", &m_cloudsCB.m_data.m_lightAbsorbtionThroughClouds, 0.0f, 2.0f);
+				ImGui::SliderFloat("Absorbtion Towards Sun", &m_cloudsCB.m_data.m_lightAbsorbtionTowardsSun, 0.0f, 2.0f);
+				ImGui::SliderFloat("Phase Factor", &m_cloudsCB.m_data.m_phaseFactor, 0.0f, 2.0f);
+				ImGui::SliderFloat("Darkness Threshold", &m_cloudsCB.m_data.m_darknessThreshold, 0.0f, 1.0f);
+				ImGui::SliderFloat("Cloud Coverage", &m_cloudsCB.m_data.m_cloudCoverage, 0.0f, 1.0f);
+				ImGui::SliderFloat("Cloud Speed", &m_cloudsCB.m_data.m_cloudSpeed, 0.0f, 0.25f);
+				ImGui::SliderFloat("Cloud Height", &m_cloudsCB.m_data.m_cloudHeight, 100.0f, 2000.0f);
+				ImGui::SliderInt("Num Steps", &m_cloudsCB.m_data.m_numSteps, 1, 100);
+				ImGui::SliderFloat("Step Size", &m_cloudsCB.m_data.m_stepSize, 5.0f, 100.0f);
+
+				ImGui::TreePop();
+			}
+		}
+
+		ImGui::End();
+
+		if (ImGui::Begin("Particle System Settings"))
+		{
+			physics::ParticleSystem& particleSystem = scene::SceneManager::it().getWritableParticleSystem();
+
+			if (!particleSystem.getEmitters().empty())
+			{
+				static int emitterIndex = 0;
+				ImGui::SliderInt("Emitter Index", &emitterIndex, 0, static_cast<int>(particleSystem.getEmitters().size()) - 1);
+
+				physics::ParticleSystemEmitter& particleEmitter = *(particleSystem.getEmitters()[emitterIndex]);
+
+				ImGui::Checkbox("Active", particleEmitter.getActiveWritablePtr());
+
+				ImGui::SliderFloat3("Position", &particleEmitter.getPositionWritablePtr()->m128_f32[0], -10.0f, 10.0f);
+
+				XMVECTOR* particleEmitterDirection = particleEmitter.getDirectionWritablePtr();
+				ImGui::SliderFloat3("Direction", &particleEmitterDirection->m128_f32[0], -1.0f, 1.0f);
+				*particleEmitterDirection = XMVector3Normalize(*particleEmitterDirection);
+
+				ImGui::SliderFloat("Direction Randomness", particleEmitter.getDirectionRandomnessWritablePtr(), 0.0f, 1.0f);
+
+				ImGui::SliderFloat("Power", particleEmitter.getPowerWritablePtr(), 0.0f, 10.0f);
+				ImGui::SliderFloat("Power Randomness", particleEmitter.getPowerRandomModifierWritablePtr(), 0.0f, 1.0f);
+
+				ImGui::SliderFloat("Max Age", particleEmitter.getMaxAgeWritablePtr(), 0.0f, 5.0f);
+				ImGui::SliderFloat("Max Age Randomness", particleEmitter.getMaxAgeRandomModifierWritablePtr(), 0.0f, 1.0f);
+
+				ImGui::SliderFloat("Spawn Delay", particleEmitter.getSpawnDelayWritablePtr(), 0.0f, 0.5f);
+				ImGui::SliderFloat("Spawn Delay Rand", particleEmitter.getSpawnDelayRandomModifierWritablePtr(), 0.0f, 1.0f);
+			}
+			else
+			{
+				ImGui::Text("No emitters to show/edit");
+			}
+		}
+
+		ImGui::End();
+
+		if (ImGui::Begin("Camera Settings"))
+		{
+			scene::SceneManager::it().getWritableActiveCamera().getWritableTransform().editPositionImGui();
+			scene::SceneManager::it().getActiveCamera().getTransform().displayOrientationImGui();
+
+			ImGui::NewLine();
+
+			if (scene::SceneManager::it().getActiveCamera().hasObjectTrack())
+			{
+				// Camera track checkbox
+				bool followTrack = scene::SceneManager::it().getActiveCamera().isFollowingObjectTrack();
+				ImGui::Checkbox("Camera Follow Track", &followTrack);
+				scene::SceneManager::it().getWritableActiveCamera().setFollowingObjectTrack(followTrack);
+
+				if (followTrack)
+				{
+					// Camera track delta
+					float cameraTrackDelta = scene::SceneManager::it().getActiveCamera().getObjectTrackDelta();
+					ImGui::DragFloat("Camera Track Delta", &cameraTrackDelta, 0.005f, -0.5f, 10.0f);
+					scene::SceneManager::it().getWritableActiveCamera().setObjectTrackDelta(cameraTrackDelta);
+				}
+			}
+
+			// Relative camera checkbox
+			ImGui::SameLine();
+			if (ImGui::Button("Exit Relative Camera"))
+			{
+				scene::SceneManager::it().getWritableActiveCamera().unsetRelativeObject();
+			}
+
+			entity::GameObjectController* controller = scene::SceneManager::it().getWritableActiveCamera().getWritableController();
+			if (controller != nullptr)
+			{
+				ImGui::Checkbox("Control Camera", controller->isActivePtr());
+			}
+
+			if (ImGui::CollapsingHeader("Camera List"))
+			{
+				int count = 0;
+				auto& cameras = scene::SceneManager::it().getWritableCameraList();
+				for (auto& camera : cameras)
+				{
+					ImGui::Text(camera->getLabel().c_str());
+
+					ImGui::SameLine();
+
+					if (&(scene::SceneManager::it().getActiveCamera()) != camera)
+					{
+						ImGui::PushID(count);
+						if (ImGui::Button("Make Active"))
+						{
+							scene::SceneManager::it().setActiveCamera(camera);
+						}
+						ImGui::PopID();
+					}
+					else
+					{
+						ImGui::Text(" *Active*");
+					}
+
+					++count;
+				}
 			}
 		}
 
 		ImGui::End();
 	}
 
-	void GraphicsHandler::update(scene::SceneManager& sceneManager, float deltaTime)
+	ConstantBuffer<SceneCB>& GraphicsHandler::getSceneCB()
 	{
-		if (!sceneManager.isPaused())
+		return m_sceneCB;
+	}
+
+	ConstantBuffer<CloudsCB>& GraphicsHandler::getCloudsCB()
+	{
+		return m_cloudsCB;
+	}
+
+	ConstantBuffer<WaterCB>& GraphicsHandler::getWaterCB()
+	{
+		return m_waterCB;
+	}
+
+	ConstantBuffer<AtmosphericCB>& GraphicsHandler::getAtmosphericCB()
+	{
+		return m_atmosphericCB;
+	}
+
+	ConstantBuffer<PerFrameCB>& GraphicsHandler::getPerFrameCB()
+	{
+		return m_perFrameCB;
+	}
+
+	ConstantBuffer<PerPassCB>& GraphicsHandler::getPerPassCB()
+	{
+		return m_perPassCB;
+	}
+
+	ConstantBuffer<PerMaterialCB>& GraphicsHandler::getPerMaterialCB()
+	{
+		return m_perMaterialCB;
+	}
+
+	ConstantBuffer<PerObjectCB>& GraphicsHandler::getPerObjectCB()
+	{
+		return m_perObjectCB;
+	}
+
+	ID3D11BlendState* GraphicsHandler::getDefaultBlendState()
+	{
+		return m_defaultBlendState.Get();
+	}
+
+	ID3D11BlendState* GraphicsHandler::getGBufferBlendState()
+	{
+		return m_gBufferBlendState.Get();
+	}
+
+	Model* GraphicsHandler::getScreenQuad() const
+	{
+		return m_screenQuad;
+	}
+
+	Microsoft::WRL::ComPtr<ID3D11SamplerState>& GraphicsHandler::getSamplerState()
+	{
+		return m_samplerState;
+	}
+
+	void GraphicsHandler::update(float deltaTime)
+	{
+		if (!scene::SceneManager::it().isPaused())
 		{
-			float gameTime = sceneManager.getGameTime();
+			float gameTime = scene::SceneManager::it().getGameTime();
 			m_perFrameCB.m_data.m_gameTime = gameTime;
 			m_perFrameCB.mapToGPU();
 		}
 
 		// Update atmosphere stuff
 		float dayOrNight = 0.0f;
-		float zeroToOneDayOrNight = modf(sceneManager.getDayProgress() * 2.0f, &dayOrNight);
+		float zeroToOneDayOrNight = modf(scene::SceneManager::it().getDayProgress() * 2.0f, &dayOrNight);
 		float split = 1.0f - abs(zeroToOneDayOrNight - 0.5f) * 2.0f;
 
 		if (dayOrNight == 0.0f)
@@ -1214,7 +1307,7 @@ namespace hrzn::gfx
 
 			XMFLOAT3 sunColour = XMFLOAT3(0.0f, 0.0f, 0.0f);
 			XMStoreFloat3(&sunColour, XMVectorLerp(XMLoadFloat3(&daySunColour), XMLoadFloat3(&sunsetColour), t));
-			sceneManager.getWritableDirectionalLight().setColour(sunColour);
+			scene::SceneManager::it().getWritableDirectionalLight().setColour(sunColour);
 		}
 		else
 		{
@@ -1228,23 +1321,30 @@ namespace hrzn::gfx
 
 			XMFLOAT3 sunColour = XMFLOAT3(0.0f, 0.0f, 0.0f);
 			XMStoreFloat3(&sunColour, XMVectorLerp(XMLoadFloat3(&nightSunColour), XMLoadFloat3(&sunsetColour), smoothLightLerp));
-			sceneManager.getWritableDirectionalLight().setColour(sunColour);
+			scene::SceneManager::it().getWritableDirectionalLight().setColour(sunColour);
 
 			m_atmosphericCB.m_data.m_density = 0.25f + density * (0.65f - 0.25f);
 		}
 
-		XMVECTOR sunDirection = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), XMMatrixRotationAxis(XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f), sceneManager.getDayProgress() * sc_2PI));
-		sceneManager.getWritableDirectionalLight().getWritableTransform().setPosition(sunDirection);
-		sceneManager.getWritableDirectionalLight().getWritableTransform().lookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+		XMVECTOR sunDirection = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), XMMatrixRotationAxis(XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f), scene::SceneManager::it().getDayProgress() * sc_2PI));
+		scene::SceneManager::it().getWritableDirectionalLight().getWritableTransform().setPosition(sunDirection);
+		scene::SceneManager::it().getWritableDirectionalLight().getWritableTransform().lookAtPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+
+		updateShadowMap();
 
 		// Update ImGui
-		updateImGui(sceneManager);
+		updateImGui();
 	}
 
-	void GraphicsHandler::updateSceneShaderValues(scene::SceneManager& sceneManager)
+	void GraphicsHandler::updateShadowMap()
+	{
+
+	}
+
+	void GraphicsHandler::updateSceneShaderValues()
 	{
 		// Point light shader variables
-		const auto& pointLights = sceneManager.getPointLights();
+		const auto& pointLights = scene::SceneManager::it().getPointLights();
 		size_t numPointLights = pointLights.size();
 		for (size_t i = 0; i < numPointLights; ++i)
 		{
@@ -1252,12 +1352,14 @@ namespace hrzn::gfx
 		}
 
 		// Spot light shader variables
-		const auto& spotLights = sceneManager.getSpotLights();
+		const auto& spotLights = scene::SceneManager::it().getSpotLights();
 		size_t numSpotLights = spotLights.size();
 		for (size_t i = 0; i < numSpotLights; ++i)
 		{
 			spotLights[i]->updateShaderVariables(m_sceneCB, i);
 		}
+
+		scene::SceneManager::it().getWritableDirectionalLight().updateShaderVariables(m_sceneCB);
 
 		// General shader variables
 		m_sceneCB.m_data.m_numPointLights = static_cast<int>(numPointLights);
@@ -1265,9 +1367,9 @@ namespace hrzn::gfx
 		m_sceneCB.mapToGPU();
 	}
 
-	void GraphicsHandler::updatePerFrameShaderValues(scene::SceneManager& sceneManager)
+	void GraphicsHandler::updatePerFrameShaderValues()
 	{
-		m_perFrameCB.m_data.m_gameTime = sceneManager.getGameTime();
+		m_perFrameCB.m_data.m_gameTime = scene::SceneManager::it().getGameTime();
 		m_perFrameCB.mapToGPU();
 	}
 
@@ -1328,13 +1430,11 @@ namespace hrzn::gfx
 			COM_ERROR_IF_FAILED(hr, "Failed to create device and swapchain.");
 
 			// Get backbuffer
-			Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
-
-			hr = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(backBuffer.GetAddressOf()));
+			hr = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(m_backBuffer.GetAddressOf()));
 			COM_ERROR_IF_FAILED(hr, "Failed to get back buffer.");
 
 			// Create render target view
-			hr = m_device->CreateRenderTargetView(backBuffer.Get(), NULL, m_renderTargetView.GetAddressOf());
+			hr = m_device->CreateRenderTargetView(m_backBuffer.Get(), NULL, m_swapChainRenderTargetView.GetAddressOf());
 			COM_ERROR_IF_FAILED(hr, "Failed to create render target view.");
 
 			// Create depth stencil texture and view
@@ -1460,7 +1560,7 @@ namespace hrzn::gfx
 		return true;
 	}
 
-	void GraphicsHandler::drawAxisForObject(const entity::RenderableGameObject& gameObject, const scene::SceneManager& sceneManager)
+	void GraphicsHandler::drawAxisForObject(const entity::RenderableGameObject& gameObject)
 	{
 		XMFLOAT3 gameObjectPosition = gameObject.getTransform().getPositionFloat3();
 		XMMATRIX translationMatrix = XMMatrixTranslation(gameObjectPosition.x, gameObjectPosition.y, gameObjectPosition.z);
@@ -1470,14 +1570,14 @@ namespace hrzn::gfx
 		// Clamp scale
 		if (scale < 0.75f) scale = 0.75f;
 
-		float distance = XMVectorGetX(XMVector3Length(gameObject.getTransform().getPositionVector() - sceneManager.getActiveCamera().getTransform().getPositionVector()));
+		float distance = XMVectorGetX(XMVector3Length(gameObject.getTransform().getPositionVector() - scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector()));
 		scale *= distance * 0.5f;
 
-		if (sceneManager.getAxisEditState() == scene::AxisEditState::eEditTranslate)
+		if (scene::SceneManager::it().getAxisEditState() == scene::AxisEditState::eEditTranslate)
 		{
 			m_axisTranslateModel->draw(XMMatrixScaling(scale, scale, scale) * translationMatrix, &m_perObjectCB);
 		}
-		else if (sceneManager.getAxisEditState() == scene::AxisEditState::eEditRotate)
+		else if (scene::SceneManager::it().getAxisEditState() == scene::AxisEditState::eEditRotate)
 		{
 			// Multiply by rotation matrix when rotating
 			m_axisRotateModel->draw(XMMatrixScaling(scale * 0.75f, scale * 0.75f, scale * 0.75f) * gameObject.getTransform().getRotationMatrix() * translationMatrix, &m_perObjectCB);

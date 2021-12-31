@@ -19,10 +19,11 @@ SamplerState samplerState : SAMPLER : register(s0);
 Texture2D albedoTexture : TEXTURE : register(t0);
 Texture2D roughnessTexture : TEXTURE : register(t1);
 Texture2D normalTexture : TEXTURE : register(t2);
-Texture2D ambientOcclusionTexture : TEXTURE : register(t3);
-Texture2D metallicTexture : TEXTURE : register(t4);
-Texture2D emissionTexture : TEXTURE : register(t5);
-Texture2D depthTexture : TEXTURE : register(t6);
+Texture2D metallicTexture : TEXTURE : register(t3);
+Texture2D emissionTexture : TEXTURE : register(t4);
+Texture2D depthTexture : TEXTURE : register(t5);
+
+Texture2D ambientOcclusionTexture : TEXTURE : register(t6);
 
 float4 main(PS_INPUT input) : SV_TARGET
 {

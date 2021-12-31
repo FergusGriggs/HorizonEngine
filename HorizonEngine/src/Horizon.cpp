@@ -3,7 +3,12 @@
 
 #include "horizon.h"
 
+#include "graphics/graphics_handler.h"
+
+#include "scene/scene_manager.h"
+
 #include "user_config.h"
+
 #include "input/input_manager.h"
 
 namespace hrzn
@@ -17,9 +22,7 @@ namespace hrzn
 		m_audioEngine(nullptr),
 		m_soundEffect(nullptr),
 
-		m_graphicsHandler(),
-		m_controllerManager(),
-		m_sceneManager(&m_controllerManager)
+		m_controllerManager()
 	{
 		/*m_audioEngine = new AudioEngine(AudioEngine_Default);
 
@@ -37,9 +40,7 @@ namespace hrzn
 		m_audioEngine(nullptr),
 		m_soundEffect(nullptr),
 		
-		m_graphicsHandler(),
-		m_controllerManager(),
-		m_sceneManager(&m_controllerManager)
+		m_controllerManager()
 	{
 	}
 
@@ -52,20 +53,20 @@ namespace hrzn
 			return false;
 		}
 
-		if (!m_graphicsHandler.initialize(m_renderWindow.getHWND()))
+		if (!gfx::GraphicsHandler::it().initialize(m_renderWindow.getHWND()))
 		{
 			return false;
 		}
 
-		m_sceneManager.initialise();
+		scene::SceneManager::it().initialise(&m_controllerManager);
 
-		if (!m_graphicsHandler.initializeScene(m_sceneManager))
+		if (!gfx::GraphicsHandler::it().initializeScene())
 		{
 			return false;
 		}
 
 		
-		m_controllerManager.addController(&m_sceneManager.getWritableGameObject("free_cam"), entity::ControllerType::eCamera, 5.0f, true);
+		m_controllerManager.addController(&scene::SceneManager::it().getWritableGameObject("free_cam"), entity::ControllerType::eCamera, 5.0f, true);
 
 		return true;
 	}
@@ -84,12 +85,12 @@ namespace hrzn
 
 		m_controllerManager.updateControllers(m_deltaTime);
 
-		m_sceneManager.update(m_deltaTime);
-		m_graphicsHandler.update(m_sceneManager, m_deltaTime);
+		scene::SceneManager::it().update(m_deltaTime);
+		gfx::GraphicsHandler::it().update(m_deltaTime);
 	}
 
 	void Horizon::renderFrame()
 	{
-		m_graphicsHandler.render(m_sceneManager);
+		gfx::GraphicsHandler::it().render();
 	}
 }

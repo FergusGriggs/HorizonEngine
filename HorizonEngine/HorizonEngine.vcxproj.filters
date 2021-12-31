@@ -210,6 +210,33 @@
     <ClCompile Include="src\graphics\buffers\geometry_buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\data\render_textures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\image_renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\data\material.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\post_process\post_process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\post_process\gbuffer_post_process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\post_process\gaussian_blur_post_process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\post_process\bloom_post_process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\post_process\sepia_post_process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\post_process\grayscale_post_process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\graphics\buffers\constant_buffer.h">
@@ -380,10 +407,40 @@
     <ClInclude Include="src\physics\utils\collision_helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\render_configs.h">
+    <ClInclude Include="src\graphics\render_pass_config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\buffers\geometry_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\data\render_textures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\image_renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\data\material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\json_helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\post_process\post_process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\post_process\gbuffer_post_process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\post_process\gaussian_blur_post_process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\post_process\bloom_post_process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\post_process\sepia_post_process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\post_process\grayscale_post_process.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -399,6 +456,12 @@
     <FxCompile Include="res\shader\vertex\vs_default.hlsl" />
     <FxCompile Include="res\shader\vertex\vs_quad.hlsl" />
     <FxCompile Include="res\shader\vertex\vs_water.hlsl" />
+    <FxCompile Include="res\shader\pixel\misc\ps_quad_copy.hlsl" />
+    <FxCompile Include="res\shader\pixel\misc\ps_quad_iscolate_emission.hlsl" />
+    <FxCompile Include="res\shader\pixel\misc\ps_sepia.hlsl" />
+    <FxCompile Include="res\shader\pixel\misc\ps_grayscale.hlsl" />
+    <FxCompile Include="res\shader\pixel\misc\ps_gaussian_blur_horizontal.hlsl" />
+    <FxCompile Include="res\shader\pixel\misc\ps_gaussian_blur_vertical.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini">
@@ -410,5 +473,31 @@
     <None Include="res\shader\shared\water.hlsli" />
     <None Include="res\shader\shared\atmospheric.hlsli" />
     <None Include="res\shader\shared\clouds.hlsli" />
+    <None Include="res\materials\wood.json" />
+    <None Include="res\materials\wood_clean.json" />
+    <None Include="res\materials\bricks.json" />
+    <None Include="res\materials\gems.json" />
+    <None Include="res\materials\lava.json" />
+    <None Include="res\materials\layered_rock.json" />
+    <None Include="res\materials\legos.json" />
+    <None Include="res\materials\matter.json" />
+    <None Include="res\materials\metal.json" />
+    <None Include="res\materials\mud.json" />
+    <None Include="res\materials\padded_fabric.json" />
+    <None Include="res\materials\pom_cube.json" />
+    <None Include="res\materials\scales.json" />
+    <None Include="res\materials\stone.json" />
+    <None Include="res\materials\terracotta.json" />
+    <None Include="res\materials\wall.json" />
+    <None Include="res\materials\default.json" />
+    <None Include="res\materials\clouds.json" />
+    <None Include="res\materials\atmospheric.json" />
+    <None Include="res\materials\axis_blue.json" />
+    <None Include="res\materials\axis_green.json" />
+    <None Include="res\materials\axis_red.json" />
+    <None Include="res\materials\light.json" />
+    <None Include="res\materials\water.json" />
+    <None Include="res\materials\hrzn_statue.json" />
+    <None Include="res\materials\quad.json" />
   </ItemGroup>
 </Project>

@@ -32,6 +32,8 @@ namespace hrzn::gfx
 		constexpr BYTE getA() const;
 		void setA(BYTE a);
 
+		unsigned int getUnsignedInt() const;
+
 	private:
 		union
 		{
@@ -42,10 +44,13 @@ namespace hrzn::gfx
 
 	namespace colours
 	{
-		static const Colour sc_unloadedTextureColour(100, 100, 100);
-		static const Colour sc_unloadedSpecularTextureColour(128, 128, 128);
-		static const Colour sc_unloadedNormalTextureColour(128, 128, 255);
-		static const Colour sc_unhandledTextureColour(255, 0, 0);
-		static const Colour sc_unloadedDepthTextureColour(0, 0, 0);
+		static const Colour sc_unhandledTextureColour(255, 0, 255);
+
+		static const Colour sc_defaultAlbedo(170, 170, 170);
+		static const Colour sc_defaultRoughness(170, 170, 170);
+		static const Colour sc_defaultNormal(128, 128, 255);
+		static const Colour sc_defaultMetallic(0, 0, 0);
+		static const Colour sc_defaultEmission(0, 0, 0);
+		static const Colour sc_defaultDepth(0, 0, 0);
 	}
 }

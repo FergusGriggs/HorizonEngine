@@ -11,6 +11,7 @@
 
 #include "vertex.h"
 #include "texture.h"
+#include "material.h"
 
 #include "../buffers/vertex_buffer.h"
 #include "../buffers/index_buffer.h"
@@ -21,20 +22,18 @@ namespace hrzn::gfx
 	class Mesh
 	{
 	public:
-		Mesh(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::vector<Vertex>& vertices, std::vector<DWORD>& indices, std::vector<Texture*>& textures, const DirectX::XMMATRIX& transformMatrix);
+		Mesh(std::vector<Vertex>& vertices, std::vector<DWORD>& indices, Material* material, const DirectX::XMMATRIX& transformMatrix);
 		Mesh(const Mesh& mesh);
 
-		void draw(bool bindTextures = true) const;
+		void draw(bool useGBuffer, bool bindPSData = true) const;
 		const DirectX::XMMATRIX& getTransformMatrix() const;
 
 	private:
 		VertexBuffer<Vertex>  m_vertexBuffer;
 		IndexBuffer           m_indexBuffer;
 
-		std::vector<Texture*> m_textures;
+		Material*             m_material;
 
 		DirectX::XMMATRIX     m_transformMatrix;
-
-		ID3D11DeviceContext*  m_deviceContext;
 	};
 }

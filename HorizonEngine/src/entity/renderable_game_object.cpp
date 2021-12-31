@@ -3,6 +3,8 @@
 
 #include "renderable_game_object.h"
 
+#include "../graphics/data/resource_manager.h"
+
 namespace hrzn::entity
 {
 	RenderableGameObject::RenderableGameObject() :

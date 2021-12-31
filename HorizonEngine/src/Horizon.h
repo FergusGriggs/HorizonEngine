@@ -30,8 +30,6 @@ namespace hrzn
 		AudioEngine*         m_audioEngine;
 		SoundEffect*         m_soundEffect;
 
-		gfx::GraphicsHandler      m_graphicsHandler;
 		entity::ControllerManager m_controllerManager;
-		scene::SceneManager       m_sceneManager;
 	};
 }

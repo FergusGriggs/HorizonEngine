@@ -3,86 +3,79 @@
 
 #include "texture.h"
 
+#include "../graphics_handler.h"
+
 #include "../../utils/string_helpers.h"
 
 namespace hrzn::gfx
 {
 	Texture::Texture() :
-		m_type(aiTextureType::aiTextureType_UNKNOWN),
 		m_texture(nullptr),
 		m_textureView(nullptr)
 	{
 	}
 
-	Texture::Texture(ID3D11Device* device, const Colour& colour, aiTextureType type) :
+	Texture::Texture(const Colour& colour) :
 		Texture()
 	{
-		initialize1x1ColourTexture(device, colour, type);
+		initialize1x1ColourTexture(colour);
 	}
 
-	Texture::Texture(ID3D11Device* device, const Colour* colourData, UINT width, UINT height, aiTextureType type) :
+	Texture::Texture(const Colour* colourData, UINT width, UINT height) :
 		Texture()
 	{
-		initializeColourTexture(device, colourData, width, height, type);
+		initializeColourTexture(colourData, width, height);
 	}
 
-	Texture::Texture(ID3D11Device* device, const std::string& filePath, aiTextureType type) :
+	Texture::Texture(const std::string& filePath) :
 		Texture()
 	{
-		m_type = type;
 		if (utils::string_helpers::getFileExtension(filePath) == ".dds")
 		{
-			HRESULT hr = DirectX::CreateDDSTextureFromFile(device, utils::string_helpers::stringToWide(filePath).c_str(), m_texture.GetAddressOf(), m_textureView.GetAddressOf());
+			HRESULT hr = DirectX::CreateDDSTextureFromFile(GraphicsHandler::it().getDevice(), utils::string_helpers::stringToWide(filePath).c_str(), m_texture.GetAddressOf(), m_textureView.GetAddressOf());
 			if (FAILED(hr))
 			{
-				initialize1x1ColourTexture(device, colours::sc_unloadedTextureColour, m_type);
+				initialize1x1ColourTexture(colours::sc_unhandledTextureColour);
 			}
 			return;
 		}
 		else
 		{
-			HRESULT hr = DirectX::CreateWICTextureFromFile(device, utils::string_helpers::stringToWide(filePath).c_str(), m_texture.GetAddressOf(), m_textureView.GetAddressOf());
+			HRESULT hr = DirectX::CreateWICTextureFromFile(GraphicsHandler::it().getDevice(), utils::string_helpers::stringToWide(filePath).c_str(), m_texture.GetAddressOf(), m_textureView.GetAddressOf());
 			if (FAILED(hr))
 			{
-				initialize1x1ColourTexture(device, colours::sc_unloadedTextureColour, m_type);
+				initialize1x1ColourTexture(colours::sc_unhandledTextureColour);
 			}
 			return;
 		}
 	}
 
-	bool Texture::initialize(ID3D11Device* device, const std::string& filePath, aiTextureType type)
+	bool Texture::initialize(const std::string& filePath)
 	{
-		m_type = type;
 		if (utils::string_helpers::getFileExtension(filePath) == ".dds")
 		{
-			HRESULT hr = DirectX::CreateDDSTextureFromFile(device, utils::string_helpers::stringToWide(filePath).c_str(), m_texture.GetAddressOf(), m_textureView.GetAddressOf());
+			HRESULT hr = DirectX::CreateDDSTextureFromFile(GraphicsHandler::it().getDevice(), utils::string_helpers::stringToWide(filePath).c_str(), m_texture.GetAddressOf(), m_textureView.GetAddressOf());
 			if (FAILED(hr))
 			{
-				initialize1x1ColourTexture(device, colours::sc_unloadedTextureColour, m_type);
+				initialize1x1ColourTexture(colours::sc_unhandledTextureColour);
 			}
 		}
 		else
 		{
-			HRESULT hr = DirectX::CreateWICTextureFromFile(device, utils::string_helpers::stringToWide(filePath).c_str(), m_texture.GetAddressOf(), m_textureView.GetAddressOf());
+			HRESULT hr = DirectX::CreateWICTextureFromFile(GraphicsHandler::it().getDevice(), utils::string_helpers::stringToWide(filePath).c_str(), m_texture.GetAddressOf(), m_textureView.GetAddressOf());
 			if (FAILED(hr))
 			{
-				initialize1x1ColourTexture(device, colours::sc_unloadedTextureColour, m_type);
+				initialize1x1ColourTexture(colours::sc_unhandledTextureColour);
 			}
 		}
 		return true;
 	}
 
-	Texture::Texture(ID3D11Device* device, const uint8_t* pData, size_t size, aiTextureType type) :
+	Texture::Texture(const uint8_t* pData, size_t size) :
 		Texture()
 	{
-		m_type = type;
-		HRESULT hr = DirectX::CreateWICTextureFromMemory(device, pData, size, m_texture.GetAddressOf(), m_textureView.GetAddressOf());
+		HRESULT hr = DirectX::CreateWICTextureFromMemory(GraphicsHandler::it().getDevice(), pData, size, m_texture.GetAddressOf(), m_textureView.GetAddressOf());
 		COM_ERROR_IF_FAILED(hr, "Failed to create texture from memory.");
-	}
-
-	aiTextureType Texture::getType() const
-	{
-		return m_type;
 	}
 
 	ID3D11ShaderResourceView* Texture::getTextureResourceView() const
@@ -95,15 +88,13 @@ namespace hrzn::gfx
 		return m_textureView.GetAddressOf();
 	}
 
-	void Texture::initialize1x1ColourTexture(ID3D11Device* device, const Colour& colour, aiTextureType type)
+	void Texture::initialize1x1ColourTexture(const Colour& colour)
 	{
-		initializeColourTexture(device, &colour, 1, 1, type);
+		initializeColourTexture(&colour, 1, 1);
 	}
 
-	void Texture::initializeColourTexture(ID3D11Device* device, const Colour* colourData, UINT width, UINT height, aiTextureType type)
+	void Texture::initializeColourTexture(const Colour* colourData, UINT width, UINT height)
 	{
-		m_type = type;
-
 		CD3D11_TEXTURE2D_DESC textureDesc(DXGI_FORMAT_R8G8B8A8_UNORM, width, height);
 
 		ID3D11Texture2D* p2DTexture = nullptr;
@@ -112,14 +103,14 @@ namespace hrzn::gfx
 		initialData.pSysMem = colourData;
 		initialData.SysMemPitch = width * sizeof(Colour);
 
-		HRESULT hr = device->CreateTexture2D(&textureDesc, &initialData, &p2DTexture);
+		HRESULT hr = GraphicsHandler::it().getDevice()->CreateTexture2D(&textureDesc, &initialData, &p2DTexture);
 
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize texture from colour data.");
 
 		m_texture = p2DTexture;
 
 		CD3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc(D3D11_SRV_DIMENSION_TEXTURE2D, textureDesc.Format);
-		hr = device->CreateShaderResourceView(m_texture.Get(), &shaderResourceViewDesc, m_textureView.GetAddressOf());
+		hr = GraphicsHandler::it().getDevice()->CreateShaderResourceView(m_texture.Get(), &shaderResourceViewDesc, m_textureView.GetAddressOf());
 		COM_ERROR_IF_FAILED(hr, "Failed to create shader resource view from texture from generated.");
 	}
 }

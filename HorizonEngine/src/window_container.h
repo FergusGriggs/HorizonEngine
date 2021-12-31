@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "render_window.h"
-#include "graphics/graphics_handler.h"
 
 #include "input/keyboard/keyboard.h"
 #include "input/mouse/mouse.h"

@@ -4,13 +4,13 @@
 
 #pragma pack_matrix( row_major )
 
-cbuffer PerFrameCB : register(b4)
+cbuffer PerFrameCB : register(b2)
 {
 	float  cb_gameTime;
 	float3 cb_perFramePadding1;
 }
 
-cbuffer PerPassCB : register(b8)
+cbuffer PerPassCB : register(b4)
 {
     float3 cb_cameraPosition;
     float cb_perPassPadding1;
@@ -18,7 +18,12 @@ cbuffer PerPassCB : register(b8)
     float4x4 cb_viewProjectionMatrix;
 }
 
-cbuffer PerObjectCB : register(b12)
+cbuffer PerMaterialCB : register(b6)
+{
+    float4 cb_colour;
+}
+
+cbuffer PerObjectCB : register(b8)
 {
 	float4x4 cb_modelMatrix;
 }

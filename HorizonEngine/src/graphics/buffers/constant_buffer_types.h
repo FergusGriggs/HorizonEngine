@@ -70,12 +70,6 @@ namespace hrzn::gfx
 		SpotLightCB        m_spotLights[20];
 	};
 
-	struct NoLightCB
-	{
-		DirectX::XMFLOAT3 m_colour;
-		int               m_justColour;
-	};
-
 	struct CloudsCB
 	{
 		float             m_cloudCoverage;
@@ -141,6 +135,11 @@ namespace hrzn::gfx
 		float             m_padding1;
 
 		DirectX::XMMATRIX m_viewProjectionMatrix;
+	};
+
+	struct PerMaterialCB
+	{
+		DirectX::XMFLOAT4 m_colour;
 	};
 
 	struct PerObjectCB

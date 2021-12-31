@@ -43,10 +43,11 @@ namespace hrzn::scene
     class SceneManager
     {
     public:
-        SceneManager(entity::ControllerManager* controllerManager);
+        static SceneManager& it();
+
         ~SceneManager();
 
-        bool initialise();
+        bool initialise(entity::ControllerManager* controllerManager);
 
         const std::string& getSceneName();
 
@@ -82,9 +83,15 @@ namespace hrzn::scene
         const std::vector<entity::SpotLightGameObject*>& getSpotLights() const;
         std::vector<entity::SpotLightGameObject*>&       getWritableSpotLights();
 
-        // Renderable
-        const std::vector<entity::RenderableGameObject*>& getRenderables() const;
-        std::vector<entity::RenderableGameObject*>&       getWritableRenderables();
+        // Renderables
+        const std::vector<entity::RenderableGameObject*>& getAllRenderables() const;
+        std::vector<entity::RenderableGameObject*>&       getAllWritableRenderables();
+
+        const std::vector<entity::RenderableGameObject*>& getGBufferRenderables() const;
+        std::vector<entity::RenderableGameObject*>&       getWritableGBufferRenderables();
+
+        const std::vector<entity::RenderableGameObject*>& getNonGBufferRenderables() const;
+        std::vector<entity::RenderableGameObject*>&       getWritableNonGBufferRenderables();
 
         const entity::RenderableGameObject& getSkybox() const;
         entity::RenderableGameObject&       getWritableSkybox();
@@ -154,6 +161,9 @@ namespace hrzn::scene
         entity::ControllerManager* getWritableControllerManager();
 
     private:
+        SceneManager();
+
+    private:
         std::string m_sceneName;
 
         SceneLoader m_sceneLoader;
@@ -171,7 +181,9 @@ namespace hrzn::scene
         entity::GameObject                                   m_badReturnGameObject;
 
         std::vector<entity::CameraGameObject*>     m_cameras;
-        std::vector<entity::RenderableGameObject*> m_renderables;
+        std::vector<entity::RenderableGameObject*> m_gBufferRenderables;
+        std::vector<entity::RenderableGameObject*> m_nonGBufferRenderables;
+        std::vector<entity::RenderableGameObject*> m_allRenderables;
         std::vector<entity::PhysicsGameObject*>    m_physicsObjects;
         std::vector<physics::Spring*>              m_springs;
 

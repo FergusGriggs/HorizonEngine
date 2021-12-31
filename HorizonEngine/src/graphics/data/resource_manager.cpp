@@ -1,5 +1,9 @@
 #include "resource_manager.h"
 
+#include "../graphics_handler.h"
+
+#include "../../utils/string_helpers.h"
+
 namespace hrzn::gfx
 {
 	ResourceManager& ResourceManager::it()
@@ -8,119 +12,249 @@ namespace hrzn::gfx
 		return instance;
 	}
 
-	bool ResourceManager::initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+	bool ResourceManager::initialise()
 	{
-		m_device = device;
-		m_deviceContext = deviceContext;
+		m_defaultTexture = getTexturePtr("res/textures/missing.png");
+		m_defaultMaterial = getMaterialPtr("default");
+		m_defaultModel = getModelPtr("res/models/engine/test/horizon_statue.obj");
 
-		if (m_device == nullptr || m_deviceContext == nullptr)
-		{
-			return false;
-		}
+		m_defaultVS = getVSPtr("default");
+		m_defaultPS = getPSPtr("default");
+		m_defaultGBufferWritePS = getGBufferWritePSPtr("default");
+		m_defaultCS = nullptr;
 
-		for (int i = 0; i < 2; i++)
-		{
-			std::unordered_map<std::string, unsigned int>* resourceMap = new std::unordered_map<std::string, unsigned int>;
-			m_loadedResources.push_back(resourceMap);
-		}
+		m_gBufferReadPS = getPSPtr("gbuf_r_default");
 
 		return true;
 	}
 
 	Model* ResourceManager::getModelPtr(std::string path)
 	{
-		int modelIndex = getResourceIndex(ResourceType::eModel, path);
-		if (modelIndex >= 0)
+		const auto& modelItr = m_models.find(path);
+		if (modelItr != m_models.end())
 		{
-			return m_models.at(modelIndex);
+			return modelItr->second;
 		}
 		else
 		{
 			Model* loadedModel = new Model();
-			if (loadedModel->initialize(path, m_device, m_deviceContext))
-			{
-				m_models.push_back(loadedModel);
-				m_loadedResources.at(static_cast<int>(ResourceType::eModel))->insert(std::make_pair(path, m_models.size() - 1));
-				return loadedModel;
-			}
-			else
+			if (!loadedModel->initialize(path))
 			{
 				delete loadedModel;
-				m_models.push_back(nullptr);
-				m_loadedResources.at(static_cast<int>(ResourceType::eModel))->insert(std::make_pair(path, m_models.size() - 1));
-				return nullptr;
+				loadedModel = m_defaultModel;
 			}
+			m_models.insert({ path, loadedModel });
+			return loadedModel;
 		}
 	}
 
-	Texture* ResourceManager::getTexturePtr(std::string path, aiTextureType textureType)
+	Texture* ResourceManager::getTexturePtr(std::string path)
 	{
-		int textureIndex = getResourceIndex(ResourceType::eTexture, path);
-		if (textureIndex >= 0)
+		const auto& textureItr = m_textures.find(path);
+		if (textureItr != m_textures.end())
 		{
-			return m_textures.at(textureIndex);
+			return textureItr->second;
 		}
 		else
 		{
 			Texture* loadedTexture = new Texture();
-			if (loadedTexture->initialize(m_device, path, textureType))
-			{
-				m_textures.push_back(loadedTexture);
-				m_loadedResources.at(static_cast<int>(ResourceType::eTexture))->insert(std::make_pair(path, m_textures.size() - 1));
-				return loadedTexture;
-			}
-			else
+			if (!loadedTexture->initialize(path))
 			{
 				delete loadedTexture;
-				m_models.push_back(nullptr);
-				m_loadedResources.at(static_cast<int>(ResourceType::eTexture))->insert(std::make_pair(path, m_textures.size() - 1));
-				return nullptr;
+				loadedTexture = m_defaultTexture;
 			}
+			m_textures.insert({ path, loadedTexture });
+			return loadedTexture;
 		}
 	}
 
-	Texture* ResourceManager::getTexturePtr(std::string path, const uint8_t* pData, size_t size, aiTextureType type)
+	Texture* ResourceManager::getTexturePtr(std::string path, const uint8_t* pData, size_t size)
 	{
-		int textureIndex = getResourceIndex(ResourceType::eTexture, path);
-		if (textureIndex >= 0)
+		const auto& textureItr = m_textures.find(path);
+		if (textureItr != m_textures.end())
 		{
-			return m_textures.at(textureIndex);
+			return textureItr->second;
 		}
 		else
 		{
-			Texture* newTexture = new Texture(m_device, pData, size, type);
-			m_textures.push_back(newTexture);
-			m_loadedResources.at(static_cast<int>(ResourceType::eTexture))->insert(std::make_pair(path, m_textures.size() - 1));
+			Texture* newTexture = new Texture(pData, size);
+			if (!newTexture->initialize(path))
+			{
+				delete newTexture;
+				newTexture = m_defaultTexture;
+			}
+			m_textures.insert({ path, newTexture });
 			return newTexture;
 		}
 	}
 
-	Texture* ResourceManager::getColourTexturePtr(std::string name, Colour colour, aiTextureType textureType)
+	Texture* ResourceManager::getColourTexturePtr(Colour colour)
 	{
-		int textureIndex = getResourceIndex(ResourceType::eTexture, name);
-		if (textureIndex >= 0)
+		const auto& textureItr = m_colourTextures.find(colour.getUnsignedInt());
+		if (textureItr != m_colourTextures.end())
 		{
-			return m_textures.at(textureIndex);
+			return textureItr->second;
 		}
 		else
 		{
-			Texture* newTexture = new Texture(m_device, colour, textureType);
-			m_textures.push_back(newTexture);
-			m_loadedResources.at(static_cast<int>(ResourceType::eTexture))->insert(std::make_pair(name, m_textures.size() - 1));
+			Texture* newTexture = new Texture(colour);
+			m_colourTextures.insert({ colour.getUnsignedInt(), newTexture });
 			return newTexture;
 		}
 	}
 
-	int ResourceManager::getResourceIndex(ResourceType type, std::string path)
+	Material* ResourceManager::getMaterialPtr(std::string name)
 	{
-		auto resourceMap = m_loadedResources.at(static_cast<int>(type));
-		if (resourceMap->find(path) != resourceMap->end())
+		const auto& materialItr = m_materials.find(name);
+		if (materialItr != m_materials.end())
 		{
-			return resourceMap->at(path);
+			return materialItr->second;
 		}
 		else
 		{
-			return -1;
+			Material* newMaterial = new Material();
+			if (!newMaterial->initialise(name))
+			{
+				delete newMaterial;
+				newMaterial = m_defaultMaterial;
+			}
+			m_materials.insert({ name, newMaterial });
+			return newMaterial;
 		}
+	}
+
+	VertexShader* ResourceManager::getVSPtr(std::string name)
+	{
+		const auto& vertexShaderItr = m_vertexShaders.find(name);
+		if (vertexShaderItr != m_vertexShaders.end())
+		{
+			return vertexShaderItr->second;
+		}
+		else
+		{
+			VertexShader* newVertexShader = new VertexShader();
+			std::wstring shaderPath = GraphicsHandler::it().getCompiledShaderFolder() + L"vs_" + utils::string_helpers::stringToWide(name) + L".cso";
+			if (!newVertexShader->initialise(shaderPath, GraphicsHandler::it().getDefaultVSLayout(), GraphicsHandler::it().getDefaultVSLayoutSize()))
+			{
+				delete newVertexShader;
+				newVertexShader = m_defaultVS;
+			}
+			m_vertexShaders.insert({ name, newVertexShader });
+			return newVertexShader;
+		}
+	}
+
+	PixelShader* ResourceManager::getPSPtr(std::string name)
+	{
+		const auto& pixelShaderItr = m_pixelShaders.find(name);
+		if (pixelShaderItr != m_pixelShaders.end())
+		{
+			return pixelShaderItr->second;
+		}
+		else
+		{
+			PixelShader* newPixelShader = new PixelShader();
+			std::wstring shaderPath = GraphicsHandler::it().getCompiledShaderFolder() + L"ps_" + utils::string_helpers::stringToWide(name) + L".cso";
+			if (!newPixelShader->initialise(shaderPath))
+			{
+				delete newPixelShader;
+				newPixelShader = m_defaultPS;
+			}
+			m_pixelShaders.insert({ name, newPixelShader });
+			return newPixelShader;
+		}
+	}
+
+	PixelShader* ResourceManager::getGBufferWritePSPtr(std::string name)
+	{
+		const auto& gBufferPixelShaderItr = m_gBufferWritePixelShaders.find(name);
+		if (gBufferPixelShaderItr != m_gBufferWritePixelShaders.end())
+		{
+			return gBufferPixelShaderItr->second;
+		}
+		else
+		{
+			PixelShader* newGBufferWritePixelShader = new PixelShader();
+			std::wstring shaderPath = GraphicsHandler::it().getCompiledShaderFolder() + L"ps_gbuf_w_" + utils::string_helpers::stringToWide(name) + L".cso";
+			if (!newGBufferWritePixelShader->initialise(shaderPath))
+			{
+				delete newGBufferWritePixelShader;
+				newGBufferWritePixelShader = m_defaultGBufferWritePS;
+			}
+			m_gBufferWritePixelShaders.insert({ name, newGBufferWritePixelShader });
+			return newGBufferWritePixelShader;
+		}
+	}
+
+	ComputeShader* ResourceManager::getCSPtr(std::string name)
+	{
+		const auto& computeShaderItr = m_computeShaders.find(name);
+		if (computeShaderItr != m_computeShaders.end())
+		{
+			return computeShaderItr->second;
+		}
+		else
+		{
+			ComputeShader* newComputeShader = new ComputeShader();
+			std::wstring shaderPath = GraphicsHandler::it().getCompiledShaderFolder() + L"cs_" + utils::string_helpers::stringToWide(name) + L".cso";
+			if (!newComputeShader->initialise(shaderPath))
+			{
+				delete newComputeShader;
+				newComputeShader = m_defaultCS;
+			}
+			m_computeShaders.insert({ name, newComputeShader });
+			return newComputeShader;
+		}
+	}
+
+	Model* ResourceManager::getDefaultModelPtr()
+	{
+		return m_defaultModel;
+	}
+
+	Texture* ResourceManager::getDefaultTexturePtr()
+	{
+		return m_defaultTexture;
+	}
+
+	Material* ResourceManager::getDefaultMaterialPtr()
+	{
+		return m_defaultMaterial;
+	}
+
+	VertexShader* ResourceManager::getDefaultVSPtr()
+	{
+		return m_defaultVS;
+	}
+
+	PixelShader* ResourceManager::getDefaultPSPtr()
+	{
+		return m_defaultPS;
+	}
+
+	PixelShader* ResourceManager::getDefaultGBufferWritePSPtr()
+	{
+		return m_defaultGBufferWritePS;
+	}
+
+	ComputeShader* ResourceManager::getDefaultCSPtr()
+	{
+		return m_defaultCS;
+	}
+
+	PixelShader* ResourceManager::getGBufferReadPSPtr()
+	{
+		return m_gBufferReadPS;
+	}
+
+	ResourceManager::ResourceManager() :
+		m_defaultModel(nullptr),
+		m_defaultTexture(nullptr),
+		m_defaultMaterial(nullptr),
+
+		m_defaultVS(nullptr),
+		m_defaultPS(nullptr),
+		m_defaultCS(nullptr)
+	{
 	}
 }

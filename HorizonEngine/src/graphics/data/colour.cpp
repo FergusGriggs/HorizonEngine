@@ -89,4 +89,9 @@ namespace hrzn::gfx
 	{
 		m_rgba[3] = a;
 	}
+
+	unsigned int Colour::getUnsignedInt() const
+	{
+		return m_colour;
+	}
 }

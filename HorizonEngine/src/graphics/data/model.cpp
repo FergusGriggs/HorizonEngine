@@ -3,9 +3,11 @@
 
 #include "model.h"
 
-#include "resource_manager.h";
+#include "resource_manager.h"
 
 #include "../../physics/utils/collision_helpers.h"
+
+#include "../graphics_handler.h"
 
 namespace hrzn::gfx
 {
@@ -15,22 +17,19 @@ namespace hrzn::gfx
 		m_indices(),
 		m_currentNumVerts(0),
 
-		m_device(nullptr),
-		m_deviceContext(nullptr),
-
 		m_filePath(""),
 		m_directory(""),
 
 		m_modelHitRadius(0.5f),
-		m_boundingBox()
+		m_boundingBox(),
+
+		m_isGBufferCompatible(false)
 	{
 	}
 
-	bool Model::initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+	bool Model::initialize(const std::string& filePath)
 	{
 		m_filePath = filePath;
-		m_device = device;
-		m_deviceContext = deviceContext;
 
 		try
 		{
@@ -48,16 +47,29 @@ namespace hrzn::gfx
 		return true;
 	}
 
+	void Model::draw(const XMMATRIX& modelMatrix, ConstantBuffer<PerObjectCB>* perObjectCB, bool bindPSData) const
+	{
+		for (int i = 0; i < m_meshes.size(); i++)
+		{
+			perObjectCB->m_data.m_modelMatrix = m_meshes[i].getTransformMatrix() * modelMatrix;
+			//vertexShaderCB->data.modelMatrix = XMMatrixTranspose(vertexShaderCB->data.modelMatrix);
+
+			perObjectCB->mapToGPU();
+
+			m_meshes[i].draw(m_isGBufferCompatible && GraphicsHandler::it().isUsingDeferredShading(), bindPSData);
+		}
+	}
+
 	float Model::getHitRadius() const
 	{
 		return m_modelHitRadius;
 	}
 
-	void Model::drawRaw(bool bindTextures)
+	void Model::drawRaw(bool useGBuffer, bool bindPSData)
 	{
 		for (int i = 0; i < m_meshes.size(); i++)
 		{
-			m_meshes[i].draw(bindTextures);
+			m_meshes[i].draw(useGBuffer, bindPSData);
 		}
 	}
 
@@ -99,9 +111,17 @@ namespace hrzn::gfx
 		return false;
 	}
 
+	bool Model::isGBufferCompatible() const
+	{
+		return m_isGBufferCompatible;
+	}
+
 	bool Model::loadModel(const std::string& filePath)
 	{
 		m_directory = utils::string_helpers::getDirectoryFromPath(filePath);
+
+		std::string meshMaterialFilePath = utils::string_helpers::changeFileExtension(filePath, "mtl");
+		loadMeshMaterials(meshMaterialFilePath);
 
 		Assimp::Importer importer;
 
@@ -117,6 +137,8 @@ namespace hrzn::gfx
 		{
 			return false;
 		}
+
+		m_isGBufferCompatible = true;
 
 		processNode(pScene->mRootNode, pScene, XMMatrixIdentity());// * XMMatrixScaling(0.025f, 0.025f, 0.025f)
 
@@ -143,6 +165,45 @@ namespace hrzn::gfx
 		}
 	}
 
+	bool Model::loadMeshMaterials(const std::string& filePath)
+	{
+		std::ifstream materialFile(filePath);
+
+		if (materialFile)
+		{
+			std::string checkString;
+			materialFile >> checkString;
+
+			if (checkString != "#hrznmtls")
+			{
+				utils::ErrorLogger::log("No '#hrznmtls' tag found in material link file at path '" + filePath + "'");
+				materialFile.close();
+				return false;
+			}
+
+			while (!materialFile.eof())
+			{
+				std::string meshName;
+				materialFile >> meshName;
+
+				std::string meshMaterialName;
+				materialFile >> meshMaterialName;
+
+				m_meshMaterials.insert(std::make_pair(meshName, ResourceManager::it().getMaterialPtr(meshMaterialName)));
+			}
+
+			materialFile.close();
+
+			return true;
+		}
+		else
+		{
+			utils::ErrorLogger::log("Failed to load model material at path: " + filePath);
+		}
+
+		return false;
+	}
+
 	void Model::processNode(aiNode* node, const aiScene* scene, const XMMATRIX& parentTransformMatrix)
 	{
 		XMMATRIX nodeTransformationMatrix = XMMatrixTranspose(XMMATRIX(&node->mTransformation.a1)) * parentTransformMatrix;
@@ -150,7 +211,24 @@ namespace hrzn::gfx
 		for (UINT i = 0; i < node->mNumMeshes; i++)
 		{
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			m_meshes.push_back(processMesh(mesh, scene, nodeTransformationMatrix));
+
+			Material* meshMaterial = nullptr;
+			const auto& meshMaterialsIterator = m_meshMaterials.find(node->mName.C_Str());
+			if (meshMaterialsIterator != m_meshMaterials.end())
+			{
+				meshMaterial = meshMaterialsIterator->second;
+			}
+			else
+			{
+				meshMaterial = ResourceManager::it().getDefaultMaterialPtr();
+			}
+
+			if (!meshMaterial->isGBufferCompatible())
+			{
+				m_isGBufferCompatible = false;
+			}
+
+			m_meshes.push_back(processMesh(mesh, meshMaterial, nodeTransformationMatrix));
 		}
 
 		for (UINT i = 0; i < node->mNumChildren; i++)
@@ -159,7 +237,7 @@ namespace hrzn::gfx
 		}
 	}
 
-	Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMatrix)
+	Mesh Model::processMesh(aiMesh* mesh, Material* material, const XMMATRIX& transformMatrix)
 	{
 		std::vector<Vertex> meshVertices;
 		std::vector<DWORD> indices;
@@ -208,24 +286,24 @@ namespace hrzn::gfx
 			}
 		}
 
-		m_currentNumVerts = m_vertices.size();
+		m_currentNumVerts = static_cast<int>(m_vertices.size());
 
-		std::vector<Texture*> textures;
-		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+		/*std::vector<Texture*> textures;
+		aiMaterial* aiMaterial = scene->mMaterials[mesh->mMaterialIndex];
 
-		std::vector<Texture*> diffuseTextures = loadMaterialTextures(material, aiTextureType::aiTextureType_DIFFUSE, scene);
+		std::vector<Texture*> diffuseTextures = loadMaterialTextures(aiMaterial, aiTextureType::aiTextureType_DIFFUSE, scene);
 		textures.insert(textures.end(), diffuseTextures.begin(), diffuseTextures.end());
 
-		std::vector<Texture*> specularTextures = loadMaterialTextures(material, aiTextureType::aiTextureType_SPECULAR, scene);
+		std::vector<Texture*> specularTextures = loadMaterialTextures(aiMaterial, aiTextureType::aiTextureType_SPECULAR, scene);
 		textures.insert(textures.end(), specularTextures.begin(), specularTextures.end());
 
-		std::vector<Texture*> normalTextures = loadMaterialTextures(material, aiTextureType::aiTextureType_NORMALS, scene);
+		std::vector<Texture*> normalTextures = loadMaterialTextures(aiMaterial, aiTextureType::aiTextureType_NORMALS, scene);
 		textures.insert(textures.end(), normalTextures.begin(), normalTextures.end());
 
-		std::vector<Texture*> depthTextures = loadMaterialTextures(material, aiTextureType::aiTextureType_DISPLACEMENT, scene);
-		textures.insert(textures.end(), depthTextures.begin(), depthTextures.end());
+		std::vector<Texture*> depthTextures = loadMaterialTextures(aiMaterial, aiTextureType::aiTextureType_DISPLACEMENT, scene);
+		textures.insert(textures.end(), depthTextures.begin(), depthTextures.end());*/
 
-		return Mesh(m_device, m_deviceContext, meshVertices, indices, textures, transformMatrix);
+		return Mesh(meshVertices, indices, material, transformMatrix);
 	}
 
 	int Model::getTextureIndex(aiString* pString) const
@@ -294,25 +372,22 @@ namespace hrzn::gfx
 
 				if (aiColour.IsBlack())
 				{
-					materialTextures.push_back(ResourceManager::it().getColourTexturePtr("UNLOADED_DIFFUSE", colours::sc_unloadedTextureColour, textureType));
+					materialTextures.push_back(ResourceManager::it().getColourTexturePtr(colours::sc_defaultAlbedo));
 					return materialTextures;
 				}
-				std::string key = std::to_string(static_cast<int>(aiColour.r * 255)) + "|" + std::to_string(static_cast<int>(aiColour.g * 255)) + "|" + std::to_string(static_cast<int>(aiColour.b * 255));
-				materialTextures.push_back(ResourceManager::it().getColourTexturePtr(key, Colour(aiColour.r * 255, aiColour.g * 255, aiColour.b * 255), textureType));
+				materialTextures.push_back(ResourceManager::it().getColourTexturePtr(Colour((BYTE)aiColour.r * 255, (BYTE)aiColour.g * 255, (BYTE)aiColour.b * 255)));
 				return materialTextures;
 			}
 			case aiTextureType_SPECULAR:
-				materialTextures.push_back(ResourceManager::it().getColourTexturePtr("UNLOADED_SPECULAR", colours::sc_unloadedSpecularTextureColour, textureType));
-				return materialTextures;
-
+				materialTextures.push_back(ResourceManager::it().getColourTexturePtr(colours::sc_defaultRoughness));
 				return materialTextures;
 
 			case aiTextureType_NORMALS:
-				materialTextures.push_back(ResourceManager::it().getColourTexturePtr("UNLOADED_NORMAL", colours::sc_unloadedNormalTextureColour, textureType));
+				materialTextures.push_back(ResourceManager::it().getColourTexturePtr(colours::sc_defaultNormal));
 				return materialTextures;
 
 			case aiTextureType_DISPLACEMENT:
-				materialTextures.push_back(ResourceManager::it().getColourTexturePtr("UNLOADED_DEPTH", colours::sc_unloadedDepthTextureColour, textureType));
+				materialTextures.push_back(ResourceManager::it().getColourTexturePtr(colours::sc_defaultDepth));
 				return materialTextures;
 			}
 		}
@@ -330,21 +405,21 @@ namespace hrzn::gfx
 				case TextureStorageType::eDisk:
 				{
 					std::string fileName = m_directory + "/" + path.C_Str();
-					materialTextures.push_back(ResourceManager::it().getTexturePtr(fileName, textureType));
+					materialTextures.push_back(ResourceManager::it().getTexturePtr(fileName));
 					break;
 				}
 				case TextureStorageType::eEmbeddedCompressed:
 				{
 					const aiTexture* pTexture = pScene->GetEmbeddedTexture(path.C_Str());
 					std::string key = m_directory + "/" + path.C_Str();
-					materialTextures.push_back(ResourceManager::it().getTexturePtr(key, reinterpret_cast<uint8_t*>(pTexture->pcData), pTexture->mWidth, textureType));
+					materialTextures.push_back(ResourceManager::it().getTexturePtr(key, reinterpret_cast<uint8_t*>(pTexture->pcData), pTexture->mWidth));
 					break;
 				}
 				case TextureStorageType::eEmbeddedIndexCompressed:
 				{
 					int index = getTextureIndex(&path);
 					std::string key = m_directory + "/" + path.C_Str();
-					materialTextures.push_back(ResourceManager::it().getTexturePtr(key, reinterpret_cast<uint8_t*>(pScene->mTextures[index]->pcData), pScene->mTextures[index]->mWidth, textureType));
+					materialTextures.push_back(ResourceManager::it().getTexturePtr(key, reinterpret_cast<uint8_t*>(pScene->mTextures[index]->pcData), pScene->mTextures[index]->mWidth));
 					break;
 				}
 				}
@@ -354,8 +429,10 @@ namespace hrzn::gfx
 
 		if (materialTextures.size() == 0)
 		{
-			materialTextures.push_back(ResourceManager::it().getColourTexturePtr("UNHANDLED", colours::sc_unhandledTextureColour, textureType));
+			materialTextures.push_back(ResourceManager::it().getColourTexturePtr(colours::sc_unhandledTextureColour));
 			return materialTextures;
 		}
+
+		return materialTextures;
 	}
 }

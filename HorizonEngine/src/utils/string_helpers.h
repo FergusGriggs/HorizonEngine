@@ -39,14 +39,27 @@ namespace hrzn::utils::string_helpers
 
 	static std::string getFileExtension(const std::string& fileName)
 	{
-		size_t off = fileName.find_last_of(".");
+		size_t offset = fileName.find_last_of(".");
 
-		if (off == std::string::npos)
+		if (offset == std::string::npos)
 		{
 			return "";
 		}
 
-		return std::string(fileName.substr(off + 1));
+		return std::string(fileName.substr(offset + 1));
+	}
+
+	static std::string changeFileExtension(const std::string& filePath, const char* newExtensionNoDot)
+	{
+		int numChars = static_cast<int>(filePath.size());
+		for (int i = numChars - 1; i >= 0; --i)
+		{
+			if (filePath[i] == '.')
+			{
+				return filePath.substr(0, static_cast<size_t>(i) + 1) + newExtensionNoDot;
+			}
+		}
+		return "";
 	}
 
 	static void removeDirectoriesFromStart(std::string& filePath, int numDirectories)

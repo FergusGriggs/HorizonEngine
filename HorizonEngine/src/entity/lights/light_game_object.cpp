@@ -3,6 +3,8 @@
 
 #include "light_game_object.h"
 
+#include "../../graphics/data/resource_manager.h"
+
 namespace hrzn::entity
 {
 	LightGameObject::LightGameObject() :
@@ -15,7 +17,7 @@ namespace hrzn::entity
 
 	bool LightGameObject::initialize()
 	{
-		m_model = gfx::ResourceManager::it().getModelPtr("res/models/light.obj");
+		m_model = gfx::ResourceManager::it().getModelPtr("res/models/engine/light/light.obj");
 		if (m_model == nullptr) return false;
 		
 		return true;

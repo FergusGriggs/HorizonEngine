@@ -1,0 +1,8 @@
+{
+  "Material": {
+    "default_material_textures": true,
+    "vertex_shader": "default",
+    "pixel_shader": "default",
+    "gbuf_w_pixel_shader": "default"
+  }
+}

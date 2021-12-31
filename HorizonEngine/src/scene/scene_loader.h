@@ -18,6 +18,7 @@ namespace hrzn::scene
 {
     class SceneLoader
     {
+    public:
         enum class LoadResult
         {
             eOk,
@@ -44,10 +45,6 @@ namespace hrzn::scene
 
         LoadResult loadObjectTracks(rapidjson::Value& sceneObject);
         LoadResult loadGameObjects(rapidjson::Value& sceneObject);
-        
-
-        static DirectX::XMFLOAT3 getFloat3FromArray(rapidjson::Value::Array arrayObject);
-        static DirectX::XMFLOAT4 getFloat4FromArray(rapidjson::Value::Array arrayObject);
 
     private:
         SceneManager*       m_sceneManager;

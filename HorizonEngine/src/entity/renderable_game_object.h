@@ -5,7 +5,7 @@
 
 #include "game_object.h"
 
-#include "../graphics/data/resource_manager.h"
+#include "../graphics/data/model.h"
 
 namespace hrzn::entity
 {
@@ -17,7 +17,7 @@ namespace hrzn::entity
 		bool  initialize(std::string label, const std::string& filePath);
 
 		template <class T>
-		void  draw(gfx::ConstantBuffer<T>* vertexShaderCB, bool bindTextures = true) const;
+		void  draw(gfx::ConstantBuffer<T>* vertexShaderCB, bool bindPSData = true) const;
 
 		float getRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection) const;
 
@@ -37,7 +37,7 @@ namespace hrzn::entity
 namespace hrzn::entity
 {
 	template<class T>
-	inline void RenderableGameObject::draw(gfx::ConstantBuffer<T>* vertexShaderCB, bool bindTextures) const
+	inline void RenderableGameObject::draw(gfx::ConstantBuffer<T>* vertexShaderCB, bool bindPSData) const
 	{
 		XMFLOAT3 objectPosition = m_transform.getPositionFloat3();
 
@@ -48,11 +48,11 @@ namespace hrzn::entity
 
 		if (m_type == GameObject::Type::eRenderable)
 		{
-			m_model->draw(XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z) * m_transform.getRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z), vertexShaderCB, bindTextures);
+			m_model->draw(XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z) * m_transform.getRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z), vertexShaderCB, bindPSData);
 		}
 		else
 		{
-			m_model->draw(m_transform.getRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z), vertexShaderCB, bindTextures);
+			m_model->draw(m_transform.getRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z), vertexShaderCB, bindPSData);
 		}
 	}
 }

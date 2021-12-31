@@ -1,0 +1,14 @@
+{
+  "Material": {
+    "default_material_textures": true,
+    "textures": [
+      [ "albedo", "res/textures/stone/albedo.jpg" ],
+      [ "roughness", "res/textures/stone/roughness.jpg" ],
+      [ "normal_map", "res/textures/stone/normal.jpg" ],
+      [ "depth", "res/textures/stone/depth.png" ]
+    ],
+    "vertex_shader": "default",
+    "pixel_shader": "default",
+    "gbuf_w_pixel_shader": "default"
+  }
+}

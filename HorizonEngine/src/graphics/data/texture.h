@@ -31,23 +31,21 @@ namespace hrzn::gfx
 	{
 	public:
 		Texture();
-		Texture(ID3D11Device* device, const Colour& colour, aiTextureType type);
-		Texture(ID3D11Device* device, const Colour* colourData, UINT width, UINT height, aiTextureType type);
-		Texture(ID3D11Device* device, const std::string& filePath, aiTextureType type);
-		Texture(ID3D11Device* device, const uint8_t* pData, size_t size, aiTextureType type);
+		Texture(const Colour& colour);
+		Texture(const Colour* colourData, UINT width, UINT height);
+		Texture(const std::string& filePath);
+		Texture(const uint8_t* pData, size_t size);
 
-		bool initialize(ID3D11Device* device, const std::string& filePath, aiTextureType type);
+		bool initialize(const std::string& filePath);
 
-		aiTextureType              getType() const;
 		ID3D11ShaderResourceView*  getTextureResourceView() const;
 		ID3D11ShaderResourceView** getTextureResourceViewAddress();
 
 	private:
-		void initialize1x1ColourTexture(ID3D11Device* device, const Colour& colour, aiTextureType type);
-		void initializeColourTexture(ID3D11Device* device, const Colour* colourData, UINT width, UINT height, aiTextureType type);
+		void initialize1x1ColourTexture(const Colour& colour);
+		void initializeColourTexture(const Colour* colourData, UINT width, UINT height);
 
 	private:
-		aiTextureType                                    m_type;
 		Microsoft::WRL::ComPtr<ID3D11Resource>           m_texture;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_textureView;
 	};

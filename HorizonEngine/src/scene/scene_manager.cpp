@@ -13,7 +13,13 @@
 
 namespace hrzn::scene
 {
-	SceneManager::SceneManager(entity::ControllerManager* controllerManager) :
+	SceneManager& SceneManager::it()
+	{
+		static SceneManager instance;
+		return instance;
+	}
+
+	SceneManager::SceneManager() :
 		m_sceneName("unloaded"),
 
 		m_sceneLoader(this),
@@ -29,7 +35,8 @@ namespace hrzn::scene
 		m_gameObjectMap(),
 
 		m_cameras(),
-		m_renderables(),
+		m_gBufferRenderables(),
+		m_nonGBufferRenderables(),
 		m_physicsObjects(),
 		m_springs(),
 
@@ -51,7 +58,7 @@ namespace hrzn::scene
 
 		m_particleSystem(nullptr),
 		
-		m_controllerManager(controllerManager),
+		m_controllerManager(nullptr),
 		
 		m_objectTracks(),
 		
@@ -71,24 +78,26 @@ namespace hrzn::scene
 	{
 	}
 
-	bool SceneManager::initialise()
+	bool SceneManager::initialise(entity::ControllerManager* controllerManager)
 	{
+		m_controllerManager = controllerManager;
+
 		m_particleSystem = new physics::ParticleSystem();
 		m_particleSystem->addEmitter(XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), 0.25f, 5.0f, 0.25f, 1.5f, 0.25f, 0.005f, 0.25f);
 
-		if (!m_skybox.initialize("Skybox", "res/models/skyboxes/ocean.obj"))
+		if (!m_skybox.initialize("Skybox", "res/models/engine/skybox.obj"))
 		{
 			return false;
 		}
 
-		if (!m_clouds.initialize("Clouds", "res/models/simple_plane.obj"))
+		if (!m_clouds.initialize("Clouds", "res/models/engine/cloud_plane.obj"))
 		{
 			return false;
 		}
 		m_clouds.getWritableTransform().setPosition(0.0f, 2000.0f, 0.0f);
 		m_clouds.setScale(XMFLOAT3(200.0f, 200.0f, 200.0f));
 
-		if (!m_ocean.initialize("Ocean", "res/models/ocean_tesselated.obj"))
+		if (!m_ocean.initialize("Ocean", "res/models/engine/ocean/ocean.obj"))
 		{
 			return false;
 		}
@@ -247,12 +256,12 @@ namespace hrzn::scene
 			m_springs[i]->update();
 		}
 
-		size_t numRenderableGameObjects = m_renderables.size();
+		size_t numRenderableGameObjects = m_allRenderables.size();
 		for (size_t i = 0; i < numRenderableGameObjects; ++i)
 		{
-			if (m_renderables[i]->getFloating())
+			if (m_allRenderables[i]->getFloating())
 			{
-				floatObject(m_renderables[i]);
+				floatObject(m_allRenderables[i]);
 			}
 		}
 
@@ -409,14 +418,34 @@ namespace hrzn::scene
 		return m_spotLights;
 	}
 
-	const std::vector<entity::RenderableGameObject*>& SceneManager::getRenderables() const
+	const std::vector<entity::RenderableGameObject*>& SceneManager::getAllRenderables() const
 	{
-		return m_renderables;
+		return m_allRenderables;
 	}
 
-	std::vector<entity::RenderableGameObject*>& SceneManager::getWritableRenderables()
+	std::vector<entity::RenderableGameObject*>& SceneManager::getAllWritableRenderables()
 	{
-		return m_renderables;
+		return m_allRenderables;
+	}
+
+	const std::vector<entity::RenderableGameObject*>& SceneManager::getGBufferRenderables() const
+	{
+		return m_gBufferRenderables;
+	}
+
+	std::vector<entity::RenderableGameObject*>& SceneManager::getWritableGBufferRenderables()
+	{
+		return m_gBufferRenderables;
+	}
+
+	const std::vector<entity::RenderableGameObject*>& SceneManager::getNonGBufferRenderables() const
+	{
+		return m_nonGBufferRenderables;
+	}
+
+	std::vector<entity::RenderableGameObject*>& SceneManager::getWritableNonGBufferRenderables()
+	{
+		return m_nonGBufferRenderables;
 	}
 
 	const entity::RenderableGameObject& SceneManager::getSkybox() const
@@ -507,7 +536,14 @@ namespace hrzn::scene
 		{
 			m_gameObjectMap.insert({ gameObject->getLabel() , gameObject });
 
-			if (auto* renderable = dynamic_cast<entity::RenderableGameObject*>(gameObject)) m_renderables.push_back(renderable);
+			if (auto* renderable = dynamic_cast<entity::RenderableGameObject*>(gameObject))
+			{
+				m_allRenderables.push_back(renderable);
+
+				if (renderable->getModel().isGBufferCompatible()) m_gBufferRenderables.push_back(renderable);
+				else                                              m_nonGBufferRenderables.push_back(renderable);
+			}
+
 			if (auto* physicsObject = dynamic_cast<entity::PhysicsGameObject*>(gameObject)) m_physicsObjects.push_back(physicsObject);
 			if (auto* camera = dynamic_cast<entity::CameraGameObject*>(gameObject))         m_cameras.push_back(camera);
 
@@ -541,12 +577,30 @@ namespace hrzn::scene
 				}
 			}
 
-			// Remove from renderables
-			for (int i = 0; i < m_renderables.size(); ++i)
+			// Remove from all renderables
+			for (int i = 0; i < m_allRenderables.size(); ++i)
 			{
-				if (iterator->second == m_renderables[i])
+				if (iterator->second == m_allRenderables[i])
 				{
-					m_renderables.erase(m_renderables.begin() + i);
+					m_allRenderables.erase(m_allRenderables.begin() + i);
+				}
+			}
+
+			// Remove from gbuffer renderables
+			for (int i = 0; i < m_gBufferRenderables.size(); ++i)
+			{
+				if (iterator->second == m_gBufferRenderables[i])
+				{
+					m_gBufferRenderables.erase(m_gBufferRenderables.begin() + i);
+				}
+			}
+
+			// Remove from non gbuffer renderables
+			for (int i = 0; i < m_nonGBufferRenderables.size(); ++i)
+			{
+				if (iterator->second == m_nonGBufferRenderables[i])
+				{
+					m_nonGBufferRenderables.erase(m_nonGBufferRenderables.begin() + i);
 				}
 			}
 

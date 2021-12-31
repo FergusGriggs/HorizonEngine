@@ -3,11 +3,11 @@
 
 #pragma once
 
+#include <DirectXCollision.h>
+
 #include <fstream>
 
 #include "mesh.h"
-
-#include <DirectXCollision.h>
 
 using namespace DirectX;
 
@@ -18,12 +18,11 @@ namespace hrzn::gfx
 	public:
 		Model();
 
-		bool initialize(const std::string& filePath, ID3D11Device* device, ID3D11DeviceContext* deviceContext);
+		bool initialize(const std::string& filePath);
 
-		template <class T>
-		void draw(const XMMATRIX& modelMatrix, ConstantBuffer<T>* perObjectCB, bool bindTextures = true) const;
+		void draw(const XMMATRIX& modelMatrix, ConstantBuffer<PerObjectCB>* perObjectCB, bool bindPSData = true) const;
 
-		void drawRaw(bool bindTextures = true);
+		void drawRaw(bool useGBuffer, bool bindPSData = true);
 
 		const std::vector<Mesh>&     getMeshes() const;
 
@@ -34,11 +33,15 @@ namespace hrzn::gfx
 		const BoundingBox& getBoundingBox() const;
 		bool               rayInersectAllFaces(XMVECTOR rayOrigin, XMVECTOR rayDirection, float* rayDistance) const;
 
+		bool               isGBufferCompatible() const;
+
 	private:
 		bool loadModel(const std::string& filePath);
 		void processNode(aiNode* node, const aiScene* scene, const XMMATRIX& parentTransformMatrix);
-		Mesh processMesh(aiMesh* mesh, const aiScene* scene, const XMMATRIX& transformMatrix);
+		Mesh processMesh(aiMesh* mesh,  Material* material, const XMMATRIX& transformMatrix);
 		void loadModelMetaData(const std::string& filePath);
+
+		bool loadMeshMaterials(const std::string& filePath);
 
 		int                   getTextureIndex(aiString* pString) const;
 		TextureStorageType    determineTextureStorageType(const aiScene* pScene, aiMaterial* pMaterial, unsigned int index, aiTextureType textureType) const;
@@ -50,31 +53,14 @@ namespace hrzn::gfx
 		std::vector<DWORD>    m_indices;
 		int                   m_currentNumVerts;
 
-		ID3D11Device*         m_device;
-		ID3D11DeviceContext*  m_deviceContext;
+		std::unordered_map<std::string, Material*> m_meshMaterials;
 
 		std::string           m_filePath;
 		std::string           m_directory;
 
 		float                 m_modelHitRadius;
 		BoundingBox           m_boundingBox;
+
+		bool m_isGBufferCompatible;
 	};
-
-}
-
-namespace hrzn::gfx
-{
-	template<class T>
-	inline void Model::draw(const XMMATRIX& modelMatrix, ConstantBuffer<T>* perObjectCB, bool bindTextures) const
-	{
-		for (int i = 0; i < m_meshes.size(); i++)
-		{
-			perObjectCB->m_data.m_modelMatrix = m_meshes[i].getTransformMatrix() * modelMatrix;
-			//vertexShaderCB->data.modelMatrix = XMMatrixTranspose(vertexShaderCB->data.modelMatrix);
-
-			perObjectCB->mapToGPU();
-
-			m_meshes[i].draw(bindTextures);
-		}
-	}
 }

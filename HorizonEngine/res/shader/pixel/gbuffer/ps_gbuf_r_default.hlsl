@@ -2,12 +2,6 @@
 #include "../../shared/standard.hlsli"
 #include "../../shared/scene.hlsli"
 
-struct PS_INPUT
-{
-    float4 pos : SV_POSITION;
-    float2 texCoord : TEXCOORD;
-};
-
 SamplerState samplerState : SAMPLER : register(s0);
 
 Texture2D albedoTexture : TEXTURE: register(t0);
@@ -15,7 +9,7 @@ Texture2D positionRoughnessTexture : TEXTURE: register(t1);
 Texture2D normalAOTexture : TEXTURE: register(t2);
 Texture2D emissionMetallicTexture : TEXTURE: register(t3);
 
-float4 main(PS_INPUT input) : SV_TARGET
+float4 main(VSPS_TRANSFER input) : SV_TARGET
 {
     float3 albedo = albedoTexture.Sample(samplerState, input.texCoord).rgb;
     
@@ -128,7 +122,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 
     if (cb_gammaCorrection)
     {
-        cumulativeColour = pow(cumulativeColour, 1.0f / 2.2f);
+        cumulativeColour = pow(abs(cumulativeColour), 1.0f / 2.2f);
     }
 
     return float4(cumulativeColour, 1.0f);

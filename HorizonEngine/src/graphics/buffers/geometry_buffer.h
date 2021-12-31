@@ -1,32 +1,17 @@
 #pragma once
 
-#include <d3d11.h>
-#include <wrl/client.h>
+#include "../data/render_textures.h"
 
 namespace hrzn::gfx
 {
 	class GeometryBuffer
 	{
 	public:
-		struct RenderTexture
-		{
-			Microsoft::WRL::ComPtr<ID3D11Texture2D>          m_texture2D = nullptr;
-			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shaderResourceView = nullptr;
-			Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   m_renderTargetView = nullptr;
-		};
-
-		struct DepthTexture
-		{
-			Microsoft::WRL::ComPtr<ID3D11Texture2D>          m_texture2D = nullptr;
-			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_shaderResourceView = nullptr;
-			Microsoft::WRL::ComPtr<ID3D11DepthStencilView>   m_depthStencilView = nullptr;
-		};
-
-	public:
 		GeometryBuffer();
 		~GeometryBuffer();
 
-		void initialise(ID3D11Device* device);
+		void initialise(UINT texWidth, UINT texHeight);
+		void release();
 
 	public:
 		// Albedo -> DXGI_FORMAT_R8G8B8A8_UNORM

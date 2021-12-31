@@ -5,6 +5,8 @@
 #include <algorithm>
 
 #include "../utils/error_logger.h"
+#include "../utils/json_helpers.h"
+
 #include "../user_config.h"
 
 #include "scene_manager.h"
@@ -30,37 +32,11 @@ namespace hrzn::scene
         std::string sceneFilePath = "res/scenes/";
         sceneFilePath += sceneName + ".hrzn";
 
-        std::ifstream sceneFile(sceneFilePath.c_str());
-
-        if (!sceneFile) return LoadResult::eFailed;
-
-        std::stringstream buffer;
-        buffer << sceneFile.rdbuf();
-        std::string sceneFileStr = buffer.str();
-
-        // Parse the data loaded from file using rapidjson
+        LoadResult loadResult = LoadResult::eOk;
         rapidjson::Document document;
-        document.Parse(sceneFileStr.c_str());
-        if (document.HasParseError())
+
+        if (utils::JSONHelpers::parse(sceneFilePath, document) == LoadResult::eFailed)
         {
-            rapidjson::ParseErrorCode error = document.GetParseError();
-            int errorOffset = static_cast<int>(document.GetErrorOffset());
-
-            int errorStart = std::max(0, errorOffset - 20);
-            int errorEnd = std::min(static_cast<int>(strlen(sceneFileStr.c_str())), errorOffset + 20);
-
-            int beforeLen = errorOffset - errorStart;
-            int afterLen = errorEnd - errorOffset;
-
-            std::string errorString = sceneFileStr.substr(errorStart, beforeLen) + "[HERE]" + sceneFileStr.substr(errorOffset, afterLen);
-            errorString.erase(std::remove(errorString.begin(), errorString.end(), '\n'), errorString.end());
-            errorString.erase(std::remove(errorString.begin(), errorString.end(), '\t'), errorString.end());
-
-            int lineNumber = utils::string_helpers::getLineNumberFromOffset(sceneFileStr, errorOffset);
-
-            std::string finalErrorString = "Parsing Scene JSON\nCode: '" + std::to_string(error) + "'\nLine Num: '" + std::to_string(lineNumber) + "'\nError String: '" + errorString + "'\n";
-
-            utils::ErrorLogger::log(finalErrorString);
             return LoadResult::eFailed;
         }
 
@@ -71,9 +47,6 @@ namespace hrzn::scene
             return LoadResult::eFailed;
         }
         rapidjson::Value& sceneObject = document["Scene"];
-
-
-        LoadResult loadResult = LoadResult::eOk;
 
         combineResults(loadMeta(sceneObject), loadResult);
 
@@ -264,14 +237,14 @@ namespace hrzn::scene
                     utils::ErrorLogger::log("Parsing Scene JSON\nObject track with id '" + trackId + "' has a node with no 'position' tag");
                     return LoadResult::eFailed;
                 }
-                XMFLOAT3 nodePos = getFloat3FromArray((*trackNodeItr)["position"].GetArray());
+                XMFLOAT3 nodePos = utils::JSONHelpers::getFloat3FromArray((*trackNodeItr)["position"].GetArray());
 
                 if (!trackNodeItr->HasMember("look_position"))
                 {
                     utils::ErrorLogger::log("Parsing Scene JSON\nObject track with id '" + trackId + "' has a node with no 'look_position' tag");
                     return LoadResult::eFailed;
                 }
-                XMFLOAT3 nodeLookAt = getFloat3FromArray((*trackNodeItr)["look_position"].GetArray());
+                XMFLOAT3 nodeLookAt = utils::JSONHelpers::getFloat3FromArray((*trackNodeItr)["look_position"].GetArray());
 
                 track->addTrackNode(entity::ObjectTrackNode(nodePos, nodeLookAt));
             }
@@ -327,10 +300,6 @@ namespace hrzn::scene
         // Renderable vars
         std::string modelPath;
         XMFLOAT3 scale;
-
-        // Physics vars
-        float mass;
-        float drag;
 
         // Camera vars
         float fov;
@@ -389,7 +358,7 @@ namespace hrzn::scene
                 scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
                 if (renderableData.HasMember("scale"))
                 {
-                    scale = getFloat3FromArray(renderableData["scale"].GetArray());
+                    scale = utils::JSONHelpers::getFloat3FromArray(renderableData["scale"].GetArray());
                 }
 
                 entity::RenderableGameObject* renderable = new entity::RenderableGameObject();
@@ -498,7 +467,7 @@ namespace hrzn::scene
 
                     if (lightData.HasMember("colour"))
                     {
-                        light->setColour(getFloat3FromArray(lightData["colour"].GetArray()));
+                        light->setColour(utils::JSONHelpers::getFloat3FromArray(lightData["colour"].GetArray()));
                     }
                 }
 
@@ -519,14 +488,14 @@ namespace hrzn::scene
             // Grab the position
             if (gameObjItr->HasMember("position"))
             {
-                XMFLOAT3 position = getFloat3FromArray((*gameObjItr)["position"].GetArray());
+                XMFLOAT3 position = utils::JSONHelpers::getFloat3FromArray((*gameObjItr)["position"].GetArray());
                 gameObject->getWritableTransform().setPosition(position);
             }
 
             // Grab the orientation
             if (gameObjItr->HasMember("orientation"))
             {
-                XMFLOAT4 orientation = getFloat4FromArray((*gameObjItr)["orientation"].GetArray());
+                XMFLOAT4 orientation = utils::JSONHelpers::getFloat4FromArray((*gameObjItr)["orientation"].GetArray());
                 gameObject->getWritableTransform().setOrientationQuaternion(orientation);
             }
 
@@ -649,7 +618,7 @@ namespace hrzn::scene
                         utils::ErrorLogger::log("Parsing Scene JSON\nGame object with id: '" + id + "' had a relative camera with no relative position");
                         continue;
                     }
-                    relativeCameraRelativePosition = getFloat3FromArray((*relativeCameraItr)["relative_position"].GetArray());
+                    relativeCameraRelativePosition = utils::JSONHelpers::getFloat3FromArray((*relativeCameraItr)["relative_position"].GetArray());
 
                     // TODO: ADD RELATIVE CAMERA TO LIST
                 }
@@ -657,40 +626,5 @@ namespace hrzn::scene
         }
 
         return LoadResult::eOk;
-    }
-
-    DirectX::XMFLOAT3 SceneLoader::getFloat3FromArray(rapidjson::Value::Array arrayObject)
-    {
-        XMFLOAT3 returnValue = XMFLOAT3(0.0f, 0.0f, 0.0f);
-        int index = 0;
-        for (auto itr = arrayObject.Begin(); itr != arrayObject.End(); ++itr)
-        {
-            if (index == 0) returnValue.x = itr->GetFloat();
-            else if (index == 1) returnValue.y = itr->GetFloat();
-            else if (index == 2) returnValue.z = itr->GetFloat();
-            else return returnValue;
-
-            ++index;
-        }
-
-        return returnValue;
-    }
-
-    DirectX::XMFLOAT4 SceneLoader::getFloat4FromArray(rapidjson::Value::Array arrayObject)
-    {
-        XMFLOAT4 returnValue = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
-        int index = 0;
-        for (auto itr = arrayObject.Begin(); itr != arrayObject.End(); ++itr)
-        {
-            if (index == 0) returnValue.x = itr->GetFloat();
-            else if (index == 1) returnValue.y = itr->GetFloat();
-            else if (index == 2) returnValue.z = itr->GetFloat();
-            else if (index == 3) returnValue.w = itr->GetFloat();
-            else return returnValue;
-
-            ++index;
-        }
-
-        return returnValue;
     }
 }
