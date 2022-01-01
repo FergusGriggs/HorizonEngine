@@ -13,13 +13,14 @@ struct PS_OUTPUT
 
 SamplerState samplerState : SAMPLER : register(s0);
 
-Texture2D albedoTexture : TEXTURE: register(t0);
-Texture2D roughnessTexture : TEXTURE: register(t1);
-Texture2D normalTexture : TEXTURE: register(t2);
-Texture2D ambientOcclusionTexture : TEXTURE: register(t3);
-Texture2D metallicTexture : TEXTURE: register(t4);
-Texture2D emissionTexture : TEXTURE: register(t5);
-Texture2D depthTexture : TEXTURE: register(t6);
+Texture2D albedoTexture : TEXTURE : register(t0);
+Texture2D roughnessTexture : TEXTURE : register(t1);
+Texture2D normalTexture : TEXTURE : register(t2);
+Texture2D metallicTexture : TEXTURE : register(t3);
+Texture2D emissionTexture : TEXTURE : register(t4);
+Texture2D depthTexture : TEXTURE : register(t5);
+
+Texture2D ambientOcclusionTexture : TEXTURE : register(t6);
 
 PS_OUTPUT main(VSPS_TRANSFER input)
 {
@@ -81,7 +82,7 @@ PS_OUTPUT main(VSPS_TRANSFER input)
     output.normalAO.a = 1.0f; //ambientOcclusionTexture.Sample(samplerState, input.texCoord).r;
 
     // Output emission
-    output.emissionMetallic.rgb = float3(0.0f, 1.0f, 0.0f); //emissionTexture.Sample(samplerState, input.texCoord).rgb;
+    output.emissionMetallic.rgb = emissionTexture.Sample(samplerState, input.texCoord).rgb;
 
     // Output metallic
     output.emissionMetallic.a = 1.0f; //metallicTexture.Sample(samplerState, input.texCoord).r;

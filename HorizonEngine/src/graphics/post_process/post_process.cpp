@@ -15,6 +15,11 @@ namespace hrzn::gfx
     {
     }
 
+    const char* PostProcess::getName()
+    {
+        return "Unnamed Post Process";
+    }
+
     RenderTexture* PostProcess::getResult()
     {
         return &m_result;

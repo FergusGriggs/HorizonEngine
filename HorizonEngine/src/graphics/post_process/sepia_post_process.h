@@ -11,5 +11,6 @@ namespace hrzn::gfx
         virtual ~SepiaPostProcess();
 
         virtual void run(RenderTexture* input) override;
+        virtual const char* getName() override;
     };
 }

@@ -3,17 +3,6 @@
 #include "../../shared/scene.hlsli"
 #include "../../shared/POM.hlsli"
 
-struct PS_INPUT
-{
-	float4 pos : SV_POSITION;
-	float3 normal : NORMAL;
-	float2 texCoord : TEXCOORD;
-	float3 worldPos : WORLD_POSIITION;
-
-	float3 tangent : TANGENT;
-	float3 bitangent : BITANGENT;
-};
-
 SamplerState samplerState : SAMPLER : register(s0);
 
 Texture2D albedoTexture : TEXTURE : register(t0);
@@ -25,7 +14,7 @@ Texture2D depthTexture : TEXTURE : register(t5);
 
 Texture2D ambientOcclusionTexture : TEXTURE : register(t6);
 
-float4 main(PS_INPUT input) : SV_TARGET
+float4 main(VSPS_TRANSFER input) : SV_TARGET
 {
     float3 viewDirection = normalize(cb_cameraPosition - input.worldPos);
 

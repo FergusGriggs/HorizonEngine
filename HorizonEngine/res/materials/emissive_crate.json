@@ -1,0 +1,15 @@
+{
+  "Material": {
+    "default_material_textures": true,
+    "textures": [
+      [ "albedo", "res/textures/emissive_crate/albedo.jpg" ],
+      [ "roughness", "res/textures/emissive_crate/roughness.jpg" ],
+      [ "normal_map", "res/textures/emissive_crate/normal.jpg" ],
+      [ "depth", "res/textures/emissive_crate/depth.png" ],
+      [ "emission", "res/textures/emissive_crate/emission.jpg" ]
+    ],
+    "vertex_shader": "default",
+    "pixel_shader": "default",
+    "gbuf_w_pixel_shader": "default"
+  }
+}

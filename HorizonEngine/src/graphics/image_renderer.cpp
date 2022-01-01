@@ -58,6 +58,11 @@ namespace hrzn::gfx
         m_postProcesses.push_back(postProcess);
     }
 
+    std::vector<PostProcess*>& ImageRenderer::getPostProcesses()
+    {
+        return m_postProcesses;
+    }
+
     void ImageRenderer::clearPostProcesses()
     {
         for (int postProcessIndex = 0; postProcessIndex < m_postProcesses.size(); ++postProcessIndex)
@@ -219,15 +224,21 @@ namespace hrzn::gfx
 
         deviceContext->OMSetBlendState(GraphicsHandler::it().getDefaultBlendState(), NULL, 0xFFFFFFFF);
 
+        deviceContext->IASetInputLayout(ResourceManager::it().getDefaultVSPtr()->getInputLayout());
+        deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
         // Unset shader resource view and set as render targets once more to merge with nonCompatible pass
         ID3D11ShaderResourceView* const nullShaderResourceViews[8] = { NULL };
         deviceContext->PSSetShaderResources(0, 4, nullShaderResourceViews);
-        deviceContext->OMSetRenderTargets(4, m_geometryBuffer.m_renderTargetViews, m_geometryBuffer.m_depthStencil.m_depthStencilView.Get());
+        deviceContext->OMSetRenderTargets(1, m_finalImage.m_renderTargetView.GetAddressOf(), m_geometryBuffer.m_depthStencil.m_depthStencilView.Get());
 
         GraphicsHandler::it().renderSceneObjects(RenderPassType::eNonGBufferCompatiblePass, eyePos, eyeFacing);
 
-        deviceContext->ClearDepthStencilView(m_geometryBuffer.m_depthStencil.m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        deviceContext->OMSetRenderTargets(1, m_finalImage.m_renderTargetView.GetAddressOf(), GraphicsHandler::it().getDefaultDepthStencilView());
+        deviceContext->ClearDepthStencilView(GraphicsHandler::it().getDefaultDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         GraphicsHandler::it().renderGizmos();
+
+        deviceContext->OMSetRenderTargets(1, nullRenderTargetViews, nullptr);
     }
 }

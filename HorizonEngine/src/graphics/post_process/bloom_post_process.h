@@ -12,6 +12,7 @@ namespace hrzn::gfx
         virtual ~BloomPostProcess();
 
         virtual void run(RenderTexture* input) override;
+        virtual const char* getName() override;
 
     private:
         RenderTexture           m_iscolatedEmissionTexture;

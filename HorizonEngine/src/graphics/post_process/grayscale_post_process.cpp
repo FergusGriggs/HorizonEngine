@@ -29,4 +29,9 @@ namespace hrzn::gfx
         ID3D11ShaderResourceView* const nullShaderResourceViews[1] = { NULL };
         deviceContext->PSSetShaderResources(0, 1, nullShaderResourceViews);
     }
+
+    const char* GrayscalePostProcess::getName()
+    {
+        return "GrayScale";
+    }
 }

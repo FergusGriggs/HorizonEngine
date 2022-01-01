@@ -240,6 +240,12 @@
     <ClCompile Include="src\graphics\post_process\depth_of_field_post_process.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\post_process\edge_detection_post_process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\post_process\chromatic_aberration_post_process.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\graphics\buffers\constant_buffer.h">
@@ -449,6 +455,12 @@
     <ClInclude Include="src\graphics\post_process\depth_of_field_post_process.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\post_process\edge_detection_post_process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\post_process\chromatic_aberration_post_process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="res\shader\pixel\standard\ps_no_light.hlsl" />
@@ -469,6 +481,9 @@
     <FxCompile Include="res\shader\pixel\misc\ps_gaussian_blur_horizontal.hlsl" />
     <FxCompile Include="res\shader\pixel\misc\ps_gaussian_blur_vertical.hlsl" />
     <FxCompile Include="res\shader\pixel\misc\ps_depth_of_field.hlsl" />
+    <FxCompile Include="res\shader\pixel\misc\ps_edge_detection.hlsl" />
+    <FxCompile Include="res\shader\pixel\misc\ps_bloom.hlsl" />
+    <FxCompile Include="res\shader\pixel\misc\ps_chromatic_abberation.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini">
@@ -506,5 +521,6 @@
     <None Include="res\materials\water.json" />
     <None Include="res\materials\hrzn_statue.json" />
     <None Include="res\materials\quad.json" />
+    <None Include="res\materials\emissive_crate.json" />
   </ItemGroup>
 </Project>

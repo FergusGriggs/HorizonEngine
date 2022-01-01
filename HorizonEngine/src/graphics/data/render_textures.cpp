@@ -134,11 +134,9 @@ namespace hrzn::gfx
 		
 		deviceContext->RSSetViewports(1, &m_viewport);
 
-		deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), GraphicsHandler::it().getDefaultDepthStencilView());
-		deviceContext->OMSetDepthStencilState(GraphicsHandler::it().getDefaultDepthStencilState(), 0);
+		deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), nullptr);
 
 		if (clearRenderTarget) deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), blackColour);
-		deviceContext->ClearDepthStencilView(GraphicsHandler::it().getDefaultDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		deviceContext->IASetInputLayout(ResourceManager::it().getVSPtr("quad")->getInputLayout());
 		deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

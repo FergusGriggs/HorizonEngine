@@ -7,7 +7,7 @@ namespace hrzn::gfx
 {
     BloomPostProcess::BloomPostProcess(UINT width, UINT height, GeometryBuffer* geometryBuffer) :
         GBufferPostProcess(width, height, geometryBuffer),
-        m_gaussianBlur(width, height)
+        m_gaussianBlur(width, height, 0.35f)
     {
         m_iscolatedEmissionTexture.initialise(DXGI_FORMAT_R8G8B8A8_UNORM, width, height);
     }
@@ -21,10 +21,10 @@ namespace hrzn::gfx
         ID3D11DeviceContext* deviceContext = GraphicsHandler::it().getDeviceContext();
 
         // Set input as shader resource
-        deviceContext->PSSetShaderResources(0, 1, input->m_shaderResourceView.GetAddressOf());
+        deviceContext->PSSetShaderResources(0, 1, m_geometryBuffer->m_emissionMetallic.m_shaderResourceView.GetAddressOf());
 
         // Iscolate the emission
-        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("iscolate_emission")->getShader(), NULL, 0);
+        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("quad_iscolate_emission")->getShader(), NULL, 0);
         m_iscolatedEmissionTexture.setAsRenderTargetAndDrawQuad();
 
         // Unset self as shader resource
@@ -34,15 +34,20 @@ namespace hrzn::gfx
         // Blur the iscolated emission texture
         m_gaussianBlur.run(&m_iscolatedEmissionTexture);
 
-        // Copy the input texture to the result image
-        input->copyTo(&m_result);
+        // Set the original render as shader resource 0
+        deviceContext->PSSetShaderResources(0, 1, input->m_shaderResourceView.GetAddressOf());
 
-        // Overlay the blurred emission onto the final texture
-        deviceContext->PSSetShaderResources(0, 1, m_gaussianBlur.getResult()->m_shaderResourceView.GetAddressOf());
+        // Set the blurred emission as shader resource 1
+        deviceContext->PSSetShaderResources(1, 1, m_gaussianBlur.getResult()->m_shaderResourceView.GetAddressOf());
 
-        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("quad_copy")->getShader(), NULL, 0);
-        m_result.setAsRenderTargetAndDrawQuad(false);
+        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("bloom")->getShader(), NULL, 0);
+        m_result.setAsRenderTargetAndDrawQuad();
 
         deviceContext->PSSetShaderResources(0, 1, nullShaderResourceViews);
+    }
+
+    const char* BloomPostProcess::getName()
+    {
+        return "Bloom";
     }
 }

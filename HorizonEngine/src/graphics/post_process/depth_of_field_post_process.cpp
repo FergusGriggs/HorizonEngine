@@ -7,7 +7,8 @@ namespace hrzn::gfx
 {
     DepthOfFieldPostProcess::DepthOfFieldPostProcess(UINT width, UINT height, GeometryBuffer* geometryBuffer) :
         GBufferPostProcess(width, height, geometryBuffer),
-        m_gaussianBlur(width, height)
+        m_gaussianBlurA(width, height, 0.8f),
+        m_gaussianBlurB(width, height, 0.8f)
     {
     }
 
@@ -20,13 +21,14 @@ namespace hrzn::gfx
         ID3D11DeviceContext* deviceContext = GraphicsHandler::it().getDeviceContext();
 
         // Blur the screen texture
-        m_gaussianBlur.run(input);
+        m_gaussianBlurA.run(input);
+        m_gaussianBlurB.run(m_gaussianBlurA.getResult());
 
         // Set the input texture as shader resource 0
         deviceContext->PSSetShaderResources(0, 1, input->m_shaderResourceView.GetAddressOf());
 
         // Set the blurred input texture as shader resource 1
-        deviceContext->PSSetShaderResources(1, 1, m_gaussianBlur.getResult()->m_shaderResourceView.GetAddressOf());
+        deviceContext->PSSetShaderResources(1, 1, m_gaussianBlurB.getResult()->m_shaderResourceView.GetAddressOf());
 
         // Set the gbuffer depth texture as shader resource 2
         deviceContext->PSSetShaderResources(2, 1, m_geometryBuffer->m_depthStencil.m_shaderResourceView.GetAddressOf());
@@ -38,5 +40,10 @@ namespace hrzn::gfx
         // Unset shader resources
         ID3D11ShaderResourceView* nullShaderResourceViews[3] = { NULL };
         deviceContext->PSSetShaderResources(0, 3, nullShaderResourceViews);
+    }
+
+    const char* DepthOfFieldPostProcess::getName()
+    {
+        return "DepthOfField";
     }
 }

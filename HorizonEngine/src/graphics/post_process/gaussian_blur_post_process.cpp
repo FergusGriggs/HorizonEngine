@@ -5,10 +5,10 @@
 
 namespace hrzn::gfx
 {
-    GaussianBlurPostProcess::GaussianBlurPostProcess(UINT width, UINT height) :
-        PostProcess(width * 0.35f, height * 0.35f)
+    GaussianBlurPostProcess::GaussianBlurPostProcess(UINT width, UINT height, float texSizeMult) :
+        PostProcess(width * 0.5f * texSizeMult, height * 0.5f * texSizeMult)
     {
-        m_intermediateTexture.initialise(DXGI_FORMAT_R8G8B8A8_UNORM, width * 0.65f, height * 0.65f);
+        m_intermediateTexture.initialise(DXGI_FORMAT_R8G8B8A8_UNORM, width * texSizeMult, height * texSizeMult);
     }
 
     GaussianBlurPostProcess::~GaussianBlurPostProcess()
@@ -36,5 +36,10 @@ namespace hrzn::gfx
         // Unset intermediate texture as shader resource
         ID3D11ShaderResourceView* const nullShaderResourceViews[1] = { NULL };
         deviceContext->PSSetShaderResources(0, 1, nullShaderResourceViews);
+    }
+
+    const char* GaussianBlurPostProcess::getName()
+    {
+        return "GuassianBlur";
     }
 }

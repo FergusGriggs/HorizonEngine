@@ -14,6 +14,8 @@ namespace hrzn::gfx
 
         virtual void run(RenderTexture* input);
 
+        virtual const char* getName();
+
         RenderTexture* getResult();
 
     protected:

@@ -12,8 +12,10 @@ namespace hrzn::gfx
         virtual ~DepthOfFieldPostProcess();
 
         virtual void run(RenderTexture* input) override;
+        virtual const char* getName() override;
 
     private:
-        GaussianBlurPostProcess m_gaussianBlur;
+        GaussianBlurPostProcess m_gaussianBlurA;
+        GaussianBlurPostProcess m_gaussianBlurB;
     };
 }

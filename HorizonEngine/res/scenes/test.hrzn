@@ -9,7 +9,7 @@
 
 	"SceneConfig": {
 		"TimeConfig": {
-			"start_time": 0.75,
+			"start_time": 0.530,
 			"progress_time": false,
 			"day_duration": 60.0
 		},
@@ -313,6 +313,16 @@
 			}
 		},
 		{
+			"id": "emissive_crate",
+			"type": "Renderable",
+			"position": [ -15.0, -2.5, -15.0 ],
+
+			"RenderableData": {
+				"model_path": "res/models/test_cubes/emissive_crate.obj",
+				"scale": [ 1.0, 1.0, 1.0 ]
+			}
+		},
+		{
 			"id": "terracotta_cube",
 			"type": "Renderable",
 			"position": [ -18.0, -2.5, -6.0 ],
@@ -538,7 +548,7 @@
 				"fov": 70.0,
 				"near_plane": 0.1,
 				"far_plane": 3000.0,
-				"is_active_cam":  true
+				"is_active_cam": true
 			}
 		}
 	]

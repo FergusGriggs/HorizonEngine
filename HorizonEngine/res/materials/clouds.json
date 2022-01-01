@@ -1,9 +1,6 @@
 {
   "Material": {
     "default_material_textures": false,
-    "textures": [
-      [ 0, "$noise3d" ]
-    ],
     "vertex_shader": "default",
     "pixel_shader": "clouds",
     "gbuf_w_pixel_shader": "-"

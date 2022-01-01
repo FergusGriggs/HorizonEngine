@@ -12,6 +12,8 @@
 #include "post_process/grayscale_post_process.h"
 #include "post_process/sepia_post_process.h"
 #include "post_process/depth_of_field_post_process.h"
+#include "post_process/edge_detection_post_process.h"
+#include "post_process/chromatic_aberration_post_process.h"
 
 #include "../user_config.h"
 
@@ -145,10 +147,7 @@ namespace hrzn::gfx
 		m_activeCameraImageRenderer.initialise(m_defaultViewport, m_depthStencilState.Get(), m_regularRasterizerState.Get());
 
 		m_activeCameraImageRenderer.addPostProcess(new DepthOfFieldPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
-		//m_activeCameraImageRenderer.addPostProcess(new GaussianBlurPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
-		//m_activeCameraImageRenderer.addPostProcess(new SepiaPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
-		//m_activeCameraImageRenderer.addPostProcess(new GrayscalePostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
-		//m_activeCameraImageRenderer.addPostProcess(new SepiaPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+		m_activeCameraImageRenderer.addPostProcess(new ChromaticAberrationPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
 
 		// Init imgui
 		IMGUI_CHECKVERSION();
@@ -311,10 +310,13 @@ namespace hrzn::gfx
 		// Copy final image to the back buffer
 		m_deviceContext->CopyResource(m_backBuffer.Get(), m_activeCameraImageRenderer.getFinalImage().m_texture2D.Get());
 
+		// Set the swap chain as the current render target for UI
+		m_deviceContext->OMSetRenderTargets(1, m_swapChainRenderTargetView.GetAddressOf(), m_depthStencilView.Get());
+
 		// Update FPS timer
 		m_fpsCounter++;
 
-		if (m_fpsTimer.getMicrosecondsElapsed() > 1000000)
+		if (m_fpsTimer.getMicrosecondsElapsed() > 500000)
 		{
 			m_fpsString = "FPS: " + std::to_string(m_fpsCounter);
 			m_fpsCounter = 0;
@@ -327,31 +329,31 @@ namespace hrzn::gfx
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 		// Render UI (not ImGui)
-		//m_spriteBatch->Begin();
+		m_spriteBatch->Begin();
 
-		//m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(1.0f, 0.5f), DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-		//m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(1.0f, 0.5f), DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(m_fpsString).c_str(), DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
 
-		//if (scene::SceneManager::it().objectIsSelected())
-		//{
-		//	// Stop text being drawn behind camera
-		//	if (XMVectorGetX(XMVector3Dot(scene::SceneManager::it().getSelectedObject()->getTransform().getPositionVector() - scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector(), scene::SceneManager::it().getActiveCamera().getTransform().getFrontVector())) >= 0.0f)
-		//	{
-		//		XMFLOAT2 screenNDC = scene::SceneManager::it().getActiveCamera().getNDCFrom3DPos(scene::SceneManager::it().getSelectedObject()->getTransform().getPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f)); // XMFLOAT2(-0.5,0.5);
-		//		XMFLOAT2 screenPos = DirectX::XMFLOAT2((screenNDC.x * 0.5f + 0.5f) * UserConfig::it().getWindowWidth(), (1.0f - (screenNDC.y * 0.5f + 0.5f)) * UserConfig::it().getWindowHeight());
-		//		XMVECTOR size = m_spriteFont->MeasureString(utils::string_helpers::stringToWide(scene::SceneManager::it().getSelectedObject()->getLabel()).c_str());
-		//		
-		//		screenPos.x -= XMVectorGetX(size) * 0.5f;
-		//		screenPos.y -= XMVectorGetY(size) * 0.5f;
-		//		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(scene::SceneManager::it().getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-		//		
-		//		screenPos.y -= 0.5f;
-		//		screenPos.x -= 1.0f;
-		//		m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(scene::SceneManager::it().getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
-		//	}
-		//}
+		if (scene::SceneManager::it().objectIsSelected())
+		{
+			// Stop text being drawn behind camera
+			if (XMVectorGetX(XMVector3Dot(scene::SceneManager::it().getSelectedObject()->getTransform().getPositionVector() - scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector(), scene::SceneManager::it().getActiveCamera().getTransform().getFrontVector())) >= 0.0f)
+			{
+				XMFLOAT2 screenNDC = scene::SceneManager::it().getActiveCamera().getNDCFrom3DPos(scene::SceneManager::it().getSelectedObject()->getTransform().getPositionVector() + XMVectorSet(0.0f, -0.2f, 0.0f, 0.0f)); // XMFLOAT2(-0.5,0.5);
+				XMFLOAT2 screenPos = DirectX::XMFLOAT2((screenNDC.x * 0.5f + 0.5f) * UserConfig::it().getWindowWidth(), (1.0f - (screenNDC.y * 0.5f + 0.5f)) * UserConfig::it().getWindowHeight());
+				XMVECTOR size = m_spriteFont->MeasureString(utils::string_helpers::stringToWide(scene::SceneManager::it().getSelectedObject()->getLabel()).c_str());
+				
+				screenPos.x -= XMVectorGetX(size) * 0.5f;
+				screenPos.y -= XMVectorGetY(size) * 0.5f;
+				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(scene::SceneManager::it().getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::Black, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+				
+				screenPos.y -= 0.5f;
+				screenPos.x -= 1.0f;
+				m_spriteFont->DrawString(m_spriteBatch.get(), utils::string_helpers::stringToWide(scene::SceneManager::it().getSelectedObject()->getLabel()).c_str(), screenPos, DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0.0f, 0.0f), DirectX::XMFLOAT2(1.0f, 1.0f));
+			}
+		}
 
-		//m_spriteBatch->End();
+		m_spriteBatch->End();
 
 		// Present image
 		m_swapChain->Present(m_useVSync, NULL);// using vsync
@@ -975,31 +977,186 @@ namespace hrzn::gfx
 			{
 				ImGui::TreePush();
 
-				// Normal Mapping
-				bool useNormalMapping = static_cast<bool>(m_sceneCB.m_data.m_useNormalMapping);
-				ImGui::Checkbox("Normal Mapping", &useNormalMapping);
-				m_sceneCB.m_data.m_useNormalMapping = useNormalMapping;
+				if (ImGui::CollapsingHeader("Post Processing"))
+				{
+					ImGui::TreePush();
 
-				ImGui::SameLine();
+					if (ImGui::Button("Add Bloom"))
+					{
+						m_activeCameraImageRenderer.addPostProcess(new BloomPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
+					}
 
-				// PO Mapping
-				bool useParallaxOcclusionMapping = static_cast<bool>(m_sceneCB.m_data.m_useParallaxOcclusionMapping);
-				ImGui::Checkbox("PO Mapping", &useParallaxOcclusionMapping);
-				m_sceneCB.m_data.m_useParallaxOcclusionMapping = useParallaxOcclusionMapping;
+					if (ImGui::Button("Add Depth of Field"))
+					{
+						m_activeCameraImageRenderer.addPostProcess(new DepthOfFieldPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
+					}
 
-				ImGui::SameLine();
+					if (ImGui::Button("Add Gaussian Blur"))
+					{
+						m_activeCameraImageRenderer.addPostProcess(new GaussianBlurPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, 0.65f));
+					}
 
-				// Self shadowing
-				bool selfShadowing = static_cast<bool>(m_sceneCB.m_data.m_selfShadowing);
-				ImGui::Checkbox("Self Shadowing", &selfShadowing);
-				m_sceneCB.m_data.m_selfShadowing = selfShadowing;
+					if (ImGui::Button("Add Sepia"))
+					{
+						m_activeCameraImageRenderer.addPostProcess(new SepiaPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+					}
 
-				// Roughness Mapping
-				bool roughnessMapping = static_cast<bool>(m_sceneCB.m_data.m_roughnessMapping);
-				ImGui::Checkbox("Roughness Mapping", &roughnessMapping);
-				m_sceneCB.m_data.m_roughnessMapping = roughnessMapping;
+					if (ImGui::Button("Add Grayscale"))
+					{
+						m_activeCameraImageRenderer.addPostProcess(new GrayscalePostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+					}
 
-				ImGui::SameLine();
+					if (ImGui::Button("Add Edge Detection"))
+					{
+						m_activeCameraImageRenderer.addPostProcess(new EdgeDetectionPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
+					}
+
+					if (ImGui::Button("Add Chromatic Abberation"))
+					{
+						m_activeCameraImageRenderer.addPostProcess(new ChromaticAberrationPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+					}
+
+					ImGui::Text("Post Processes:");
+
+					auto& postProcesses = m_activeCameraImageRenderer.getPostProcesses();
+					for (int postProcessIndex = 0; postProcessIndex < postProcesses.size(); ++postProcessIndex)
+					{
+						ImGui::Text("%d -> %s", postProcessIndex, postProcesses[postProcessIndex]->getName());
+					}
+
+					if (postProcesses.empty())
+					{
+						ImGui::Text("None Set");
+					}
+					else
+					{
+						if (ImGui::Button("Clear Post Processes"))
+						{
+							m_activeCameraImageRenderer.clearPostProcesses();
+						}
+					}
+
+					ImGui::TreePop();
+				}
+
+				if (ImGui::CollapsingHeader("Mapping Techniques"))
+				{
+					ImGui::TreePush();
+
+					// Normal Mapping
+					bool useNormalMapping = static_cast<bool>(m_sceneCB.m_data.m_useNormalMapping);
+					ImGui::Checkbox("Normal Mapping", &useNormalMapping);
+					m_sceneCB.m_data.m_useNormalMapping = useNormalMapping;
+
+					ImGui::SameLine();
+
+					// PO Mapping
+					bool useParallaxOcclusionMapping = static_cast<bool>(m_sceneCB.m_data.m_useParallaxOcclusionMapping);
+					ImGui::Checkbox("PO Mapping", &useParallaxOcclusionMapping);
+					m_sceneCB.m_data.m_useParallaxOcclusionMapping = useParallaxOcclusionMapping;
+
+					ImGui::SameLine();
+
+					// Self shadowing
+					bool selfShadowing = static_cast<bool>(m_sceneCB.m_data.m_selfShadowing);
+					ImGui::Checkbox("Self Shadowing", &selfShadowing);
+					m_sceneCB.m_data.m_selfShadowing = selfShadowing;
+
+					// Roughness Mapping
+					bool roughnessMapping = static_cast<bool>(m_sceneCB.m_data.m_roughnessMapping);
+					ImGui::Checkbox("Roughness Mapping", &roughnessMapping);
+					m_sceneCB.m_data.m_roughnessMapping = roughnessMapping;
+
+					// Depth scale
+					ImGui::DragFloat("Depth Scale", &m_sceneCB.m_data.m_depthScale, 0.001f, 0.0f, 0.5f);
+
+					ImGui::TreePop();
+				}
+				
+				if (ImGui::CollapsingHeader("Misc"))
+				{
+					ImGui::TreePush();
+
+					// Show Normals
+					bool showWorldNormals = static_cast<bool>(m_sceneCB.m_data.m_showWorldNormals);
+					ImGui::Checkbox("Normals", &showWorldNormals);
+					m_sceneCB.m_data.m_showWorldNormals = showWorldNormals;
+
+					ImGui::SameLine();
+
+					// Show UVs
+					bool showUVs = static_cast<bool>(m_sceneCB.m_data.m_showUVs);
+					ImGui::Checkbox("Show UVs", &showUVs);
+					m_sceneCB.m_data.m_showUVs = showUVs;
+
+					ImGui::SameLine();
+
+					// Cull back normals
+					bool cullBackNormals = static_cast<bool>(m_sceneCB.m_data.m_cullBackNormals);
+					ImGui::Checkbox("Cull Back Normals", &cullBackNormals);
+					m_sceneCB.m_data.m_cullBackNormals = cullBackNormals;
+
+					// Gamma correction
+					bool gammaCorrection = static_cast<bool>(m_sceneCB.m_data.m_gammaCorrection);
+					ImGui::Checkbox("Gamma Corr", &gammaCorrection);
+					m_sceneCB.m_data.m_gammaCorrection = gammaCorrection;
+
+					ImGui::SameLine();
+
+					// Misc toggle A
+					bool miscToggleA = static_cast<bool>(m_sceneCB.m_data.m_miscToggleA);
+					ImGui::Checkbox("Misc A", &miscToggleA);
+					m_sceneCB.m_data.m_miscToggleA = miscToggleA;
+
+					ImGui::SameLine();
+
+					// Misc toggle B
+					bool miscToggleB = static_cast<bool>(m_sceneCB.m_data.m_miscToggleB);
+					ImGui::Checkbox("Misc B", &miscToggleB);
+					m_sceneCB.m_data.m_miscToggleB = miscToggleB;
+
+					ImGui::SameLine();
+
+					// Misc toggle C
+					bool miscToggleC = static_cast<bool>(m_sceneCB.m_data.m_miscToggleC);
+					ImGui::Checkbox("Misc C", &miscToggleC);
+					m_sceneCB.m_data.m_miscToggleC = miscToggleC;
+
+					ImGui::TreePop();
+				}
+
+				if (ImGui::CollapsingHeader("Deferred Shading"))
+				{
+					ImGui::TreePush();
+
+					ImGui::Checkbox("Deferred Shading", &m_useDeferredShading);
+
+					if (ImGui::CollapsingHeader("View Textures"))
+					{
+						ImGui::TreePush();
+
+						ImGui::Text("RGBA -> Albedo                                     RGB -> Position + A -> Roughness");
+
+						ImVec2 textureSize(UserConfig::it().getWindowWidthFloat() * 0.2f, UserConfig::it().getWindowHeightFloat() * 0.2f);
+						ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_albedo.m_shaderResourceView.Get(), textureSize);
+
+						ImGui::SameLine();
+
+						ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_positionRoughness.m_shaderResourceView.Get(), textureSize);
+
+						ImGui::Text("RGB -> Normal + A -> Ambient Occlusion             RBG -> Emission + A -> Metallic");
+
+						ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_normalAO.m_shaderResourceView.Get(), textureSize);
+
+						ImGui::SameLine();
+
+						ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_emissionMetallic.m_shaderResourceView.Get(), textureSize);
+
+						ImGui::TreePop();
+					}
+
+					ImGui::TreePop();
+				}
 
 				if (ImGui::Button("Toggle Wireframe"))
 				{
@@ -1008,58 +1165,6 @@ namespace hrzn::gfx
 					if (m_useWireframe) m_activeCameraImageRenderer.setRasterizerState(m_wireframeRasterizerState.Get());
 					else                m_activeCameraImageRenderer.setRasterizerState(m_regularRasterizerState.Get());
 				}
-
-				ImGui::SameLine();
-
-				ImGui::Checkbox("Deferred Shading", &m_useDeferredShading);
-
-				ImGui::SameLine();
-
-				// Show Normals
-				bool showWorldNormals = static_cast<bool>(m_sceneCB.m_data.m_showWorldNormals);
-				ImGui::Checkbox("Normals", &showWorldNormals);
-				m_sceneCB.m_data.m_showWorldNormals = showWorldNormals;
-
-				ImGui::SameLine();
-
-				// Show UVs
-				bool showUVs = static_cast<bool>(m_sceneCB.m_data.m_showUVs);
-				ImGui::Checkbox("Show UVs", &showUVs);
-				m_sceneCB.m_data.m_showUVs = showUVs;
-
-				// Cull back normals
-				bool cullBackNormals = static_cast<bool>(m_sceneCB.m_data.m_cullBackNormals);
-				ImGui::Checkbox("Cull Back Normals", &cullBackNormals);
-				m_sceneCB.m_data.m_cullBackNormals = cullBackNormals;
-
-				ImGui::SameLine();
-
-				// Gamma correction
-				bool gammaCorrection = static_cast<bool>(m_sceneCB.m_data.m_gammaCorrection);
-				ImGui::Checkbox("Gamma Corr", &gammaCorrection);
-				m_sceneCB.m_data.m_gammaCorrection = gammaCorrection;
-
-				ImGui::SameLine();
-
-				// Misc toggle A
-				bool miscToggleA = static_cast<bool>(m_sceneCB.m_data.m_miscToggleA);
-				ImGui::Checkbox("Misc A", &miscToggleA);
-				m_sceneCB.m_data.m_miscToggleA = miscToggleA;
-
-				ImGui::SameLine();
-
-				// Misc toggle B
-				bool miscToggleB = static_cast<bool>(m_sceneCB.m_data.m_miscToggleB);
-				ImGui::Checkbox("Misc B", &miscToggleB);
-				m_sceneCB.m_data.m_miscToggleB = miscToggleB;
-
-				// Misc toggle C
-				bool miscToggleC = static_cast<bool>(m_sceneCB.m_data.m_miscToggleC);
-				ImGui::Checkbox("Misc C", &miscToggleC);
-				m_sceneCB.m_data.m_miscToggleC = miscToggleC;
-
-				// Depth scale
-				ImGui::DragFloat("Depth Scale", &m_sceneCB.m_data.m_depthScale, 0.001f, 0.0f, 0.5f);
 
 				ImGui::TreePop();
 			}
