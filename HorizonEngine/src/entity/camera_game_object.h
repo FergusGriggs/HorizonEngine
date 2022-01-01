@@ -21,6 +21,9 @@ namespace hrzn::entity
 		void  zoom(float fovDiff);
 		void  setFOV(float fov);
 		float getFOV() const;
+			
+		float getNearPlane() const;
+		float getFarPlane() const;
 
 		XMMATRIX getViewMatrix() const;
 		XMMATRIX getProjectionMatrix() const;

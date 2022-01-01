@@ -173,7 +173,6 @@ namespace hrzn::gfx
 			m_sceneCB.m_data.m_selfShadowing = true;
 			m_sceneCB.m_data.m_roughnessMapping = true;
 			m_sceneCB.m_data.m_depthScale = 0.05f;
-			m_useVSync = false;
 
 			// This slot shouldn't change over the course of the app
 			m_deviceContext->PSSetConstantBuffers(0, 1, m_sceneCB.getAddressOf());
@@ -481,6 +480,7 @@ namespace hrzn::gfx
 		{
 			if (scene::SceneManager::it().getSceneConfig().getCloudConfig().m_enabled)
 			{
+				m_cloudsCB.mapToGPU();
 				m_deviceContext->PSSetConstantBuffers(1, 1, m_cloudsCB.getAddressOf());
 				m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
 
@@ -875,19 +875,19 @@ namespace hrzn::gfx
 
 		if (ImGui::Begin("Scene Settings"))
 		{
-			/*if (ImGui::Button("Save Scene"))
+			if (ImGui::Button("Save Scene"))
 			{
-				sceneManager.saveScene(sceneManager.getSceneName().c_str());
+				scene::SceneManager::it().saveScene(scene::SceneManager::it().getSceneName().c_str());
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Load Scene"))
 			{
-				sceneManager.loadScene("test");
+				scene::SceneManager::it().loadScene("test");
 			}
-			ImGui::SameLine();
+			/*ImGui::SameLine();
 			if (ImGui::Button("Unload Scene"))
 			{
-				sceneManager.unloadScene();
+				scene::SceneManager::it().unloadScene();
 			}*/
 
 			// Directional light colour
@@ -1183,7 +1183,7 @@ namespace hrzn::gfx
 				ImGui::SliderFloat("Wave Scale Multiplier", &m_waterCB.m_data.m_waveScaleMultiplier, 0.0f, 1.0f);
 				ImGui::SliderInt("Iscolate Wave Num", &m_waterCB.m_data.m_iscolateWaveNum, -1, 20);
 				ImGui::SliderFloat("Foam Start", &m_waterCB.m_data.m_foamStart, 0.0f, 5.0f);
-				ImGui::SliderFloat("Colour Change Start", &m_waterCB.m_data.m_colourChangeStart, 0.0f, 2.0f);
+				ImGui::SliderFloat("Colour Change Start", &m_waterCB.m_data.m_colourChangeStart, 0.0f, 5.0f);
 
 				ImGui::TreePop();
 			}
@@ -1379,6 +1379,11 @@ namespace hrzn::gfx
 	ID3D11BlendState* GraphicsHandler::getGBufferBlendState()
 	{
 		return m_gBufferBlendState.Get();
+	}
+
+	ID3D11RasterizerState* GraphicsHandler::getDefaultRasterizerState()
+	{
+		return m_regularRasterizerState.Get();
 	}
 
 	Model* GraphicsHandler::getScreenQuad() const

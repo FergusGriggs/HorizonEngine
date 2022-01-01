@@ -16,7 +16,7 @@ float4 main(VSPS_TRANSFER input) : SV_TARGET
     float distToCentre = length(toCentre) * 2.0f;
     toCentre = normalize(toCentre);
     
-    float offsetScalar = pow(abs(getLinearProgress(0.0f, 1.8f, distToCentre)), 2.5f) * 0.05f;
+    float offsetScalar = pow(abs(getLinearProgress(0.0f, 1.8f, distToCentre)), 3.0f) * 0.04f;
     
     float2 offsetR = offsetScalar * toCentre * 0.1f;
     float2 offsetG = offsetScalar * toCentre * 0.5f;

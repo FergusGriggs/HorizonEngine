@@ -135,6 +135,8 @@ namespace hrzn::gfx
             internalRenderStandard(eyePos, eyeFacing, viewMatrix, projectionMatrix);
         }
 
+        deviceContext->RSSetState(GraphicsHandler::it().getDefaultRasterizerState());
+
         // Run post processes
         if (!m_postProcesses.empty())
         {

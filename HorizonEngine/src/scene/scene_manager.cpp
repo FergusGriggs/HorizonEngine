@@ -22,7 +22,7 @@ namespace hrzn::scene
 	SceneManager::SceneManager() :
 		m_sceneName("unloaded"),
 
-		m_sceneLoader(this),
+		m_sceneLoader(),
 
 		m_sceneConfig(),
 
@@ -101,7 +101,7 @@ namespace hrzn::scene
 		{
 			return false;
 		}
-		m_ocean.getWritableTransform().setPosition(0.0f, -25.0f, 0.0f);
+		m_ocean.getWritableTransform().setPosition(0.0f, -12.0f, 0.0f);
 
 		m_directionalLight.setLabel("directional_light");
 
@@ -123,6 +123,8 @@ namespace hrzn::scene
 		InputManager::it().registerMouseScrollDelegate(std::bind(&SceneManager::mouseScrollDelegate, this, std::placeholders::_1, std::placeholders::_2));
 		InputManager::it().registerMouseMoveDelegate(std::bind(&SceneManager::mouseMoveDelegate, this, std::placeholders::_1, std::placeholders::_2));
 
+		loadEngineObjects();
+
 		if (!loadScene("test"))
 		{
 			return false;
@@ -140,8 +142,6 @@ namespace hrzn::scene
 	{
 		unloadScene();
 
-		loadSceneStaticObjects();
-
 		m_sceneLoader.loadScene(sceneName);
 
 		m_dayNightCycle = m_sceneConfig.getTimeConfig().m_dayNightCycle;
@@ -153,7 +153,7 @@ namespace hrzn::scene
 		return true;
 	}
 
-	bool SceneManager::loadSceneStaticObjects()
+	bool SceneManager::loadEngineObjects()
 	{
 		/*entity::PhysicsGameObject* physicsObject = new entity::PhysicsGameObject();
 		physicsObject->initialize("box1", "res/models/test_cubes/bricks.obj");
@@ -172,7 +172,7 @@ namespace hrzn::scene
 
 		// Standard Camera
 		entity::CameraGameObject* mainCamera = new entity::CameraGameObject();
-		mainCamera->setLabel("free_cam");
+		mainCamera->setLabel("$free_cam");
 
 		mainCamera->getWritableTransform().setPosition(-15.0f, 3.0f, 7.0f);
 		mainCamera->getWritableTransform().lookAtPosition(XMFLOAT3(-15.0f, 0.0f, -3.6f));
@@ -186,10 +186,9 @@ namespace hrzn::scene
 		return true;
 	}
 
-	bool SceneManager::saveScene(const char* sceneName)
+	void SceneManager::saveScene(const char* sceneName)
 	{
-
-		return true;
+		m_sceneLoader.saveScene(sceneName);
 	}
 
 	void SceneManager::unloadScene()
@@ -208,11 +207,15 @@ namespace hrzn::scene
 		std::unordered_map<std::string, entity::GameObject*>::iterator objectMapIterator = m_gameObjectMap.begin();
 		while (objectMapIterator != m_gameObjectMap.end())
 		{
-			removeGameObject(objectMapIterator->first);
-			objectMapIterator = m_gameObjectMap.begin();
+			if (removeGameObject(objectMapIterator->first))
+			{
+				objectMapIterator = m_gameObjectMap.begin();
+			}
+			else
+			{
+				++objectMapIterator;
+			}
 		}
-
-		m_gameObjectMap.clear();
 
 		if (objectIsSelected())
 		{
@@ -556,12 +559,18 @@ namespace hrzn::scene
 		}
 	}
 
-	void SceneManager::removeGameObject(const std::string& gameObjectLabel)
+	bool SceneManager::removeGameObject(const std::string& gameObjectLabel)
 	{
 		//If the object exists in the map
 		std::unordered_map<std::string, entity::GameObject*>::iterator iterator = m_gameObjectMap.find(gameObjectLabel);
 		if (iterator != m_gameObjectMap.end())
 		{
+			// Dont clear engine objects
+			if (iterator->second->getLabel()[0] == '$')
+			{
+				return false;
+			}
+
 			//Remove controller
 			if (iterator->second->getController() != nullptr)
 			{
@@ -631,10 +640,22 @@ namespace hrzn::scene
 				}
 			}
 
+			// Remove from cameras
+			for (int i = 0; i < m_cameras.size(); ++i)
+			{
+				if (iterator->second == m_cameras[i])
+				{
+					m_cameras.erase(m_cameras.begin() + i);
+				}
+			}
+
 			delete iterator->second;
 
 			m_gameObjectMap.erase(iterator->first);
+			return true;
 		}
+
+		return false;
 	}
 
 	void SceneManager::addObjectTrack(entity::GameObjectTrack* objectTrack)
@@ -655,6 +676,16 @@ namespace hrzn::scene
 	SceneConfig& SceneManager::getWritableSceneConfig()
 	{
 		return m_sceneConfig;
+	}
+
+	const SceneMeta& SceneManager::getSceneMeta() const
+	{
+		return m_sceneMeta;
+	}
+
+	SceneMeta& SceneManager::getWritableSceneMeta()
+	{
+		return m_sceneMeta;
 	}
 
 	void SceneManager::mouseButtonDelegate(const input::MouseEvent& mouseEvent, float deltaTime)

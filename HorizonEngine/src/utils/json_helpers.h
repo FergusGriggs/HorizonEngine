@@ -69,6 +69,21 @@ namespace hrzn::utils::JSONHelpers
         return returnValue;
     }
 
+    static void writeFloat3(const DirectX::XMFLOAT3& value, rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
+    {
+        writer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatSingleLineArray);
+
+        writer.StartArray();
+
+        writer.Double(value.x);
+        writer.Double(value.y);
+        writer.Double(value.z);
+
+        writer.EndArray();
+        
+        writer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatDefault);
+    }
+
     static DirectX::XMFLOAT4 getFloat4FromArray(rapidjson::Value::Array arrayObject)
     {
         DirectX::XMFLOAT4 returnValue = DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -85,6 +100,22 @@ namespace hrzn::utils::JSONHelpers
         }
 
         return returnValue;
+    }
+
+    static void writeFloat4(const DirectX::XMFLOAT4& value, rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
+    {
+        writer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatSingleLineArray);
+
+        writer.StartArray();
+
+        writer.Double(value.x);
+        writer.Double(value.y);
+        writer.Double(value.z);
+        writer.Double(value.w);
+
+        writer.EndArray();
+
+        writer.SetFormatOptions(rapidjson::PrettyFormatOptions::kFormatDefault);
     }
 
     static BYTE getByteColourFromValue(rapidjson::Value& value)

@@ -461,6 +461,9 @@
     <ClInclude Include="src\graphics\post_process\chromatic_aberration_post_process.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\scene\scene_meta.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="res\shader\pixel\standard\ps_no_light.hlsl" />

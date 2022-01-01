@@ -78,6 +78,16 @@ namespace hrzn::entity
 		return m_fov;
 	}
 
+	float CameraGameObject::getNearPlane() const
+	{
+		return m_nearZ;
+	}
+
+	float CameraGameObject::getFarPlane() const
+	{
+		return m_farZ;
+	}
+
 	XMMATRIX CameraGameObject::getViewMatrix() const
 	{
 		return XMLoadFloat4x4(&m_view);

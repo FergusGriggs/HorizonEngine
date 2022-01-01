@@ -7,7 +7,7 @@ namespace hrzn::gfx
 {
     BloomPostProcess::BloomPostProcess(UINT width, UINT height, GeometryBuffer* geometryBuffer) :
         GBufferPostProcess(width, height, geometryBuffer),
-        m_gaussianBlur(width, height, 0.35f)
+        m_gaussianBlur(width, height, 0.6f)
     {
         m_iscolatedEmissionTexture.initialise(DXGI_FORMAT_R8G8B8A8_UNORM, width, height);
     }

@@ -74,6 +74,8 @@ namespace hrzn::gfx
 		ID3D11BlendState* getDefaultBlendState();
 		ID3D11BlendState* getGBufferBlendState();
 
+		ID3D11RasterizerState* getDefaultRasterizerState();
+
 		Model* getScreenQuad() const;
 
 		Microsoft::WRL::ComPtr<ID3D11SamplerState>& getSamplerState();

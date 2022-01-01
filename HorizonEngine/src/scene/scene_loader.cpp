@@ -13,8 +13,7 @@
 
 namespace hrzn::scene
 {
-    SceneLoader::SceneLoader(SceneManager* sceneManager) :
-        m_sceneManager(sceneManager)
+    SceneLoader::SceneLoader()
     {
     }
 
@@ -27,10 +26,9 @@ namespace hrzn::scene
         if (compare > storage) storage = compare;
     }
 
-    SceneLoader::LoadResult SceneLoader::loadScene(std::string sceneName)
+    SceneLoader::LoadResult SceneLoader::loadScene(const char* sceneName)
     {
-        std::string sceneFilePath = "res/scenes/";
-        sceneFilePath += sceneName + ".hrzn";
+        std::string sceneFilePath = std::string("res/scenes/") + sceneName + ".hrzn";
 
         LoadResult loadResult = LoadResult::eOk;
         rapidjson::Document document;
@@ -59,9 +57,71 @@ namespace hrzn::scene
         return loadResult;
     }
 
+    void SceneLoader::saveScene(const char* sceneName)
+    {
+        rapidjson::StringBuffer buffer;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+
+        writer.SetMaxDecimalPlaces(7);
+
+        writer.StartObject();
+        writer.String("Scene");
+        writer.StartObject();
+
+        saveMeta(writer);
+        saveConfigs(writer);
+
+        saveObjectTracks(writer);
+
+        saveGameObjects(writer);
+
+        writer.EndObject();
+        writer.EndObject();
+
+        std::string sceneFileName = (std::string)"res/scenes/" + sceneName + ".hrzn";
+        std::ofstream outStream(sceneFileName.c_str());
+        if (outStream)
+        {
+            outStream << buffer.GetString();
+
+            outStream.close();
+        }
+    }
+
     SceneLoader::LoadResult SceneLoader::loadMeta(rapidjson::Value& sceneObject)
     {
+        if (!sceneObject.HasMember("SceneMeta"))
+        {
+            utils::ErrorLogger::log("Parsing Scene JSON\nNo 'SceneMeta' tag found");
+            return LoadResult::eFailed;
+        }
+        rapidjson::Value& jsonSceneMeta = sceneObject["SceneMeta"];
+
+        if (jsonSceneMeta.HasMember("scene_name")) SceneManager::it().getWritableSceneMeta().m_sceneName = jsonSceneMeta["scene_name"].GetString();
+        if (jsonSceneMeta.HasMember("author_name")) SceneManager::it().getWritableSceneMeta().m_authorName = jsonSceneMeta["author_name"].GetString();
+        if (jsonSceneMeta.HasMember("author_email")) SceneManager::it().getWritableSceneMeta().m_authorEmail = jsonSceneMeta["author_email"].GetString();
+        if (jsonSceneMeta.HasMember("date_created")) SceneManager::it().getWritableSceneMeta().m_dateCreated = jsonSceneMeta["date_created"].GetString();
+        if (jsonSceneMeta.HasMember("date_modified")) SceneManager::it().getWritableSceneMeta().m_dateModified = jsonSceneMeta["date_modified"].GetString();
+
         return LoadResult::eOk;
+    }
+
+    void SceneLoader::saveMeta(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
+    {
+        writer.String("SceneMeta");
+
+        writer.StartObject();
+
+        const SceneMeta& sceneMeta = SceneManager::it().getSceneMeta();
+
+        writer.String("scene_name"); writer.String(sceneMeta.m_sceneName.c_str());
+        writer.String("author_name"); writer.String(sceneMeta.m_authorName.c_str());
+        writer.String("author_email"); writer.String(sceneMeta.m_authorEmail.c_str());
+        writer.String("date_created"); writer.String(sceneMeta.m_dateCreated.c_str());
+        writer.String("date_modified"); writer.String(sceneMeta.m_dateModified.c_str());
+        
+
+        writer.EndObject();
     }
 
     SceneLoader::LoadResult SceneLoader::loadConfigs(rapidjson::Value& sceneObject)
@@ -83,6 +143,20 @@ namespace hrzn::scene
         return result;
     }
 
+    void SceneLoader::saveConfigs(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
+    {
+        writer.String("SceneConfig");
+
+        writer.StartObject();
+
+        saveTimeConfig(writer);
+        saveOceanConfig(writer);
+        saveCloudConfig(writer);
+        saveAtmosphereConfig(writer);
+
+        writer.EndObject();
+    }
+
     SceneLoader::LoadResult SceneLoader::loadTimeConfig(rapidjson::Value& sceneConfig)
     {
         if (!sceneConfig.HasMember("TimeConfig"))
@@ -99,9 +173,25 @@ namespace hrzn::scene
         if (jsonTimeConfig.HasMember("time_paused")) timeConfig.m_timePaused = jsonTimeConfig["time_paused"].GetBool();
         if (jsonTimeConfig.HasMember("day_duration")) timeConfig.m_dayDuration = jsonTimeConfig["day_duration"].GetFloat();
 
-        m_sceneManager->getWritableSceneConfig().setTimeConfig(timeConfig);
+        SceneManager::it().getWritableSceneConfig().setTimeConfig(timeConfig);
 
         return LoadResult::eOk;
+    }
+
+    void SceneLoader::saveTimeConfig(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
+    {
+        writer.String("TimeConfig");
+
+        writer.StartObject();
+
+        config::TimeConfig& timeConfig = SceneManager::it().getWritableSceneConfig().getWritableTimeConfig();
+
+        writer.String("start_time"); writer.Double(timeConfig.m_startTime);
+        writer.String("day_night_cycle"); writer.Bool(timeConfig.m_dayNightCycle);
+        writer.String("time_paused"); writer.Bool(timeConfig.m_timePaused);
+        writer.String("day_duration"); writer.Double(timeConfig.m_dayDuration);
+
+        writer.EndObject();
     }
 
     SceneLoader::LoadResult SceneLoader::loadOceanConfig(rapidjson::Value& sceneConfig)
@@ -129,9 +219,34 @@ namespace hrzn::scene
         if (jsonOceanConfig.HasMember("foam_start")) oceanConfig.m_foamStart = jsonOceanConfig["foam_start"].GetFloat();
         if (jsonOceanConfig.HasMember("colour_change_start")) oceanConfig.m_colourChangeStart = jsonOceanConfig["colour_change_start"].GetFloat();
 
-        m_sceneManager->getWritableSceneConfig().setOceanConfig(oceanConfig);
+        SceneManager::it().getWritableSceneConfig().setOceanConfig(oceanConfig);
 
         return LoadResult::eOk;
+    }
+
+    void SceneLoader::saveOceanConfig(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
+    {
+        writer.String("OceanConfig");
+
+        writer.StartObject();
+
+        config::OceanConfig& oceanConfig = SceneManager::it().getWritableSceneConfig().getWritableOceanConfig();
+
+        writer.String("enabled"); writer.Bool(oceanConfig.m_enabled);
+
+        writer.String("wave_count"); writer.Int(oceanConfig.m_waveCount);
+
+        writer.String("wave_scale"); writer.Double(oceanConfig.m_waveScale);
+        writer.String("wave_scale_multiplier"); writer.Double(oceanConfig.m_waveScaleMultiplier);
+
+        writer.String("wave_period"); writer.Double(oceanConfig.m_wavePeriod);
+        writer.String("wave_speed"); writer.Double(oceanConfig.m_waveSpeed);
+        writer.String("wave_seed"); writer.Double(oceanConfig.m_waveSeed);
+
+        writer.String("foam_start"); writer.Double(oceanConfig.m_foamStart);
+        writer.String("colour_change_start"); writer.Double(oceanConfig.m_colourChangeStart);
+
+        writer.EndObject();
     }
 
     SceneLoader::LoadResult SceneLoader::loadCloudConfig(rapidjson::Value& sceneConfig)
@@ -159,9 +274,34 @@ namespace hrzn::scene
         if (jsonCloudConfig.HasMember("num_steps")) cloudConfig.m_numSteps = jsonCloudConfig["num_steps"].GetInt();
         if (jsonCloudConfig.HasMember("step_size")) cloudConfig.m_stepSize = jsonCloudConfig["step_size"].GetFloat();
 
-        m_sceneManager->getWritableSceneConfig().setCloudConfig(cloudConfig);
+        SceneManager::it().getWritableSceneConfig().setCloudConfig(cloudConfig);
 
         return LoadResult::eOk;
+    }
+
+    void SceneLoader::saveCloudConfig(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
+    {
+        writer.String("CloudConfig");
+
+        writer.StartObject();
+
+        config::CloudConfig& cloudConfig = SceneManager::it().getWritableSceneConfig().getWritableCloudConfig();
+
+        writer.String("enabled"); writer.Bool(cloudConfig.m_enabled);
+
+        writer.String("light_absorbtion_through_clouds"); writer.Double(cloudConfig.m_lightAbsorbtionThroughClouds);
+        writer.String("light_absorbtion_towards_sun"); writer.Double(cloudConfig.m_lightAbsorbtionTowardsSun);
+        writer.String("phase_factor"); writer.Double(cloudConfig.m_phaseFactor);
+        writer.String("darkness_threshold"); writer.Double(cloudConfig.m_darknessThreshold);
+
+        writer.String("cloud_speed"); writer.Double(cloudConfig.m_cloudSpeed);
+        writer.String("cloud_coverage"); writer.Double(cloudConfig.m_cloudCoverage);
+        writer.String("cloud_height"); writer.Double(cloudConfig.m_cloudHeight);
+
+        writer.String("num_steps"); writer.Int(cloudConfig.m_numSteps);
+        writer.String("step_size"); writer.Double(cloudConfig.m_stepSize);
+
+        writer.EndObject();
     }
 
     SceneLoader::LoadResult SceneLoader::loadAtmosphereConfig(rapidjson::Value& sceneConfig)
@@ -185,9 +325,30 @@ namespace hrzn::scene
         if (jsonAtmosphereConfig.HasMember("night_density")) atmosphereConfig.m_nightDensity = jsonAtmosphereConfig["night_density"].GetFloat();
         if (jsonAtmosphereConfig.HasMember("night_zenith_y_clamp")) atmosphereConfig.m_nightZenithYClamp = jsonAtmosphereConfig["night_zenith_y_clamp"].GetFloat();
 
-        m_sceneManager->getWritableSceneConfig().setAtmosphereConfig(atmosphereConfig);
+        SceneManager::it().getWritableSceneConfig().setAtmosphereConfig(atmosphereConfig);
 
         return LoadResult::eOk;
+    }
+
+    void SceneLoader::saveAtmosphereConfig(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
+    {
+        writer.String("AtmosphereConfig");
+
+        writer.StartObject();
+
+        config::AtmosphereConfig& atmosphereConfig = SceneManager::it().getWritableSceneConfig().getWritableAtmosphereConfig();
+
+        writer.String("sun_size"); writer.Double(atmosphereConfig.m_sunSize);
+
+        writer.String("density"); writer.Double(atmosphereConfig.m_density);
+        writer.String("multi_scatter_phase"); writer.Double(atmosphereConfig.m_multiScatterPhase);
+        writer.String("anisotropic_intenisty"); writer.Double(atmosphereConfig.m_anisotropicIntensity);
+        writer.String("zenith_offset"); writer.Double(atmosphereConfig.m_zenithOffset);
+
+        writer.String("night_density"); writer.Double(atmosphereConfig.m_nightDensity);
+        writer.String("night_zenith_y_clamp"); writer.Double(atmosphereConfig.m_nightZenithYClamp);
+
+        writer.EndObject();
     }
 
     SceneLoader::LoadResult SceneLoader::loadObjectTracks(rapidjson::Value& sceneObject)
@@ -252,10 +413,45 @@ namespace hrzn::scene
             track->setId(trackId);
             track->generateMidPoints();
             
-            m_sceneManager->addObjectTrack(track);
+            SceneManager::it().addObjectTrack(track);
         }
 
         return LoadResult::eOk;
+    }
+
+    void SceneLoader::saveObjectTracks(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
+    {
+        writer.String("ObjectTracks");
+
+        writer.StartArray();
+
+        auto& objectTracks = SceneManager::it().getObjectTracks();
+        for (const auto& objectTrack : objectTracks)
+        {
+            writer.StartObject();
+
+            writer.String("id"); writer.String(objectTrack.second->getId().c_str());
+            writer.String("Nodes");
+
+            writer.StartArray();
+
+            const auto& objectTrackNodes = objectTrack.second->getTrackNodes();
+            for (const auto& objectTrackNode : objectTrackNodes)
+            {
+                writer.StartObject();
+
+                writer.String("position"); utils::JSONHelpers::writeFloat3(objectTrackNode.m_position, writer);
+                writer.String("look_position"); utils::JSONHelpers::writeFloat3(objectTrackNode.m_lookPoint, writer);
+
+                writer.EndObject();
+            }
+
+            writer.EndArray();
+
+            writer.EndObject();
+        }
+
+        writer.EndArray();
     }
 
     SceneLoader::LoadResult SceneLoader::loadGameObjects(rapidjson::Value& sceneObject)
@@ -328,7 +524,7 @@ namespace hrzn::scene
                 continue;
             }
             typeStr = (*gameObjItr)["type"].GetString();
-            type = entity::sc_gameObjectTypeStrings.at(typeStr);
+            type = entity::sc_gameObjectStringToType.at(typeStr);
 
             // Do type specific loading and initialisation
             switch (type)
@@ -391,7 +587,7 @@ namespace hrzn::scene
                     {
                         if (cameraData["is_active_cam"].GetBool())
                         {
-                            m_sceneManager->setActiveCamera(camera);
+                            SceneManager::it().setActiveCamera(camera);
                         }
                     }
                     
@@ -483,7 +679,7 @@ namespace hrzn::scene
                 break;
             }
 
-            m_sceneManager->addGameObject(gameObject);
+            SceneManager::it().addGameObject(gameObject);
 
             // Grab the position
             if (gameObjItr->HasMember("position"))
@@ -523,8 +719,8 @@ namespace hrzn::scene
                 }
                 controllerTypeStr = controller["type"].GetString();
 
-                auto controllerTypeItr = entity::sc_controllerTypeStrings.find(controllerTypeStr);
-                if (controllerTypeItr == entity::sc_controllerTypeStrings.end())
+                auto controllerTypeItr = entity::sc_controllerStringToType.find(controllerTypeStr);
+                if (controllerTypeItr == entity::sc_controllerStringToType.end())
                 {
                     utils::ErrorLogger::log("Parsing Scene JSON\nGame object with id: '" + id + "' had a controller with an invalid type");
                     continue;
@@ -541,7 +737,7 @@ namespace hrzn::scene
                     controllerMoveSpeed = controller["move_speed"].GetFloat();
                 }
 
-                m_sceneManager->getWritableControllerManager()->addController(gameObject, controllerType, controllerMoveSpeed, controllerActive);
+                SceneManager::it().getWritableControllerManager()->addController(gameObject, controllerType, controllerMoveSpeed, controllerActive);
             }
 
             // Load any object tracks
@@ -585,8 +781,8 @@ namespace hrzn::scene
                         trackSpeed = (*objectTrackItr)["track_speed"].GetFloat();
                     }
 
-                    auto trackItr = m_sceneManager->getObjectTracks().find(objectTrackId);
-                    if (trackItr != m_sceneManager->getObjectTracks().end())
+                    auto trackItr = SceneManager::it().getObjectTracks().find(objectTrackId);
+                    if (trackItr != SceneManager::it().getObjectTracks().end())
                     {
                         gameObject->setObjectTrack(trackItr->second);
                         gameObject->setFollowingObjectTrack(isFollowingTrack);
@@ -618,13 +814,156 @@ namespace hrzn::scene
                         utils::ErrorLogger::log("Parsing Scene JSON\nGame object with id: '" + id + "' had a relative camera with no relative position");
                         continue;
                     }
+
                     relativeCameraRelativePosition = utils::JSONHelpers::getFloat3FromArray((*relativeCameraItr)["relative_position"].GetArray());
 
-                    // TODO: ADD RELATIVE CAMERA TO LIST
+                    gameObject->getWritableRelativePositions().push_back(relativeCameraRelativePosition);
                 }
             }
         }
 
         return LoadResult::eOk;
+    }
+
+    void SceneLoader::saveGameObjects(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
+    {
+        writer.String("GameObjects");
+
+        writer.StartArray();
+
+        const auto& gameObjects = scene::SceneManager::it().getObjectMap();
+        for (const auto& gameObject : gameObjects)
+        {
+            // Nullptr object
+            if (gameObject.second == nullptr)
+            {
+                continue;
+            }
+
+            // Engine object
+            if (gameObject.second->getLabel()[0] == '$')
+            {
+                continue;
+            }
+
+            writer.StartObject();
+
+            entity::GameObject* gameObjectPtr = gameObject.second;
+
+            writer.String("id"); writer.String(gameObjectPtr->getLabel().c_str());
+            writer.String("type"); writer.String(entity::sc_gameObjectTypeToString.at(gameObjectPtr->getType()).c_str());
+            writer.String("position"); utils::JSONHelpers::writeFloat3(gameObjectPtr->getTransform().getPositionFloat3(), writer);
+            writer.String("orientation"); utils::JSONHelpers::writeFloat4(gameObjectPtr->getTransform().getOrientationFloat4(), writer);
+
+            if (gameObjectPtr->getFloating())
+            {
+                writer.String("floating"); writer.Bool(true);
+            }
+
+            if (auto* light = dynamic_cast<entity::LightGameObject*>(gameObjectPtr))
+            {
+                writer.String("LightData");
+                writer.StartObject();
+
+                writer.String("colour"); utils::JSONHelpers::writeFloat3(light->getColour(), writer);
+
+                writer.EndObject();
+
+                if (auto* pointLight = dynamic_cast<entity::PointLightGameObject*>(light))
+                {
+                    writer.String("PointLightData");
+                    writer.StartObject();
+
+                    writer.String("attenuation_constant"); writer.Double(*pointLight->getAttenuationConstantPtr());
+                    writer.String("attenuation_linear"); writer.Double(*pointLight->getAttenuationLinearPtr());
+                    writer.String("attenuation_quadratic"); writer.Double(*pointLight->getAttenuationQuadraticPtr());
+
+                    writer.EndObject();
+
+                    if (auto* spotLight = dynamic_cast<entity::SpotLightGameObject*>(pointLight))
+                    {
+                        writer.String("SpotLightData");
+                        writer.StartObject();
+
+                        writer.String("inner_cutoff"); writer.Double(spotLight->getInnerCutoff());
+                        writer.String("outer_cutoff"); writer.Double(spotLight->getOuterCutoff());
+
+                        writer.EndObject();
+                    }
+                }
+            }
+            else if (auto* renderable = dynamic_cast<entity::RenderableGameObject*>(gameObjectPtr))
+            {
+                writer.String("RenderableData");
+                writer.StartObject();
+
+                writer.String("model_path"); writer.String(renderable->getModel().getPath().c_str());
+                writer.String("scale"); utils::JSONHelpers::writeFloat3(renderable->getScale(), writer);
+                    
+                writer.EndObject();
+            }
+
+            if (auto* camera = dynamic_cast<entity::CameraGameObject*>(gameObjectPtr))
+            {
+                writer.String("CameraData");
+                writer.StartObject();
+
+                writer.String("fov"); writer.Double(camera->getFOV());
+                writer.String("near_plane"); writer.Double(camera->getNearPlane());
+                writer.String("far_plane"); writer.Double(camera->getFarPlane());
+                writer.String("is_active_cam"); writer.Bool(&(scene::SceneManager::it().getActiveCamera()) == camera);
+
+                writer.EndObject();
+            }
+
+            if (gameObjectPtr->getController() != nullptr)
+            {
+                writer.String("Controller");
+                writer.StartObject();
+
+                writer.String("active"); writer.Bool(gameObjectPtr->getController()->isActive());
+                writer.String("type"); writer.String(entity::sc_controllerTypeToString.at(gameObjectPtr->getController()->getType()).c_str());
+                writer.String("move_speed"); writer.Double(gameObjectPtr->getController()->getMoveSpeed());
+
+                writer.EndObject();
+            }
+
+            auto& relativePositions = gameObjectPtr->getRelativePositions();
+            if (!relativePositions.empty())
+            {
+                writer.String("RelativeCameras");
+                writer.StartArray();
+
+                for (int relativePositionIndex = 0; relativePositionIndex < relativePositions.size(); ++relativePositionIndex)
+                {
+                    writer.StartObject();
+
+                    writer.String("relative_position"); utils::JSONHelpers::writeFloat3(relativePositions[relativePositionIndex], writer);
+
+                    writer.EndObject();
+                }
+
+                writer.EndArray();
+            }
+
+            if (gameObjectPtr->getObjectTrack() != nullptr)
+            {
+                writer.String("ObjectTracks");
+                writer.StartArray();
+                writer.StartObject();
+
+                writer.String("id"); writer.String(gameObjectPtr->getObjectTrack()->getId().c_str());
+                writer.String("is_following"); writer.Bool(gameObjectPtr->isFollowingObjectTrack());
+                writer.String("track_delta"); writer.Double(gameObjectPtr->getObjectTrackDelta());
+                writer.String("track_speed"); writer.Double(gameObjectPtr->getObjectTrackSpeed());
+
+                writer.EndObject();
+                writer.EndArray();
+            }
+
+            writer.EndObject();
+        }
+
+        writer.EndArray();
     }
 }

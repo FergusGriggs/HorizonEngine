@@ -1,9 +1,9 @@
 #pragma once
 
-#include "config/scene_config.h"
-
 // Scene
 #include "scene_loader.h"
+#include "scene_meta.h"
+#include "config/scene_config.h"
 
 // Entities
 #include "../entity/camera_game_object.h"
@@ -53,8 +53,8 @@ namespace hrzn::scene
 
         // Load/save/unload funcs
         bool loadScene(const char* sceneName);
-        bool loadSceneStaticObjects();
-        bool saveScene(const char* sceneName);
+        bool loadEngineObjects();
+        void saveScene(const char* sceneName);
         void unloadScene();
 
         // Updating
@@ -117,13 +117,16 @@ namespace hrzn::scene
         entity::GameObject&       getWritableGameObject(const std::string& label);
 
         void                      addGameObject(entity::GameObject* gameObject);
-        void                      removeGameObject(const std::string& gameObjectLabel);
+        bool                      removeGameObject(const std::string& gameObjectLabel);
 
         void                      addObjectTrack(entity::GameObjectTrack* objectTrack);
         std::unordered_map<std::string, entity::GameObjectTrack*>& getObjectTracks();
 
         const SceneConfig&        getSceneConfig() const;
         SceneConfig&              getWritableSceneConfig();
+
+        const SceneMeta& getSceneMeta() const;
+        SceneMeta&       getWritableSceneMeta();
 
         void mouseButtonDelegate(const input::MouseEvent& mouseEvent, float deltaTime);
         void mouseScrollDelegate(const input::MouseEvent& mouseEvent, float deltaTime);
@@ -168,6 +171,7 @@ namespace hrzn::scene
 
         SceneLoader m_sceneLoader;
 
+        SceneMeta   m_sceneMeta;
         SceneConfig m_sceneConfig;
 
         entity::CameraGameObject*    m_activeCamera;

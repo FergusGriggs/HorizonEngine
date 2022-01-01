@@ -107,7 +107,7 @@ namespace hrzn::entity
 		GameObjectController* m_controller;
 	};
 
-	static const std::unordered_map<std::string, GameObject::Type> sc_gameObjectTypeStrings = {
+	static const std::unordered_map<std::string, GameObject::Type> sc_gameObjectStringToType = {
 		{ "Base",       GameObject::Type::eBase },
 		{ "Renderable", GameObject::Type::eRenderable },
 		{ "Camera",     GameObject::Type::eCamera },
@@ -115,5 +115,15 @@ namespace hrzn::entity
 		{ "PointLight", GameObject::Type::ePointLight },
 		{ "SpotLight",  GameObject::Type::eSpotLight },
 		{ "Physics",    GameObject::Type::ePhysics },
+	};
+
+	static const std::unordered_map<GameObject::Type, std::string> sc_gameObjectTypeToString = {
+		{ GameObject::Type::eBase,       "Base" },
+		{ GameObject::Type::eRenderable, "Renderable" },
+		{ GameObject::Type::eCamera,     "Camera" },
+		{ GameObject::Type::eLight,      "Light" },
+		{ GameObject::Type::ePointLight, "PointLight" },
+		{ GameObject::Type::eSpotLight,  "SpotLight" },
+		{ GameObject::Type::ePhysics,    "Physics" },
 	};
 }

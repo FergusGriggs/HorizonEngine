@@ -11,9 +11,14 @@ namespace hrzn::entity
 		eHorizontal,
 	};
 
-	static const std::unordered_map<std::string, ControllerType> sc_controllerTypeStrings = {
-		{ "Camera",      ControllerType::eCamera },
+	static const std::unordered_map<std::string, ControllerType> sc_controllerStringToType = {
+		{ "Camera",     ControllerType::eCamera },
 		{ "Horizontal", ControllerType::eHorizontal },
+	};
+
+	static const std::unordered_map<ControllerType, std::string> sc_controllerTypeToString = {
+		{ ControllerType::eCamera, "Camera" },
+		{ ControllerType::eHorizontal, "Horizontal" },
 	};
 
 	class ControllerManager

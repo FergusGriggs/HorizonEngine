@@ -1,555 +1,563 @@
-{"Scene": {
-	"SceneMeta": {
-		"scene_name": "test_scene",
-		"author_name": "Fergus Griggs",
-		"author_email": "fbob987 at gmail dot com",
-		"date_created": "15:40:23;14/10/2021",
-		"date_modified": "15:40:23;14/10/2021"
-	},
-
-	"SceneConfig": {
-		"TimeConfig": {
-			"start_time": 0.530,
-			"progress_time": false,
-			"day_duration": 60.0
-		},
-
-		"CloudConfig": {
-			"enabled": true,
-			"light_absorbtion_through_clouds": 0.084,
-			"light_absorbtion_towards_sun": 0.392,
-			"phase_factor": 0.266,
-			"darkness_threshold": 0.073,
-			"cloud_coverage": 0.497,
-			"cloud_speed": 0.02,
-			"num_steps": 40,
-			"step_size": 85.0,
-			"cloud_height": 2000.0
-		},
-
-		"OceanConfig": {
-			"enabled": true,
-			"wave_count": 30,
-			"wave_scale": 6.6,
-			"wave_period": 21.5,
-			"wave_speed": 12.0,
-			"wave_seed": 656.993,
-			"wave_scale_multiplier": 0.745,
-			"foam_start": 0.97,
-			"colour_change_start": 1.88
-		},
-
-		"AtmosphereConfig": {
-			"sun_size": 75.0,
-			"anisotropic_intenisty": 1.0,
-			"zenith_offset": -0.06,
-			"night_density": 0.75
-		}
-	},
-	
-	"ObjectTracks": [
-		{
-			"id": "test_track",
-			"Nodes": [
-				{
-					"position": [ 10.0, 0.0, 0.0 ],
-					"look_position": [ 0.0, -1.0, 0.0 ]
-				},
-				{
-					"position": [ 0.0, 5.0, 10.0 ],
-					"look_position": [ 0.0, -1.0, 0.0 ]
-				},
-				{
-					"position": [ -10.0, 0.0, 0.0 ],
-					"look_position": [ 0.0, -1.0, 0.0 ]
-				},
-				{
-					"position": [ 0.0, -5.0, -10.0 ],
-					"look_position": [ 0.0, -1.0, 0.0 ]
-				},
-				{
-					"position": [ 10.0, 0.0, 0.0 ],
-					"look_position": [ 0.0, -1.0, 0.0 ]
-				}
-			]
-		},
-		{
-			"id": "drapes_light_track",
-			"Nodes": [
-				{
-					"position": [ -16.5, 2.0, -3.0 ],
-					"look_position": [ -15.0, -1.0, -1.5 ]
-				},
-				{
-					"position": [ -16.5, 3.0, 6.0 ],
-					"look_position": [ -15.0, -1.0, 7.5 ]
-				},
-				{
-					"position": [ -16.5, 3.0, 12.0 ],
-					"look_position": [ -15.0, -1.0, 13.5 ]
-				},
-				{
-					"position": [ -13.5, 2.0, 18.0 ],
-					"look_position": [ -15.0, -1.0, 19.5 ]
-				},
-				{
-					"position": [ -13.5, 1.0, 24.0 ],
-					"look_position": [ -15.0, -1.0, 25.5 ]
-				},
-				{
-					"position": [ -13.5, 2.0, 30.0 ],
-					"look_position": [ -15.0, -1.0, 31.5 ]
-				},
-				{
-					"position": [ -16.5, 1.0, 36.0 ],
-					"look_position": [ -15.0, -1.0, 37.5 ]
-				},
-				{
-					"position": [ -17.5, 2.0, 42.0 ],
-					"look_position": [ -15.0, -1.0, 43.5 ]
-				},
-				{
-					"position": [ -16.5, 1.0, 48.0 ],
-					"look_position": [ -15.0, -1.0, 48.0 ]
-				},
-				{
-					"position": [ -13.5, 2.0, 54.0 ],
-					"look_position": [ -15.0, -1.0, 54.0 ]
-				},
-				{
-					"position": [ -13.5, 1.0, 63.0 ],
-					"look_position": [ -15.0, -1.0, 63.0 ]
-				},
-				{
-					"position": [ -13.5, 2.0, -3.0 ],
-					"look_position": [ -15.0, -1.0, -1.5 ]
-				}
-			]
-		},
-		{
-			"id": "drapes_camera_track_1",
-			"Nodes": [
-				{
-					"position": [ -11.0, -1.5, -6.0 ],
-					"look_position": [ -15.0, -0.5, -3.0 ]
-				},
-				{
-					"position": [ -11.0, -1.5, 3.0 ],
-					"look_position": [ -15.0, -0.5, 6.0 ]
-				},
-				{
-					"position": [ -11.0, -1.5, 9.0 ],
-					"look_position": [ -15.0, -0.5, 12.0 ]
-				},
-				{
-					"position": [ -11.0, -1.5, 15.0 ],
-					"look_position": [ -15.0, -0.5, 18.0 ]
-				},
-				{
-					"position": [ -11.0, -1.5, 21.0 ],
-					"look_position": [ -15.0, -0.5, 24.0 ]
-				},
-				{
-					"position": [ -11.0, -1.5, 27.0 ],
-					"look_position": [ -15.0, -0.5, 30.0 ]
-				},
-				{
-					"position": [ -11.0, -1.5, 33.0 ],
-					"look_position": [ -15.0, -0.5, 36.0 ]
-				},
-				{
-					"position": [ -11.0, -1.5, 39.0 ],
-					"look_position": [ -15.0, -0.5, 42.0 ]
-				},
-				{
-					"position": [ -11.0, -1.5, 45.0 ],
-					"look_position": [ -15.0, -0.5, 48.0 ]
-				},
-				{
-					"position": [ -11.0, -1.5, 51.0 ],
-					"look_position": [ -15.0, -0.5, 54.0 ]
-				},
-				{
-					"position": [ -11.0, -1.5, 57.0 ],
-					"look_position": [ -15.0, -0.5, 60.0 ]
-				},
-				{
-					"position": [ -11.0, -1.5, -6.0 ],
-					"look_position": [ -15.0, -0.5, -3.0 ]
-				}
-			]
-		},
-		{
-			"id": "drapes_camera_track_2",
-			"Nodes": [
-				{
-					"position": [ -13.0, 0.0, 3.0 ],
-					"look_position": [ -15.0, 0.0, 0.0 ]
-				},
-				{
-					"position": [ -13.0, 0.0, 9.0 ],
-					"look_position": [ -15.0, 0.0, 6.0 ]
-				},
-				{
-					"position": [ -13.0, 0.0, 15.0 ],
-					"look_position": [ -15.0, 0.0, 12.0 ]
-				},
-				{
-					"position": [ -17.0, 0.0, 21.0 ],
-					"look_position": [ -15.0, 0.0, 18.0 ]
-				},
-				{
-					"position": [ -17.0, 0.0, 27.0 ],
-					"look_position": [ -15.0, 0.0, 24.0 ]
-				},
-				{
-					"position": [ -17.0, 0.0, 33.0 ],
-					"look_position": [ -15.0, 0.0, 30.0 ]
-				},
-				{
-					"position": [ -13.0, 0.0, 39.0 ],
-					"look_position": [ -15.0, 0.0, 36.0 ]
-				},
-				{
-					"position": [ -13.0, 0.0, 45.0 ],
-					"look_position": [ -15.0, 0.0, 42.0 ]
-				},
-				{
-					"position": [ -13.0, 0.0, 51.0 ],
-					"look_position": [ -15.0, 0.0, 48.0 ]
-				},
-				{
-					"position": [ -17.0, 0.0, 57.0 ],
-					"look_position": [ -15.0, 0.0, 54.0 ]
-				},
-				{
-					"position": [ -17.0, 0.0, 63.0 ],
-					"look_position": [ -15.0, 0.0, 60.0 ]
-				},
-				{
-					"position": [ -13.0, 0.0, 3.0 ],
-					"look_position": [ -15.0, 0.0, 0.0 ]
-				}
-			]
-		}
-	],
-
-	"GameObjects": [
-		{
-			"id": "test_spot_light_1",
-			"type": "SpotLight",
-			"position": [ -15, 4.5, -2.0 ],
-			"orientation": [ 0.707107, 0.0, 0.0, 0.707107 ],
-
-			"floating": false,
-
-			"LightData": {
-				"colour": [ 1.0, 0.9, 0.75 ]
-			},
-
-			"PointLightData": {
-				"attenuation_constant": 1.0,
-				"attenuation_linear": 0.045,
-				"attenuation_quadratic": 0.0075
-			},
-
-			"SpotLightData": {
-				"inner_cutoff": 50.0,
-				"outer_cutoff": 71.0
-			}
-		},
-		{
-			"id": "test_point_light_1",
-			"type": "PointLight",
-			"position": [ -15.0, 1.0, -2.0 ],
-
-			"ObjectTracks": [
-				{
-					"id": "drapes_light_track",
-					"is_following": true,
-					"track_delta": 0.0,
-					"track_speed": 0.2
-				}
-			],
-
-			"LightData": {
-				"colour": [ 1.0, 0.83, 0.745 ]
-			},
-
-			"PointLightData": {
-				"attenuation_constant": 1.0,
-				"attenuation_linear": 0.07,
-				"attenuation_quadratic": 0.017
-			}
-		},
-		{
-			"id": "wall_cube",
-			"type": "Renderable",
-			"position": [ -12.0, -2.5, -6.0 ],
-
-			"Controller": {
-				"active": false,
-				"type": "Horizontal",
-				"move_speed": 1.0
-			},
-
-			"RelativeCameras": [
-				{ "relative_position": [ 0.0, 5.0, 0.0 ] }
-			],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/wall.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "brick_cube",
-			"type": "Renderable",
-			"position": [ -15.0, -2.5, -6.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/bricks.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "emissive_crate",
-			"type": "Renderable",
-			"position": [ -15.0, -2.5, -15.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/emissive_crate.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "terracotta_cube",
-			"type": "Renderable",
-			"position": [ -18.0, -2.5, -6.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/terracotta.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "lego_cube",
-			"type": "Renderable",
-			"position": [ -12.0, 0.5, -6.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/legos.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "scale_cube",
-			"type": "Renderable",
-			"position": [ -15.0, 0.5, -6.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/scales.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "lava_cube",
-			"type": "Renderable",
-			"position": [ -18.0, 0.5, -6.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/lava.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "wood_cube",
-			"type": "Renderable",
-			"position": [ -12.0, 3.5, -6.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/wood_clean.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "metal_cube",
-			"type": "Renderable",
-			"position": [ -15.0, 3.5, -6.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/metal.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "pom_cube",
-			"type": "Renderable",
-			"position": [ -18.0, 3.5, -6.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/pom_cube.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "wood_drape_1",
-			"type": "Renderable",
-			"position": [ -15.0, -3.0, -6.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/wood_drape.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "wood_drape_2",
-			"type": "Renderable",
-			"position": [ -15.0, -3.0, 0.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/wood_drape.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "wall_drape",
-			"type": "Renderable",
-			"position": [ -15.0, -3.0, 6.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/wall_drape.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "terracotta_drape",
-			"type": "Renderable",
-			"position": [ -15.0, -3.0, 12.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/terracotta_drape.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "layered_rock_drape",
-			"type": "Renderable",
-			"position": [ -15.0, -3.0, 18.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/layered_rock_drape.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "brick_drape",
-			"type": "Renderable",
-			"position": [ -15.0, -3.0, 24.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/brick_drape.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "padded_fabric_drape",
-			"type": "Renderable",
-			"position": [ -15.0, -3.0, 30.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/padded_fabric_drape.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "stone_drape",
-			"type": "Renderable",
-			"position": [ -15.0, -3.0, 36.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/stone_drape.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "scale_drape",
-			"type": "Renderable",
-			"position": [ -15.0, -3.0, 42.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/scale_drape.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "lego_drape",
-			"type": "Renderable",
-			"position": [ -15.0, -3.0, 48.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/lego_drape.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "matter_drape",
-			"type": "Renderable",
-			"position": [ -15.0, -3.0, 54.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/matter_drape.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "mud_drape",
-			"type": "Renderable",
-			"position": [ -15.0, -3.0, 60.0 ],
-
-			"RenderableData": {
-				"model_path": "res/models/test_cubes/mud_drape.obj",
-				"scale": [ 1.0, 1.0, 1.0 ]
-			}
-		},
-		{
-			"id": "tunnel_cam_1",
-			"type": "Camera",
-
-			"ObjectTracks": [
-				{
-					"id": "drapes_camera_track_1",
-					"is_following": true,
-					"track_delta": 0.0,
-					"track_speed": 0.2
-				}
-			],
-
-			"CameraData": {
-				"fov": 52.5,
-				"near_plane": 0.1,
-				"far_plane": 3000.0
-			}
-		},
-		{
-			"id": "tunnel_cam_2",
-			"type": "Camera",
-
-			"ObjectTracks": [
-				{
-					"id": "drapes_camera_track_2",
-					"is_following": true,
-					"track_delta": 0.5,
-					"track_speed": 0.2
-				}
-			],
-
-			"CameraData": {
-				"fov": 70.0,
-				"near_plane": 0.1,
-				"far_plane": 3000.0,
-				"is_active_cam": true
-			}
-		}
-	]
-}}
+{
+    "Scene": {
+        "SceneMeta": {
+            "scene_name": "test_scene",
+            "author_name": "Fergus Griggs",
+            "author_email": "fbob987 at gmail dot com",
+            "date_created": "15:40:23;14/10/2021",
+            "date_modified": "15:40:23;14/10/2021"
+        },
+        "SceneConfig": {
+            "TimeConfig": {
+                "start_time": 0.5299999,
+                "day_night_cycle": false,
+                "time_paused": false,
+                "day_duration": 60.0
+            },
+            "OceanConfig": {
+                "enabled": true,
+                "wave_count": 30,
+                "wave_scale": 3.8699998,
+                "wave_scale_multiplier": 0.7239999,
+                "wave_period": 16.5,
+                "wave_speed": 9.0,
+                "wave_seed": 698.7449951,
+                "foam_start": 1.3099999,
+                "colour_change_start": 1.485
+            },
+            "CloudConfig": {
+                "enabled": true,
+                "light_absorbtion_through_clouds": 0.0839999,
+                "light_absorbtion_towards_sun": 0.3919999,
+                "phase_factor": 0.266,
+                "darkness_threshold": 0.0729999,
+                "cloud_speed": 0.0199999,
+                "cloud_coverage": 0.497,
+                "cloud_height": 2000.0,
+                "num_steps": 40,
+                "step_size": 85.0
+            },
+            "AtmosphereConfig": {
+                "sun_size": 75.0,
+                "density": 0.6499999,
+                "multi_scatter_phase": 0.27,
+                "anisotropic_intenisty": 1.0,
+                "zenith_offset": -0.0599999,
+                "night_density": 0.75,
+                "night_zenith_y_clamp": 0.1
+            }
+        },
+        "ObjectTracks": [
+            {
+                "id": "test_track",
+                "Nodes": [
+                    {
+                        "position": [10.0, 0.0, 0.0],
+                        "look_position": [0.0, -1.0, 0.0]
+                    },
+                    {
+                        "position": [0.0, 5.0, 10.0],
+                        "look_position": [0.0, -1.0, 0.0]
+                    },
+                    {
+                        "position": [-10.0, 0.0, 0.0],
+                        "look_position": [0.0, -1.0, 0.0]
+                    },
+                    {
+                        "position": [0.0, -5.0, -10.0],
+                        "look_position": [0.0, -1.0, 0.0]
+                    },
+                    {
+                        "position": [10.0, 0.0, 0.0],
+                        "look_position": [0.0, -1.0, 0.0]
+                    }
+                ]
+            },
+            {
+                "id": "drapes_camera_track_2",
+                "Nodes": [
+                    {
+                        "position": [-14.0, 0.0, 3.0],
+                        "look_position": [-15.0, 0.0, 2.0]
+                    },
+                    {
+                        "position": [-14.0, 0.0, 9.0],
+                        "look_position": [-15.0, 0.0, 8.0]
+                    },
+                    {
+                        "position": [-14.0, 0.0, 15.0],
+                        "look_position": [-15.0, 0.0, 14.0]
+                    },
+                    {
+                        "position": [-16.0, 0.0, 21.0],
+                        "look_position": [-15.0, 0.0, 20.0]
+                    },
+                    {
+                        "position": [-16.0, 0.0, 27.0],
+                        "look_position": [-15.0, 0.0, 26.0]
+                    },
+                    {
+                        "position": [-16.0, 0.0, 33.0],
+                        "look_position": [-15.0, 0.0, 32.0]
+                    },
+                    {
+                        "position": [-14.0, 0.0, 39.0],
+                        "look_position": [-15.0, 0.0, 38.0]
+                    },
+                    {
+                        "position": [-14.0, 0.0, 45.0],
+                        "look_position": [-15.0, 0.0, 44.0]
+                    },
+                    {
+                        "position": [-14.0, 0.0, 51.0],
+                        "look_position": [-15.0, 0.0, 50.0]
+                    },
+                    {
+                        "position": [-16.0, 0.0, 57.0],
+                        "look_position": [-15.0, 0.0, 56.0]
+                    },
+                    {
+                        "position": [-16.0, 0.0, 63.0],
+                        "look_position": [-15.0, 0.0, 62.0]
+                    },
+                    {
+                        "position": [-14.0, 0.0, 3.0],
+                        "look_position": [-15.0, 0.0, 2.0]
+                    }
+                ]
+            },
+            {
+                "id": "drapes_light_track",
+                "Nodes": [
+                    {
+                        "position": [-16.5, 2.0, -3.0],
+                        "look_position": [-15.0, -1.0, -1.5]
+                    },
+                    {
+                        "position": [-16.5, 3.0, 6.0],
+                        "look_position": [-15.0, -1.0, 7.5]
+                    },
+                    {
+                        "position": [-16.5, 3.0, 12.0],
+                        "look_position": [-15.0, -1.0, 13.5]
+                    },
+                    {
+                        "position": [-13.5, 2.0, 18.0],
+                        "look_position": [-15.0, -1.0, 19.5]
+                    },
+                    {
+                        "position": [-13.5, 1.0, 24.0],
+                        "look_position": [-15.0, -1.0, 25.5]
+                    },
+                    {
+                        "position": [-13.5, 2.0, 30.0],
+                        "look_position": [-15.0, -1.0, 31.5]
+                    },
+                    {
+                        "position": [-16.5, 1.0, 36.0],
+                        "look_position": [-15.0, -1.0, 37.5]
+                    },
+                    {
+                        "position": [-17.5, 2.0, 42.0],
+                        "look_position": [-15.0, -1.0, 43.5]
+                    },
+                    {
+                        "position": [-16.5, 1.0, 48.0],
+                        "look_position": [-15.0, -1.0, 48.0]
+                    },
+                    {
+                        "position": [-13.5, 2.0, 54.0],
+                        "look_position": [-15.0, -1.0, 54.0]
+                    },
+                    {
+                        "position": [-13.5, 1.0, 63.0],
+                        "look_position": [-15.0, -1.0, 63.0]
+                    },
+                    {
+                        "position": [-13.5, 2.0, -3.0],
+                        "look_position": [-15.0, -1.0, -1.5]
+                    }
+                ]
+            },
+            {
+                "id": "drapes_camera_track_1",
+                "Nodes": [
+                    {
+                        "position": [-11.0, -1.5, -6.0],
+                        "look_position": [-15.0, -0.5, -3.0]
+                    },
+                    {
+                        "position": [-11.0, -1.5, 3.0],
+                        "look_position": [-15.0, -0.5, 6.0]
+                    },
+                    {
+                        "position": [-11.0, -1.5, 9.0],
+                        "look_position": [-15.0, -0.5, 12.0]
+                    },
+                    {
+                        "position": [-11.0, -1.5, 15.0],
+                        "look_position": [-15.0, -0.5, 18.0]
+                    },
+                    {
+                        "position": [-11.0, -1.5, 21.0],
+                        "look_position": [-15.0, -0.5, 24.0]
+                    },
+                    {
+                        "position": [-11.0, -1.5, 27.0],
+                        "look_position": [-15.0, -0.5, 30.0]
+                    },
+                    {
+                        "position": [-11.0, -1.5, 33.0],
+                        "look_position": [-15.0, -0.5, 36.0]
+                    },
+                    {
+                        "position": [-11.0, -1.5, 39.0],
+                        "look_position": [-15.0, -0.5, 42.0]
+                    },
+                    {
+                        "position": [-11.0, -1.5, 45.0],
+                        "look_position": [-15.0, -0.5, 48.0]
+                    },
+                    {
+                        "position": [-11.0, -1.5, 51.0],
+                        "look_position": [-15.0, -0.5, 54.0]
+                    },
+                    {
+                        "position": [-11.0, -1.5, 57.0],
+                        "look_position": [-15.0, -0.5, 60.0]
+                    },
+                    {
+                        "position": [-11.0, -1.5, -6.0],
+                        "look_position": [-15.0, -0.5, -3.0]
+                    }
+                ]
+            }
+        ],
+        "GameObjects": [
+            {
+                "id": "lava_cube",
+                "type": "Renderable",
+                "position": [-23.7692031, 0.5, -16.4054813],
+                "orientation": [-0.0378451, 0.0120649, -0.3034956, 0.9520045],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/lava.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "test_spot_light_1",
+                "type": "SpotLight",
+                "position": [-15.0, 4.5, -2.0],
+                "orientation": [0.7071068, 0.0, 0.0, 0.7071068],
+                "LightData": {
+                    "colour": [1.0, 0.8999999, 0.75]
+                },
+                "PointLightData": {
+                    "attenuation_constant": 1.0,
+                    "attenuation_linear": 0.045,
+                    "attenuation_quadratic": 0.0074999
+                },
+                "SpotLightData": {
+                    "inner_cutoff": 50.0,
+                    "outer_cutoff": 71.0
+                }
+            },
+            {
+                "id": "wall_cube",
+                "type": "Renderable",
+                "position": [-10.038064, -1.8638136, -20.7517814],
+                "orientation": [0.161775, 0.0438013, 0.2576478, 0.9515923],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/wall.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                },
+                "Controller": {
+                    "active": false,
+                    "type": "Horizontal",
+                    "move_speed": 1.0
+                },
+                "RelativeCameras": [
+                    {
+                        "relative_position": [0.0, 5.0, 0.0]
+                    }
+                ]
+            },
+            {
+                "id": "tunnel_cam_1",
+                "type": "Camera",
+                "position": [-11.0, -1.5, 52.1398506],
+                "orientation": [-0.0881347, -0.4450371, -0.0440673, 0.8900743],
+                "CameraData": {
+                    "fov": 52.5,
+                    "near_plane": 0.1,
+                    "far_plane": 3000.0,
+                    "is_active_cam": false
+                },
+                "ObjectTracks": [
+                    {
+                        "id": "drapes_camera_track_1",
+                        "is_following": true,
+                        "track_delta": 9.8349056,
+                        "track_speed": 0.2
+                    }
+                ]
+            },
+            {
+                "id": "test_point_light_1",
+                "type": "PointLight",
+                "position": [-13.5, 1.2772561, 57.3080825],
+                "orientation": [0.3444121, -0.6049481, 0.3256374, 0.6398265],
+                "LightData": {
+                    "colour": [1.0, 0.8299999, 0.745]
+                },
+                "PointLightData": {
+                    "attenuation_constant": 1.0,
+                    "attenuation_linear": 0.07,
+                    "attenuation_quadratic": 0.017
+                },
+                "ObjectTracks": [
+                    {
+                        "id": "drapes_light_track",
+                        "is_following": true,
+                        "track_delta": 9.8349056,
+                        "track_speed": 0.2
+                    }
+                ]
+            },
+            {
+                "id": "tunnel_cam_2",
+                "type": "Camera",
+                "position": [-15.3029193, 0.0, 42.0058364],
+                "orientation": [0.0, 0.9892052, 0.0, 0.1465369],
+                "CameraData": {
+                    "fov": 70.0,
+                    "near_plane": 0.1,
+                    "far_plane": 3000.0,
+                    "is_active_cam": true
+                },
+                "ObjectTracks": [
+                    {
+                        "id": "drapes_camera_track_2",
+                        "is_following": true,
+                        "track_delta": 10.3349132,
+                        "track_speed": 0.2
+                    }
+                ]
+            },
+            {
+                "id": "test_point_light_2",
+                "type": "PointLight",
+                "position": [-15.3999996, -0.2, -17.0],
+                "orientation": [0.6941691, -0.010063, -0.009706, 0.7196761],
+                "LightData": {
+                    "colour": [0.6809998, 0.2919999, 0.097]
+                },
+                "PointLightData": {
+                    "attenuation_constant": 1.0,
+                    "attenuation_linear": 0.07,
+                    "attenuation_quadratic": 0.017
+                }
+            },
+            {
+                "id": "terracotta_cube",
+                "type": "Renderable",
+                "position": [-14.9461421, 0.0131735, -4.792705],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/terracotta.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "emissive_crate",
+                "type": "Renderable",
+                "position": [-15.0, -2.5, -13.0],
+                "orientation": [-0.4001948, 0.2439949, 0.0649799, 0.8809586],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/emissive_crate.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "brick_cube",
+                "type": "Renderable",
+                "position": [-20.2628936, -2.2, -16.1000003],
+                "orientation": [-0.0145939, 0.2099801, -0.239765, 0.9477384],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/bricks.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "wood_cube",
+                "type": "Renderable",
+                "position": [-21.091793, -1.7990812, -20.9666805],
+                "orientation": [0.4274227, 0.1907333, -0.4037012, 0.7861016],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/wood_clean.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "lego_cube",
+                "type": "Renderable",
+                "position": [-10.4319715, 0.5, -12.8710374],
+                "orientation": [-0.2570871, 0.0707792, 0.2558254, 0.92922],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/legos.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "scale_cube",
+                "type": "Renderable",
+                "position": [-15.0, -3.5174341, -21.9011516],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/scales.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "wood_drape_2",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 0.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/wood_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "metal_cube",
+                "type": "Renderable",
+                "position": [-19.5786056, -0.039947, -11.8087882],
+                "orientation": [-0.1542826, 0.0641683, -0.3786245, 0.9103421],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/metal.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "pom_cube",
+                "type": "Renderable",
+                "position": [-9.000163, -2.2, -17.0],
+                "orientation": [-0.1599348, 0.0, 0.0, 0.9871276],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/pom_cube.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "wood_drape_1",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, -6.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/wood_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "wall_drape",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 6.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/wall_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "terracotta_drape",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 12.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/terracotta_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "layered_rock_drape",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 18.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/layered_rock_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "stone_drape",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 36.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/stone_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "brick_drape",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 24.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/brick_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "padded_fabric_drape",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 30.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/padded_fabric_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "scale_drape",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 42.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/scale_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "matter_drape",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 54.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/matter_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "lego_drape",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 48.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/lego_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "mud_drape",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 60.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/mud_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            }
+        ]
+    }
+}

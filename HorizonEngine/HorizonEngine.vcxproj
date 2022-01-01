@@ -248,6 +248,7 @@
     <ClInclude Include="src\physics\utils\collision_helpers.h" />
     <ClInclude Include="src\scene\config\config_types.h" />
     <ClInclude Include="src\scene\config\scene_config.h" />
+    <ClInclude Include="src\scene\scene_meta.h" />
     <ClInclude Include="src\utils\io_helpers.h" />
     <ClInclude Include="src\scene\scene_loader.h" />
     <ClInclude Include="src\scene\scene_manager.h" />

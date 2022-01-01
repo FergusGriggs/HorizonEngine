@@ -3,16 +3,12 @@
 #include <string.h>
 #include <iostream>
 
-#include "rapidjson/reader.h"
-#include "rapidjson/document.h"
+#include <rapidjson/document.h>
+#include <rapidjson/reader.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
 
 #include <DirectXMath.h>
-
-// fwd declarations
-namespace hrzn::scene
-{
-    class SceneManager;
-}
 
 namespace hrzn::scene
 {
@@ -27,113 +23,33 @@ namespace hrzn::scene
         };
 
     public:
-        SceneLoader(SceneManager* sceneManager);
+        SceneLoader();
         ~SceneLoader();
 
         static void combineResults(const LoadResult& compare, LoadResult& storage);
 
-        LoadResult loadScene(std::string sceneName);
+        LoadResult loadScene(const char* sceneName);
+        void       saveScene(const char* sceneName);
 
         LoadResult loadMeta(rapidjson::Value& sceneObject);
+        void       saveMeta(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
 
         LoadResult loadConfigs(rapidjson::Value& sceneObject);
+        void       saveConfigs(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
 
         LoadResult loadTimeConfig(rapidjson::Value& sceneConfig);
+        void       saveTimeConfig(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
         LoadResult loadOceanConfig(rapidjson::Value& sceneConfig);
+        void       saveOceanConfig(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
         LoadResult loadCloudConfig(rapidjson::Value& sceneConfig);
+        void       saveCloudConfig(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
         LoadResult loadAtmosphereConfig(rapidjson::Value& sceneConfig);
+        void       saveAtmosphereConfig(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
 
         LoadResult loadObjectTracks(rapidjson::Value& sceneObject);
-        LoadResult loadGameObjects(rapidjson::Value& sceneObject);
+        void       saveObjectTracks(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
 
-    private:
-        SceneManager*       m_sceneManager;
+        LoadResult loadGameObjects(rapidjson::Value& sceneObject);
+        void       saveGameObjects(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
     };
 }
-
-//struct JSONHandler
-//{
-//    bool Null()
-//    {
-//        std::cout << "Null()" << "\n";
-//        return true;
-//    }
-//
-//    bool Bool(bool b)
-//    {
-//        std::cout << "Bool(" << std::boolalpha << b << ")" << "\n";
-//        return true;
-//    }
-//
-//    bool Int(int i)
-//    {
-//        std::cout << "Int(" << i << ")" << "\n";
-//        return true;
-//    }
-//
-//    bool Uint(unsigned u)
-//    {
-//        std::cout << "Uint(" << u << ")" << "\n";
-//        return true;
-//    }
-//
-//    bool Int64(int64_t i)
-//    {
-//        std::cout << "Int64(" << i << ")" << "\n";
-//        return true;
-//    }
-//
-//    bool Uint64(uint64_t u)
-//    {
-//        std::cout << "Uint64(" << u << ")" << "\n";
-//        return true;
-//    }
-//
-//    bool Double(double d)
-//    {
-//        std::cout << "Double(" << d << ")" << "\n";
-//        return true;
-//    }
-//
-//    bool RawNumber(const char* str, rapidjson::SizeType length, bool copy)
-//    {
-//        std::cout << "Number(" << str << ", " << length << ", " << std::boolalpha << copy << ")" << "\n";
-//        return true;
-//    }
-//
-//    bool String(const char* str, rapidjson::SizeType length, bool copy)
-//    {
-//        std::cout << "String(" << str << ", " << length << ", " << std::boolalpha << copy << ")" << "\n";
-//        return true;
-//    }
-//
-//    bool StartObject()
-//    {
-//        std::cout << "StartObject()" << "\n";
-//        return true;
-//    }
-//
-//    bool Key(const char* str, rapidjson::SizeType length, bool copy)
-//    {
-//        std::cout << "Key(" << str << ", " << length << ", " << std::boolalpha << copy << ")" << "\n";
-//        return true;
-//    }
-//
-//    bool EndObject(rapidjson::SizeType memberCount)
-//    {
-//        std::cout << "EndObject(" << memberCount << ")" << "\n";
-//        return true;
-//    }
-//
-//    bool StartArray()
-//    {
-//        std::cout << "StartArray()" << "\n";
-//        return true;
-//    }
-//
-//    bool EndArray(rapidjson::SizeType elementCount)
-//    {
-//        std::cout << "EndArray(" << elementCount << ")" << "\n";
-//        return true;
-//    }
-//};
