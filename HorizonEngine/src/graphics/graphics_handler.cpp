@@ -1145,208 +1145,6 @@ namespace hrzn::gfx
 				ImGui::TreePop();
 			}
 
-			if (ImGui::CollapsingHeader("Render Options"))
-			{
-				ImGui::TreePush();
-
-				if (ImGui::CollapsingHeader("Post Processing"))
-				{
-					ImGui::TreePush();
-
-					if (ImGui::Button("Add Bloom (Only for Deferred Shading)"))
-					{
-						m_activeCameraImageRenderer.addPostProcess(new BloomPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
-					}
-
-					if (ImGui::Button("Add Depth of Field"))
-					{
-						m_activeCameraImageRenderer.addPostProcess(new DepthOfFieldPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
-					}
-
-					ImGui::SameLine();
-
-					if (ImGui::Button("Add Gaussian Blur"))
-					{
-						m_activeCameraImageRenderer.addPostProcess(new GaussianBlurPostProcess(DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, 0.65f));
-					}
-
-					if (ImGui::Button("Add Chromatic Abberation"))
-					{
-						m_activeCameraImageRenderer.addPostProcess(new ChromaticAberrationPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
-					}
-
-					ImGui::SameLine();
-
-					if (ImGui::Button("Add Grayscale"))
-					{
-						m_activeCameraImageRenderer.addPostProcess(new GrayscalePostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
-					}
-
-					if (ImGui::Button("Add Sepia"))
-					{
-						m_activeCameraImageRenderer.addPostProcess(new SepiaPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
-					}
-
-					ImGui::SameLine();
-
-					if (ImGui::Button("Add Edge Detection"))
-					{
-						m_activeCameraImageRenderer.addPostProcess(new EdgeDetectionPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
-					}
-
-					ImGui::Text("Post Processes:");
-
-					auto& postProcesses = m_activeCameraImageRenderer.getPostProcesses();
-					for (int postProcessIndex = 0; postProcessIndex < postProcesses.size(); ++postProcessIndex)
-					{
-						ImGui::Text("%d -> %s", postProcessIndex, postProcesses[postProcessIndex]->getName());
-					}
-
-					if (postProcesses.empty())
-					{
-						ImGui::Text("None Set");
-					}
-					else
-					{
-						if (ImGui::Button("Clear Post Processes"))
-						{
-							m_activeCameraImageRenderer.clearPostProcesses();
-						}
-					}
-
-					ImGui::TreePop();
-				}
-
-				if (ImGui::CollapsingHeader("Mapping Techniques"))
-				{
-					ImGui::TreePush();
-
-					// Normal Mapping
-					bool useNormalMapping = static_cast<bool>(m_sceneCB.m_data.m_useNormalMapping);
-					ImGui::Checkbox("Normal Mapping", &useNormalMapping);
-					m_sceneCB.m_data.m_useNormalMapping = useNormalMapping;
-
-					ImGui::SameLine();
-
-					// PO Mapping
-					bool useParallaxOcclusionMapping = static_cast<bool>(m_sceneCB.m_data.m_useParallaxOcclusionMapping);
-					ImGui::Checkbox("PO Mapping", &useParallaxOcclusionMapping);
-					m_sceneCB.m_data.m_useParallaxOcclusionMapping = useParallaxOcclusionMapping;
-
-					ImGui::SameLine();
-
-					// Roughness Mapping
-					bool roughnessMapping = static_cast<bool>(m_sceneCB.m_data.m_roughnessMapping);
-					ImGui::Checkbox("Roughness Mapping", &roughnessMapping);
-					m_sceneCB.m_data.m_roughnessMapping = roughnessMapping;
-
-					// Self shadowing
-					bool selfShadowing = static_cast<bool>(m_sceneCB.m_data.m_selfShadowing);
-					ImGui::Checkbox("Self Shadowing (Not Compatible w/ Deferred Shading)", &selfShadowing);
-					m_sceneCB.m_data.m_selfShadowing = selfShadowing;
-
-					// Depth scale
-					ImGui::DragFloat("Depth Scale", &m_sceneCB.m_data.m_depthScale, 0.001f, 0.0f, 0.5f);
-
-					ImGui::TreePop();
-				}
-				
-				if (ImGui::CollapsingHeader("Misc"))
-				{
-					ImGui::TreePush();
-
-					// Show Normals
-					bool showWorldNormals = static_cast<bool>(m_sceneCB.m_data.m_showWorldNormals);
-					ImGui::Checkbox("Normals", &showWorldNormals);
-					m_sceneCB.m_data.m_showWorldNormals = showWorldNormals;
-
-					ImGui::SameLine();
-
-					// Show UVs
-					bool showUVs = static_cast<bool>(m_sceneCB.m_data.m_showUVs);
-					ImGui::Checkbox("Show UVs", &showUVs);
-					m_sceneCB.m_data.m_showUVs = showUVs;
-
-					ImGui::SameLine();
-
-					// Cull back normals
-					bool cullBackNormals = static_cast<bool>(m_sceneCB.m_data.m_cullBackNormals);
-					ImGui::Checkbox("Cull Back Normals", &cullBackNormals);
-					m_sceneCB.m_data.m_cullBackNormals = cullBackNormals;
-
-					// Gamma correction
-					bool gammaCorrection = static_cast<bool>(m_sceneCB.m_data.m_gammaCorrection);
-					ImGui::Checkbox("Gamma Corr", &gammaCorrection);
-					m_sceneCB.m_data.m_gammaCorrection = gammaCorrection;
-
-					ImGui::SameLine();
-
-					// Misc toggle A
-					bool miscToggleA = static_cast<bool>(m_sceneCB.m_data.m_miscToggleA);
-					ImGui::Checkbox("Misc A", &miscToggleA);
-					m_sceneCB.m_data.m_miscToggleA = miscToggleA;
-
-					ImGui::SameLine();
-
-					// Misc toggle B
-					bool miscToggleB = static_cast<bool>(m_sceneCB.m_data.m_miscToggleB);
-					ImGui::Checkbox("Misc B", &miscToggleB);
-					m_sceneCB.m_data.m_miscToggleB = miscToggleB;
-
-					ImGui::TreePop();
-				}
-
-				if (ImGui::CollapsingHeader("Deferred Shading"))
-				{
-					ImGui::TreePush();
-
-					ImGui::Checkbox("Deferred Shading", &m_useDeferredShading);
-
-					ImGui::Checkbox("Ambient Occlusion", &m_useSSAO);
-					m_sceneCB.m_data.m_SSAO = m_useSSAO;
-
-					if (ImGui::CollapsingHeader("View Textures"))
-					{
-						ImGui::TreePush();
-
-						ImGui::Text("RGBA -> Albedo                                     RGB -> Position + A -> Roughness");
-
-						ImVec2 textureSize(UserConfig::it().getWindowWidthFloat() * 0.2f, UserConfig::it().getWindowHeightFloat() * 0.2f);
-						ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_albedo.m_shaderResourceView.Get(), textureSize);
-
-						ImGui::SameLine();
-
-						ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_positionRoughness.m_shaderResourceView.Get(), textureSize);
-
-						ImGui::Text("RGB -> Normal + A -> Material AO                   RBG -> Emission + A -> Metallic");
-
-						ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_normalAO.m_shaderResourceView.Get(), textureSize);
-
-						ImGui::SameLine();
-
-						ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_emissionMetallic.m_shaderResourceView.Get(), textureSize);
-
-						ImGui::Text("R -> Screen Space Ambient Occlusion");
-
-						ImGui::Image(m_activeCameraImageRenderer.getRenderedAmbientOcclusionTexture()->m_shaderResourceView.Get(), textureSize);
-
-						ImGui::TreePop();
-					}
-
-					ImGui::TreePop();
-				}
-
-				if (ImGui::Button("Toggle Wireframe"))
-				{
-					m_useWireframe = !m_useWireframe;
-
-					if (m_useWireframe) m_activeCameraImageRenderer.setRasterizerState(m_wireframeRasterizerState.Get());
-					else                m_activeCameraImageRenderer.setRasterizerState(m_regularRasterizerState.Get());
-				}
-
-				ImGui::TreePop();
-			}
-
 			if (ImGui::CollapsingHeader("Ocean Options"))
 			{
 				ImGui::TreePush();
@@ -1398,6 +1196,206 @@ namespace hrzn::gfx
 				ImGui::SliderFloat("Step Size", &m_cloudsCB.m_data.m_stepSize, 5.0f, 100.0f);
 
 				ImGui::TreePop();
+			}
+		}
+
+		ImGui::End();
+
+		if (ImGui::Begin("Render Options"))
+		{
+			if (ImGui::CollapsingHeader("Post Processing"))
+			{
+				ImGui::TreePush();
+
+				if (ImGui::Button("Add Bloom (Only for Deferred Shading)"))
+				{
+					m_activeCameraImageRenderer.addPostProcess(new BloomPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
+				}
+
+				if (ImGui::Button("Add Depth of Field"))
+				{
+					m_activeCameraImageRenderer.addPostProcess(new DepthOfFieldPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
+				}
+
+				ImGui::SameLine();
+
+				if (ImGui::Button("Add Gaussian Blur"))
+				{
+					m_activeCameraImageRenderer.addPostProcess(new GaussianBlurPostProcess(DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, 0.65f));
+				}
+
+				if (ImGui::Button("Add Chromatic Abberation"))
+				{
+					m_activeCameraImageRenderer.addPostProcess(new ChromaticAberrationPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+				}
+
+				ImGui::SameLine();
+
+				if (ImGui::Button("Add Grayscale"))
+				{
+					m_activeCameraImageRenderer.addPostProcess(new GrayscalePostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+				}
+
+				if (ImGui::Button("Add Sepia"))
+				{
+					m_activeCameraImageRenderer.addPostProcess(new SepiaPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+				}
+
+				ImGui::SameLine();
+
+				if (ImGui::Button("Add Edge Detection"))
+				{
+					m_activeCameraImageRenderer.addPostProcess(new EdgeDetectionPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
+				}
+
+				ImGui::Text("Active Post Processes:");
+
+				auto& postProcesses = m_activeCameraImageRenderer.getPostProcesses();
+				for (int postProcessIndex = 0; postProcessIndex < postProcesses.size(); ++postProcessIndex)
+				{
+					ImGui::Text("%d -> %s", postProcessIndex, postProcesses[postProcessIndex]->getName());
+				}
+
+				if (postProcesses.empty())
+				{
+					ImGui::Text("None Set");
+				}
+				else
+				{
+					if (ImGui::Button("Clear Post Processes"))
+					{
+						m_activeCameraImageRenderer.clearPostProcesses();
+					}
+				}
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::CollapsingHeader("Mapping Techniques"))
+			{
+				ImGui::TreePush();
+
+				// Normal Mapping
+				bool useNormalMapping = static_cast<bool>(m_sceneCB.m_data.m_useNormalMapping);
+				ImGui::Checkbox("Normal Mapping", &useNormalMapping);
+				m_sceneCB.m_data.m_useNormalMapping = useNormalMapping;
+
+				ImGui::SameLine();
+
+				// PO Mapping
+				bool useParallaxOcclusionMapping = static_cast<bool>(m_sceneCB.m_data.m_useParallaxOcclusionMapping);
+				ImGui::Checkbox("PO Mapping", &useParallaxOcclusionMapping);
+				m_sceneCB.m_data.m_useParallaxOcclusionMapping = useParallaxOcclusionMapping;
+
+				ImGui::SameLine();
+
+				// Roughness Mapping
+				bool roughnessMapping = static_cast<bool>(m_sceneCB.m_data.m_roughnessMapping);
+				ImGui::Checkbox("Roughness Mapping", &roughnessMapping);
+				m_sceneCB.m_data.m_roughnessMapping = roughnessMapping;
+
+				// Self shadowing
+				bool selfShadowing = static_cast<bool>(m_sceneCB.m_data.m_selfShadowing);
+				ImGui::Checkbox("Self Shadowing (Not Compatible w/ Deferred Shading)", &selfShadowing);
+				m_sceneCB.m_data.m_selfShadowing = selfShadowing;
+
+				// Depth scale
+				ImGui::DragFloat("Depth Scale", &m_sceneCB.m_data.m_depthScale, 0.001f, 0.0f, 0.5f);
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::CollapsingHeader("Misc"))
+			{
+				ImGui::TreePush();
+
+				// Show Normals
+				bool showWorldNormals = static_cast<bool>(m_sceneCB.m_data.m_showWorldNormals);
+				ImGui::Checkbox("Normals", &showWorldNormals);
+				m_sceneCB.m_data.m_showWorldNormals = showWorldNormals;
+
+				ImGui::SameLine();
+
+				// Show UVs
+				bool showUVs = static_cast<bool>(m_sceneCB.m_data.m_showUVs);
+				ImGui::Checkbox("Show UVs", &showUVs);
+				m_sceneCB.m_data.m_showUVs = showUVs;
+
+				ImGui::SameLine();
+
+				// Cull back normals
+				bool cullBackNormals = static_cast<bool>(m_sceneCB.m_data.m_cullBackNormals);
+				ImGui::Checkbox("Cull Back Normals", &cullBackNormals);
+				m_sceneCB.m_data.m_cullBackNormals = cullBackNormals;
+
+				// Gamma correction
+				bool gammaCorrection = static_cast<bool>(m_sceneCB.m_data.m_gammaCorrection);
+				ImGui::Checkbox("Gamma Corr", &gammaCorrection);
+				m_sceneCB.m_data.m_gammaCorrection = gammaCorrection;
+
+				ImGui::SameLine();
+
+				// Misc toggle A
+				bool miscToggleA = static_cast<bool>(m_sceneCB.m_data.m_miscToggleA);
+				ImGui::Checkbox("Misc A", &miscToggleA);
+				m_sceneCB.m_data.m_miscToggleA = miscToggleA;
+
+				ImGui::SameLine();
+
+				// Misc toggle B
+				bool miscToggleB = static_cast<bool>(m_sceneCB.m_data.m_miscToggleB);
+				ImGui::Checkbox("Misc B", &miscToggleB);
+				m_sceneCB.m_data.m_miscToggleB = miscToggleB;
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::CollapsingHeader("Deferred Shading"))
+			{
+				ImGui::TreePush();
+
+				ImGui::Checkbox("Deferred Shading", &m_useDeferredShading);
+
+				ImGui::Checkbox("Ambient Occlusion", &m_useSSAO);
+				m_sceneCB.m_data.m_SSAO = m_useSSAO;
+
+				if (ImGui::CollapsingHeader("View Textures"))
+				{
+					ImGui::TreePush();
+
+					ImGui::Text("RGBA -> Albedo                                     RGB -> Position + A -> Roughness");
+
+					ImVec2 textureSize(UserConfig::it().getWindowWidthFloat() * 0.2f, UserConfig::it().getWindowHeightFloat() * 0.2f);
+					ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_albedo.m_shaderResourceView.Get(), textureSize);
+
+					ImGui::SameLine();
+
+					ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_positionRoughness.m_shaderResourceView.Get(), textureSize);
+
+					ImGui::Text("RGB -> Normal + A -> Material AO                   RBG -> Emission + A -> Metallic");
+
+					ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_normalAO.m_shaderResourceView.Get(), textureSize);
+
+					ImGui::SameLine();
+
+					ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_emissionMetallic.m_shaderResourceView.Get(), textureSize);
+
+					ImGui::Text("R -> Screen Space Ambient Occlusion");
+
+					ImGui::Image(m_activeCameraImageRenderer.getRenderedAmbientOcclusionTexture()->m_shaderResourceView.Get(), textureSize);
+
+					ImGui::TreePop();
+				}
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::Button("Toggle Wireframe"))
+			{
+				m_useWireframe = !m_useWireframe;
+
+				if (m_useWireframe) m_activeCameraImageRenderer.setRasterizerState(m_wireframeRasterizerState.Get());
+				else                m_activeCameraImageRenderer.setRasterizerState(m_regularRasterizerState.Get());
 			}
 		}
 
