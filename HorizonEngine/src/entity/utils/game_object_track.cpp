@@ -73,7 +73,7 @@ namespace hrzn::entity
 			m_delta -= m_maxDelta;
 		}
 
-		int trackSize = m_trackNodes.size();
+		int trackSize = static_cast<int>(m_trackNodes.size());
 		if (trackSize == 1)
 		{
 			gameObject->getWritableTransform().setPosition(m_trackNodes[0].m_position);
@@ -96,7 +96,7 @@ namespace hrzn::entity
 				}
 				else if (m_delta < upperDelta)
 				{
-					int splineIndex = floor(m_delta - 0.5f);
+					int splineIndex = static_cast<int>(floor(m_delta - 0.5f));
 					float splineDelta = m_delta - 0.5f - (float)splineIndex;
 					gameObject->getWritableTransform().setPosition(lerpFloat3Quadratic(m_midPoints[splineIndex].m_position, m_trackNodes[splineIndex + 1].m_position, m_midPoints[splineIndex + 1].m_position, splineDelta));
 					if (lookTo) gameObject->getWritableTransform().lookAtPosition(lerpFloat3Quadratic(m_midPoints[splineIndex].m_lookPoint, m_trackNodes[splineIndex + 1].m_lookPoint, m_midPoints[splineIndex + 1].m_lookPoint, splineDelta));
@@ -117,14 +117,14 @@ namespace hrzn::entity
 				}
 				else if (m_delta < upperDelta)
 				{
-					int splineIndex = floor(m_delta - 0.5f);
+					int splineIndex = static_cast<int>(floor(m_delta - 0.5f));
 					float splineDelta = m_delta - 0.5f - (float)splineIndex;
 					gameObject->getWritableTransform().setPosition(lerpFloat3Quadratic(m_midPoints[splineIndex].m_position, m_trackNodes[splineIndex + 1].m_position, m_midPoints[splineIndex + 1].m_position, splineDelta));
 					if (lookTo) gameObject->getWritableTransform().lookAtPosition(lerpFloat3Quadratic(m_midPoints[splineIndex].m_lookPoint, m_trackNodes[splineIndex + 1].m_lookPoint, m_midPoints[splineIndex + 1].m_lookPoint, splineDelta));
 				}
 				else if (m_delta > upperDelta)
 				{
-					int splineIndex = floor(m_delta - 0.5f);
+					int splineIndex = static_cast<int>(floor(m_delta - 0.5f));
 					float splineDelta = m_delta - (float)splineIndex;
 					gameObject->getWritableTransform().setPosition(lerpFloat3(m_midPoints[splineIndex].m_position, m_trackNodes[splineIndex + 1].m_position, (splineDelta - 0.5f) * 2.0f));
 					if (lookTo) gameObject->getWritableTransform().lookAtPosition(lerpFloat3(m_midPoints[splineIndex].m_lookPoint, m_trackNodes[splineIndex + 1].m_lookPoint, (splineDelta - 0.5f) * 2.0f));

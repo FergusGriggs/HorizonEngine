@@ -202,7 +202,7 @@ namespace hrzn::physics
 		return -getFrontVector();
 	}
 
-	const XMFLOAT3& hrzn::physics::Transform::getBackFloat3() const
+	XMFLOAT3 hrzn::physics::Transform::getBackFloat3() const
 	{
 		return XMFLOAT3(-m_front.x, -m_front.y, -m_front.z);
 	}
@@ -222,7 +222,7 @@ namespace hrzn::physics
 		return -getUpVector();
 	}
 
-	const XMFLOAT3& hrzn::physics::Transform::getDownFloat3() const
+	XMFLOAT3 hrzn::physics::Transform::getDownFloat3() const
 	{
 		return XMFLOAT3(-m_up.x, -m_up.y, -m_up.z);
 	}
@@ -242,7 +242,7 @@ namespace hrzn::physics
 		return -getRightVector();
 	}
 
-	const XMFLOAT3& hrzn::physics::Transform::getLeftFloat3() const
+	XMFLOAT3 hrzn::physics::Transform::getLeftFloat3() const
 	{
 		return XMFLOAT3(-m_right.x, -m_right.y, -m_right.z);
 	}

@@ -70,19 +70,19 @@ namespace hrzn::physics
 		const XMFLOAT3& getFrontFloat3() const;
 
 		XMVECTOR        getBackVector() const;
-		const XMFLOAT3& getBackFloat3() const;
+		XMFLOAT3        getBackFloat3() const;
 
 		XMVECTOR        getUpVector() const;
 		const XMFLOAT3& getUpFloat3() const;
 
 		XMVECTOR        getDownVector() const;
-		const XMFLOAT3& getDownFloat3() const;
+		XMFLOAT3        getDownFloat3() const;
 
 		XMVECTOR        getRightVector() const;
 		const XMFLOAT3& getRightFloat3() const;
 
 		XMVECTOR        getLeftVector() const;
-		const XMFLOAT3& getLeftFloat3() const;
+		XMFLOAT3        getLeftFloat3() const;
 
 		void updateAxisVectorsUsingRotationMatrix(const XMMATRIX& rotationMatrix);
 

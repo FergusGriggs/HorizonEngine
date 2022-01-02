@@ -275,14 +275,14 @@ namespace hrzn::gfx
 	bool GraphicsHandler::initialiseSSAOResources()
 	{
 		m_ambientOcclusionCB.m_data.m_bias = 0.0f;
-		m_ambientOcclusionCB.m_data.m_radius = 0.5f;
+		m_ambientOcclusionCB.m_data.m_radius = 0.6f;
 		m_ambientOcclusionCB.m_data.m_kernelSize = 48;
 		m_ambientOcclusionCB.m_data.m_noiseScale = XMFLOAT2(UserConfig::it().getWindowWidthFloat() * 0.25f, UserConfig::it().getWindowHeightFloat() * 0.25f);
 
 		// Create random samples
 		std::uniform_real_distribution<float> randomFloats(0.0f, 1.0f);
 		std::default_random_engine generator;
-		for (unsigned int i = 0; i < m_ambientOcclusionCB.m_data.m_kernelSize; ++i)
+		for (int i = 0; i < m_ambientOcclusionCB.m_data.m_kernelSize; ++i)
 		{
 			XMVECTOR sample = XMVectorSet(randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator), 1.0f);
 			sample = XMVector3Normalize(sample);
@@ -301,13 +301,13 @@ namespace hrzn::gfx
 		std::vector<XMFLOAT4> ssaoNoise;
 		for (unsigned int i = 0; i < 16; i++)
 		{
-			XMFLOAT4 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f, 0.0f);
+			XMFLOAT4 noise(randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator) * 2.0f - 1.0f, 0.0f, 0.0f);
 			ssaoNoise.push_back(noise);
 		}
 
 		D3D11_TEXTURE2D_DESC noiseTextureDesc{};
-		noiseTextureDesc.Width = 4.0f;
-		noiseTextureDesc.Height = 4.0f;
+		noiseTextureDesc.Width = 4;
+		noiseTextureDesc.Height = 4;
 		noiseTextureDesc.MipLevels = 1;
 		noiseTextureDesc.ArraySize = 1;
 		noiseTextureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
