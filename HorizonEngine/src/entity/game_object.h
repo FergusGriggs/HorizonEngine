@@ -25,6 +25,7 @@ namespace hrzn::entity
 			ePointLight,
 			eSpotLight,
 			ePhysics,
+			eNumTypes,
 		};
 
 	public:

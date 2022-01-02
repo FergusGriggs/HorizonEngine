@@ -9,7 +9,7 @@ namespace hrzn::gfx
     class GBufferPostProcess : public PostProcess
     {
     public:
-        GBufferPostProcess(UINT width, UINT height, GeometryBuffer* geometryBuffer);
+        GBufferPostProcess(DXGI_FORMAT format, UINT width, UINT height, GeometryBuffer* geometryBuffer);
         virtual ~GBufferPostProcess();
 
         virtual void run(RenderTexture* input) override;

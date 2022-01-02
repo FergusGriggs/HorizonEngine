@@ -6,7 +6,7 @@
 namespace hrzn::gfx
 {
     EdgeDetectionPostProcess::EdgeDetectionPostProcess(UINT width, UINT height, GeometryBuffer* geometryBuffer) :
-        GBufferPostProcess(width, height, geometryBuffer)
+        GBufferPostProcess(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, geometryBuffer)
     {
     }
 

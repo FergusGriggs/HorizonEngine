@@ -2,8 +2,8 @@
 
 namespace hrzn::gfx
 {
-    GBufferPostProcess::GBufferPostProcess(UINT width, UINT height, GeometryBuffer* geometryBuffer) :
-        PostProcess(width, height),
+    GBufferPostProcess::GBufferPostProcess(DXGI_FORMAT format, UINT width, UINT height, GeometryBuffer* geometryBuffer) :
+        PostProcess(format, width, height),
         m_geometryBuffer(geometryBuffer)
     {
     }

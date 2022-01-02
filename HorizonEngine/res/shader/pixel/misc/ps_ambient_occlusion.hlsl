@@ -67,7 +67,7 @@ float main(VSPS_TRANSFER input) : SV_TARGET
         }
     }
 
-    occlusion = 1.0f - (occlusion / kernelSize);
+    occlusion = pow(abs(1.0f - (occlusion / kernelSize)), 10.0f);
 
     return occlusion;
 }

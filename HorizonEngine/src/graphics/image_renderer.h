@@ -8,6 +8,7 @@
 #include "buffers/geometry_buffer.h"
 
 #include "post_process/post_process.h"
+#include "post_process/gaussian_blur_post_process.h"
 
 namespace hrzn::gfx
 {
@@ -20,7 +21,7 @@ namespace hrzn::gfx
 		void initialise(CD3D11_VIEWPORT viewport, ID3D11DepthStencilState* depthStencilState,
 			ID3D11RasterizerState* rasterizerState);
 
-		void setViewport(CD3D11_VIEWPORT viewport, ID3D11Device* device);
+		void setViewport(CD3D11_VIEWPORT viewport);
 		void setRasterizerState(ID3D11RasterizerState* rasterizerState);
 
 		void addPostProcess(PostProcess* postProcess);
@@ -33,6 +34,7 @@ namespace hrzn::gfx
 
 		RenderTexture&  getFinalImage();
 		GeometryBuffer* getGBuffer();
+		RenderTexture*  getRenderedAmbientOcclusionTexture();
 
 		void release();
 
@@ -44,7 +46,9 @@ namespace hrzn::gfx
 		CD3D11_VIEWPORT          m_viewport;
 		GeometryBuffer           m_geometryBuffer;
 
-		RenderTexture            m_ambientOcclusion;
+		RenderTexture            m_ambientOcclusionTexture;
+		GaussianBlurPostProcess* m_ambientOcclusionGaussianBlur;
+
 		RenderTexture            m_finalImage;
 
 		ID3D11DepthStencilState* m_depthStencilState;

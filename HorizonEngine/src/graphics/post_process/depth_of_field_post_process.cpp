@@ -6,9 +6,9 @@
 namespace hrzn::gfx
 {
     DepthOfFieldPostProcess::DepthOfFieldPostProcess(UINT width, UINT height, GeometryBuffer* geometryBuffer) :
-        GBufferPostProcess(width, height, geometryBuffer),
-        m_gaussianBlurA(width, height, 0.8f),
-        m_gaussianBlurB(width, height, 0.8f)
+        GBufferPostProcess(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, geometryBuffer),
+        m_gaussianBlurA(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 0.8f),
+        m_gaussianBlurB(DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 0.8f)
     {
     }
 

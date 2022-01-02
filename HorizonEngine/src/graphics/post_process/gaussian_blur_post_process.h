@@ -7,7 +7,7 @@ namespace hrzn::gfx
     class GaussianBlurPostProcess : public PostProcess
     {
     public:
-        GaussianBlurPostProcess(UINT width, UINT height, float texSizeMult);
+        GaussianBlurPostProcess(DXGI_FORMAT format, UINT width, UINT height, float texSizeMult);
         virtual ~GaussianBlurPostProcess();
 
         virtual void run(RenderTexture* input) override;

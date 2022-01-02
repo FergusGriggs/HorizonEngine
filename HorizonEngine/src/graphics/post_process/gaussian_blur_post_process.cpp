@@ -5,10 +5,10 @@
 
 namespace hrzn::gfx
 {
-    GaussianBlurPostProcess::GaussianBlurPostProcess(UINT width, UINT height, float texSizeMult) :
-        PostProcess(width * 0.5f * texSizeMult, height * 0.5f * texSizeMult)
+    GaussianBlurPostProcess::GaussianBlurPostProcess(DXGI_FORMAT format, UINT width, UINT height, float texSizeMult) :
+        PostProcess(format, (UINT)(width * 0.5f * texSizeMult), (UINT)(height * 0.5f * texSizeMult))
     {
-        m_intermediateTexture.initialise(DXGI_FORMAT_R8G8B8A8_UNORM, width * texSizeMult, height * texSizeMult);
+        m_intermediateTexture.initialise(format, width * texSizeMult, height * texSizeMult);
     }
 
     GaussianBlurPostProcess::~GaussianBlurPostProcess()

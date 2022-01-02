@@ -1006,63 +1006,139 @@ namespace hrzn::gfx
 				ImGui::TreePush();
 
 				static char label[20] = "";
-				static char path[50] = "city/wall/frames/left/r.obj";
-				ImGui::InputText("New Object Label", &label[0], 20);
-				ImGui::InputText("New Object Path", &path[0], 50);
+				ImGui::InputText("Object Label", &label[0], 30);
 
-				if (ImGui::Button("Spawn Object"))
+				static entity::GameObject::Type chosenType = entity::GameObject::Type::eRenderable;
+
+				if (ImGui::BeginCombo("Object Type", entity::sc_gameObjectTypeToString.at(chosenType).c_str()))
 				{
-					IFileOpenDialog* pFileOpen;
-
-					// Create the FileOpenDialog object.
-					HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
-
-					if (SUCCEEDED(hr))
+					for (int typeIndex = 1; typeIndex < static_cast<int>(entity::GameObject::Type::eNumTypes); ++typeIndex)
 					{
-						//LPCWSTR modelPath = utils::string_helpers::stringToWide(_SOLUTIONDIR).c_str();
-						LPCWSTR modelPath = L"C:\\Users\\g012090i\\source\\repos\\FergusGriggs\\HorizonEngine\\HorizonEngine\\res\\models\\";
-
-						Microsoft::WRL::ComPtr<IShellItem> location;
-						hr = SHCreateItemFromParsingName(modelPath, nullptr, IID_PPV_ARGS(&location));
-
-						pFileOpen->SetFolder(location.Get());
-
-						// Show the Open dialog box.
-						hr = pFileOpen->Show(NULL);
-
-						// Get the file name from the dialog box.
-						if (SUCCEEDED(hr))
+						entity::GameObject::Type type = static_cast<entity::GameObject::Type>(typeIndex);
+						bool selected = type == chosenType;
+						if (ImGui::Selectable(entity::sc_gameObjectTypeToString.at(type).c_str(), &selected))
 						{
-							IShellItem* pItem;
-							hr = pFileOpen->GetResult(&pItem);
-							if (SUCCEEDED(hr))
-							{
-								PWSTR pszFilePath;
-								hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-
-								// Display the file name to the user.
-								if (SUCCEEDED(hr))
-								{
-									MessageBoxW(NULL, pszFilePath, L"File Path", MB_OK);
-									CoTaskMemFree(pszFilePath);
-								}
-								pItem->Release();
-							}
+							chosenType = type;
 						}
-						pFileOpen->Release();
 					}
 
-					std::string labelChosen = label;
-					if (labelChosen != "" && scene::SceneManager::it().getObjectMap().find(labelChosen) == scene::SceneManager::it().getObjectMap().end())
+					ImGui::EndCombo();
+				}
+
+				static std::string path = "res/models/";
+				ImGui::InputText("Object Path", &path[0], 256);
+
+				if (chosenType == entity::GameObject::Type::eRenderable)
+				{
+					if (ImGui::Button("Browse (Must be in 'res/models/')"))
 					{
-						entity::RenderableGameObject* newObject = new entity::RenderableGameObject();
-						std::string pathstr = path;
-						newObject->initialize(label, "res/models/environment/meshes/" + pathstr);
+						IFileOpenDialog* pFileOpen;
 
-						newObject->getWritableTransform().setPosition(scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector() + scene::SceneManager::it().getActiveCamera().getTransform().getFrontVector() * 5.0f);
+						// Create the FileOpenDialog object.
+						HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
 
-						scene::SceneManager::it().addGameObject(newObject);
-						scene::SceneManager::it().setSelectedObject(newObject);
+						if (SUCCEEDED(hr))
+						{
+							//LPCWSTR modelPath = utils::string_helpers::stringToWide(_SOLUTIONDIR).c_str();
+							LPCWSTR modelPath = L"C:\\Users\\g012090i\\source\\repos\\FergusGriggs\\HorizonEngine\\HorizonEngine\\res\\models\\";
+
+							Microsoft::WRL::ComPtr<IShellItem> location;
+							hr = SHCreateItemFromParsingName(modelPath, nullptr, IID_PPV_ARGS(&location));
+
+							pFileOpen->SetFolder(location.Get());
+
+							// Show the Open dialog box.
+							hr = pFileOpen->Show(NULL);
+
+							// Get the file name from the dialog box.
+							if (SUCCEEDED(hr))
+							{
+								IShellItem* pItem;
+								hr = pFileOpen->GetResult(&pItem);
+								if (SUCCEEDED(hr))
+								{
+									PWSTR pszFilePath;
+									hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+									// Display the file name to the user.
+									if (SUCCEEDED(hr))
+									{
+										std::wstring widePath = pszFilePath;
+										path = std::string(widePath.begin(), widePath.end());
+										path = utils::string_helpers::removeBeforeString(path, "res\\models\\");
+										CoTaskMemFree(pszFilePath);
+									}
+									pItem->Release();
+								}
+							}
+							pFileOpen->Release();
+						}
+					}
+				}
+				
+				if (ImGui::Button("Spawn"))
+				{
+					std::string labelChosen = label;
+
+					if (labelChosen.empty())
+					{
+						utils::ErrorLogger::log("Please enter a label");
+					}
+					else if (labelChosen != "" && scene::SceneManager::it().getObjectMap().find(labelChosen) == scene::SceneManager::it().getObjectMap().end())
+					{
+						entity::GameObject* gameObject = nullptr;
+						switch (chosenType)
+						{
+						case entity::GameObject::Type::eRenderable:
+						{
+							entity::RenderableGameObject* newRenderable = new entity::RenderableGameObject();
+
+							newRenderable->initialize(label, path);
+
+							gameObject = newRenderable;
+
+							break;
+						}
+						case entity::GameObject::Type::ePointLight:
+						{
+							entity::PointLightGameObject* newPointLight = new entity::PointLightGameObject();
+
+							newPointLight->initialize();
+							newPointLight->setLabel(label);
+
+							gameObject = newPointLight;
+
+							break;
+						}
+						case entity::GameObject::Type::eSpotLight:
+						{
+							entity::SpotLightGameObject* newSpotLight = new entity::SpotLightGameObject();
+
+							newSpotLight->initialize();
+							newSpotLight->setLabel(label);
+
+							gameObject = newSpotLight;
+
+							break;
+						}
+						}
+						
+						gameObject->getWritableTransform().setPosition(scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector() + scene::SceneManager::it().getActiveCamera().getTransform().getFrontVector() * 5.0f);
+
+						if (gameObject != nullptr)
+						{
+							scene::SceneManager::it().addGameObject(gameObject);
+
+							// Select if selectable
+							if (auto* renderable = dynamic_cast<entity::RenderableGameObject*>(gameObject))
+							{
+								scene::SceneManager::it().setSelectedObject(renderable);
+							}
+						}
+					}
+					else
+					{
+						utils::ErrorLogger::log("Label already in use");
 					}
 				}
 
@@ -1091,7 +1167,7 @@ namespace hrzn::gfx
 
 					if (ImGui::Button("Add Gaussian Blur"))
 					{
-						m_activeCameraImageRenderer.addPostProcess(new GaussianBlurPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, 0.65f));
+						m_activeCameraImageRenderer.addPostProcess(new GaussianBlurPostProcess(DXGI_FORMAT_R8G8B8A8_UNORM, (UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, 0.65f));
 					}
 
 					if (ImGui::Button("Add Chromatic Abberation"))
@@ -1242,13 +1318,17 @@ namespace hrzn::gfx
 
 						ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_positionRoughness.m_shaderResourceView.Get(), textureSize);
 
-						ImGui::Text("RGB -> Normal + A -> Ambient Occlusion             RBG -> Emission + A -> Metallic");
+						ImGui::Text("RGB -> Normal + A -> Material AO                   RBG -> Emission + A -> Metallic");
 
 						ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_normalAO.m_shaderResourceView.Get(), textureSize);
 
 						ImGui::SameLine();
 
 						ImGui::Image(m_activeCameraImageRenderer.getGBuffer()->m_emissionMetallic.m_shaderResourceView.Get(), textureSize);
+
+						ImGui::Text("R -> Screen Space Ambient Occlusion");
+
+						ImGui::Image(m_activeCameraImageRenderer.getRenderedAmbientOcclusionTexture()->m_shaderResourceView.Get(), textureSize);
 
 						ImGui::TreePop();
 					}

@@ -13,6 +13,17 @@ namespace hrzn::utils::string_helpers
 		std::wstring wide_string(str.begin(), str.end());
 		return wide_string;
 	}
+	
+	static std::string removeBeforeString(const std::string& string, const char* stringToFind)
+	{
+		std::size_t foundPosition = string.find(stringToFind);
+		if (foundPosition != std::string::npos)
+		{
+			return string.substr(foundPosition);
+		}
+
+		return string;
+	}
 
 	static std::string getDirectoryFromPath(const std::string& filePath)
 	{

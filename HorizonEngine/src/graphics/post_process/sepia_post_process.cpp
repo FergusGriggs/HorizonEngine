@@ -6,7 +6,7 @@
 namespace hrzn::gfx
 {
     SepiaPostProcess::SepiaPostProcess(UINT width, UINT height) :
-        PostProcess(width, height)
+        PostProcess(DXGI_FORMAT_R8G8B8A8_UNORM, width, height)
     {
     }
 

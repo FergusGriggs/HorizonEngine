@@ -526,5 +526,9 @@
     <None Include="res\materials\hrzn_statue.json" />
     <None Include="res\materials\quad.json" />
     <None Include="res\materials\emissive_crate.json" />
+    <None Include="res\materials\house.json" />
+    <None Include="res\materials\blue_emissive.json" />
+    <None Include="res\materials\low_poly_island_grass.json" />
+    <None Include="res\materials\low_poly_island_metal.json" />
   </ItemGroup>
 </Project>

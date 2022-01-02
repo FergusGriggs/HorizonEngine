@@ -7,6 +7,8 @@
 namespace hrzn::gfx
 {
     ImageRenderer::ImageRenderer() :
+        m_ambientOcclusionGaussianBlur(nullptr),
+
         m_depthStencilState(nullptr),
         m_rasterizerState(nullptr),
 
@@ -22,32 +24,25 @@ namespace hrzn::gfx
     void ImageRenderer::initialise(CD3D11_VIEWPORT viewport, ID3D11DepthStencilState* depthStencilState,
         ID3D11RasterizerState* rasterizerState)
     {
-        m_viewport = viewport;
-
-        m_geometryBuffer.initialise(static_cast<UINT>(m_viewport.Width), static_cast<UINT>(m_viewport.Height));
-
-        m_finalImage.initialise(DXGI_FORMAT_R8G8B8A8_UNORM, static_cast<UINT>(m_viewport.Width), static_cast<UINT>(m_viewport.Height));
-        m_ambientOcclusion.initialise(DXGI_FORMAT_R8_UNORM, static_cast<UINT>(m_viewport.Width), static_cast<UINT>(m_viewport.Height));
-
         m_depthStencilState = depthStencilState;
         m_rasterizerState = rasterizerState;
+
+        setViewport(viewport);
 
         m_quadModel = ResourceManager::it().getModelPtr("res/models/engine/screen_quad.obj");
     }
 
-    void ImageRenderer::setViewport(CD3D11_VIEWPORT viewport, ID3D11Device* device)
+    void ImageRenderer::setViewport(CD3D11_VIEWPORT viewport)
     {
         m_viewport = viewport;
 
         release();
 
-        m_geometryBuffer.release();
-        m_finalImage.release();
-        m_ambientOcclusion.release();
-
         m_geometryBuffer.initialise(static_cast<UINT>(m_viewport.Width), static_cast<UINT>(m_viewport.Height));
 
         m_finalImage.initialise(DXGI_FORMAT_R8G8B8A8_UNORM, static_cast<UINT>(m_viewport.Width), static_cast<UINT>(m_viewport.Height));
+        m_ambientOcclusionTexture.initialise(DXGI_FORMAT_R8_UNORM, static_cast<UINT>(m_viewport.Width), static_cast<UINT>(m_viewport.Height));
+        m_ambientOcclusionGaussianBlur = new GaussianBlurPostProcess(DXGI_FORMAT_R8_UNORM, static_cast<UINT>(m_viewport.Width), static_cast<UINT>(m_viewport.Height), 0.8f);
     }
 
     void ImageRenderer::setRasterizerState(ID3D11RasterizerState* rasterizerState)
@@ -169,6 +164,11 @@ namespace hrzn::gfx
         return &m_geometryBuffer;
     }
 
+    RenderTexture* ImageRenderer::getRenderedAmbientOcclusionTexture()
+    {
+        return m_ambientOcclusionGaussianBlur->getResult();
+    }
+
     void hrzn::gfx::ImageRenderer::release()
     {
         clearPostProcesses();
@@ -176,7 +176,12 @@ namespace hrzn::gfx
         m_geometryBuffer.release();
 
         m_finalImage.release();
-        m_ambientOcclusion.release();
+        m_ambientOcclusionTexture.release();
+        if (m_ambientOcclusionGaussianBlur != nullptr)
+        {
+            delete m_ambientOcclusionGaussianBlur;
+            m_ambientOcclusionGaussianBlur = nullptr;
+        }
     }
 
     void ImageRenderer::internalRenderStandard(const DirectX::XMVECTOR& eyePos, const DirectX::XMVECTOR& eyeFacing, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix)
@@ -234,9 +239,11 @@ namespace hrzn::gfx
             deviceContext->PSSetConstantBuffers(1, 1, GraphicsHandler::it().getAmbientOcclusionCB().getAddressOf());
 
             deviceContext->PSSetShader(ResourceManager::it().getPSPtr("ambient_occlusion")->getShader(), NULL, 0);
-            m_ambientOcclusion.setAsRenderTargetAndDrawQuad();
+            m_ambientOcclusionTexture.setAsRenderTargetAndDrawQuad();
 
-            deviceContext->PSSetShaderResources(4, 1, m_ambientOcclusion.m_shaderResourceView.GetAddressOf());
+            m_ambientOcclusionGaussianBlur->run(&m_ambientOcclusionTexture);
+
+            deviceContext->PSSetShaderResources(4, 1, m_ambientOcclusionGaussianBlur->getResult()->m_shaderResourceView.GetAddressOf());
         }
 
         // Unset render targets and set as shader resource views
@@ -255,7 +262,7 @@ namespace hrzn::gfx
 
         // Unset shader resource view and set as render targets once more to merge with nonCompatible pass
         ID3D11ShaderResourceView* const nullShaderResourceViews[8] = { NULL };
-        deviceContext->PSSetShaderResources(0, 4, nullShaderResourceViews);
+        deviceContext->PSSetShaderResources(0, 5, nullShaderResourceViews);
         deviceContext->OMSetRenderTargets(1, m_finalImage.m_renderTargetView.GetAddressOf(), m_geometryBuffer.m_depthStencil.m_depthStencilView.Get());
 
         GraphicsHandler::it().renderSceneObjects(RenderPassType::eNonGBufferCompatiblePass, eyePos, eyeFacing);

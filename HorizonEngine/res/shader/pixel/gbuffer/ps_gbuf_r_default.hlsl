@@ -130,7 +130,7 @@ float4 main(VSPS_TRANSFER input) : SV_TARGET
     if (cb_SSAO)
     {
         float AOSample = globalAOTexture.Sample(samplerState, input.texCoord).r;
-        cumulativeColour *= pow(abs(AOSample), 5.0);
+        cumulativeColour *= AOSample;
     }
 
     return float4(cumulativeColour, 1.0f);

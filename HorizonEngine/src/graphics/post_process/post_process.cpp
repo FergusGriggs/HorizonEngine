@@ -2,9 +2,9 @@
 
 namespace hrzn::gfx
 {
-    PostProcess::PostProcess(UINT width, UINT height)
+    PostProcess::PostProcess(DXGI_FORMAT format, UINT width, UINT height)
     {
-        m_result.initialise(DXGI_FORMAT_R8G8B8A8_UNORM, width, height);
+        m_result.initialise(format, width, height);
     }
 
     PostProcess::~PostProcess()

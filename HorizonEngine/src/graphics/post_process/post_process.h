@@ -7,7 +7,7 @@ namespace hrzn::gfx
     class PostProcess
     {
     protected:
-        PostProcess(UINT width, UINT height);
+        PostProcess(DXGI_FORMAT format, UINT width, UINT height);
 
     public:
         virtual ~PostProcess();
