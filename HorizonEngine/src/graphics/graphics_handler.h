@@ -49,7 +49,9 @@ namespace hrzn::gfx
 		static GraphicsHandler& it();
 
 		bool initialize(HWND hwnd);
-		bool initializeScene();
+		bool postSceneManagerInitialise();
+		bool initialiseConstantBufferData();
+		bool initialiseSSAOResources();
 
 		ID3D11Device*        getDevice() const;
 		ID3D11DeviceContext* getDeviceContext() const;
@@ -58,19 +60,24 @@ namespace hrzn::gfx
 		ID3D11DepthStencilState*  getDefaultDepthStencilState() const;
 		
 		bool                      isUsingDeferredShading() const;
+		bool                      isUsingSSAO() const;
+
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& getAmbientOcclusionNoiseShaderResourceView();
+
 		const std::wstring&       getCompiledShaderFolder() const;
 		D3D11_INPUT_ELEMENT_DESC* getDefaultVSLayout() const;
 		UINT                      getDefaultVSLayoutSize() const;
 
-		ConstantBuffer<SceneCB>&       getSceneCB();
-		ConstantBuffer<CloudsCB>&      getCloudsCB();
-		ConstantBuffer<WaterCB>&       getWaterCB();
-		ConstantBuffer<AtmosphericCB>& getAtmosphericCB();
-		ConstantBuffer<PerFrameCB>&    getPerFrameCB();
-		ConstantBuffer<PerPassCB>&     getPerPassCB();
-		ConstantBuffer<PerMaterialCB>& getPerMaterialCB();
-		ConstantBuffer<PerObjectCB>&   getPerObjectCB();
-
+		ConstantBuffer<SceneCB>&              getSceneCB();
+		ConstantBuffer<CloudsCB>&             getCloudsCB();
+		ConstantBuffer<WaterCB>&              getWaterCB();
+		ConstantBuffer<AtmosphericCB>&        getAtmosphericCB();
+		ConstantBuffer<PerFrameCB>&           getPerFrameCB();
+		ConstantBuffer<PerPassCB>&            getPerPassCB();
+		ConstantBuffer<PerMaterialCB>&        getPerMaterialCB();
+		ConstantBuffer<PerObjectCB>&          getPerObjectCB();
+		ConstantBuffer<AmbientOcclusionCB>&   getAmbientOcclusionCB();
+		
 		ID3D11BlendState* getDefaultBlendState();
 		ID3D11BlendState* getGBufferBlendState();
 
@@ -85,7 +92,7 @@ namespace hrzn::gfx
 
 		void updateSceneShaderValues();
 		void updatePerFrameShaderValues();
-		void updatePerPassShaderValues(DirectX::XMFLOAT3 eyePosition, DirectX::XMMATRIX view, DirectX::XMMATRIX projection);
+		void updatePerPassShaderValues(DirectX::XMFLOAT3 eyePosition, DirectX::XMMATRIX view, DirectX::XMMATRIX projection, float nearPlane, float farPlane);
 
 		void render();
 
@@ -143,9 +150,10 @@ namespace hrzn::gfx
 		ConstantBuffer<SceneCB>        m_sceneCB;
 
 		// Slot 1
-		ConstantBuffer<CloudsCB>       m_cloudsCB;
-		ConstantBuffer<WaterCB>        m_waterCB;
-		ConstantBuffer<AtmosphericCB>  m_atmosphericCB;
+		ConstantBuffer<CloudsCB>           m_cloudsCB;
+		ConstantBuffer<WaterCB>            m_waterCB;
+		ConstantBuffer<AtmosphericCB>      m_atmosphericCB;
+		ConstantBuffer<AmbientOcclusionCB> m_ambientOcclusionCB;
 
 		// Shader-specific per-frame CBs || Slot 2 & 3
 		// Slot 2
@@ -168,6 +176,10 @@ namespace hrzn::gfx
 		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_noiseTextureUnorderedAccessView;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>  m_noiseTextureShaderResourceView;
 
+		// Ambient occlusion vars
+		Microsoft::WRL::ComPtr<ID3D11Texture2D>          m_ambientOcclusionNoiseTexture;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_ambientOcclusionNoiseShaderResourceView;
+
 		// Default state vars
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_regularRasterizerState;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_wireframeRasterizerState;
@@ -183,6 +195,7 @@ namespace hrzn::gfx
 		bool m_useWireframe;
 		bool m_useVSync;
 		bool m_useDeferredShading;
+		bool m_useSSAO;
 
 		utils::Timer m_fpsTimer;
 		int          m_fpsCounter;

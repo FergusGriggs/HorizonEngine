@@ -9,6 +9,8 @@ Texture2D positionRoughnessTexture : TEXTURE: register(t1);
 Texture2D normalAOTexture : TEXTURE: register(t2);
 Texture2D emissionMetallicTexture : TEXTURE: register(t3);
 
+Texture2D globalAOTexture : TEXTURE : register(t4);
+
 float4 main(VSPS_TRANSFER input) : SV_TARGET
 {
     float3 albedo = albedoTexture.Sample(samplerState, input.texCoord).rgb;
@@ -123,6 +125,12 @@ float4 main(VSPS_TRANSFER input) : SV_TARGET
     if (cb_gammaCorrection)
     {
         cumulativeColour = pow(abs(cumulativeColour), 1.0f / 2.2f);
+    }
+
+    if (cb_SSAO)
+    {
+        float AOSample = globalAOTexture.Sample(samplerState, input.texCoord).r;
+        cumulativeColour *= pow(abs(AOSample), 5.0);
     }
 
     return float4(cumulativeColour, 1.0f);

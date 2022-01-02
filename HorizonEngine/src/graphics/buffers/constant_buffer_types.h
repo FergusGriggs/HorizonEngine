@@ -58,7 +58,7 @@ namespace hrzn::gfx
 
 		int    m_miscToggleA;
 		int    m_miscToggleB;
-		int    m_miscToggleC;
+		int    m_SSAO;
 		int    m_roughnessMapping;
 
 		int               m_numPointLights;
@@ -115,6 +115,19 @@ namespace hrzn::gfx
 		float m_padding1;
 	};
 
+	struct AmbientOcclusionCB
+	{
+		DirectX::XMFLOAT4 m_randomSamples[64];
+
+		int               m_kernelSize;
+		float             m_radius;
+		float             m_bias;
+		float             m_padding;
+
+		DirectX::XMFLOAT2 m_noiseScale;
+		DirectX::XMFLOAT2 m_padding2;
+	};
+
 	struct NoiseTextureCB
 	{
 		float m_size;
@@ -135,6 +148,10 @@ namespace hrzn::gfx
 		float             m_padding1;
 
 		DirectX::XMMATRIX m_viewProjectionMatrix;
+
+		float             m_nearPlane;
+		float             m_farPlane;
+		DirectX::XMFLOAT2 m_padding2;
 	};
 
 	struct PerMaterialCB

@@ -16,6 +16,10 @@ cbuffer PerPassCB : register(b4)
     float cb_perPassPadding1;
 
     float4x4 cb_viewProjectionMatrix;
+	
+    float cb_nearPlane;
+    float cb_farPlane;
+    float2 cb_perPassPadding2;
 }
 
 cbuffer PerMaterialCB : register(b6)

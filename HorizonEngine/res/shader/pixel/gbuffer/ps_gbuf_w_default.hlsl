@@ -56,8 +56,13 @@ PS_OUTPUT main(VSPS_TRANSFER input)
     // Output position
     output.positionRoughness.rgb = input.worldPos;
 
+    float roughness = 0.5f;
+    if (cb_roughnessMapping)
+    {
+        roughness = roughnessTexture.Sample(samplerState, input.texCoord).r;
+    }
     // Output roughness
-	output.positionRoughness.a = roughnessTexture.Sample(samplerState, input.texCoord).r;
+    output.positionRoughness.a = roughness;
 
 	if (cb_useNormalMapping)
 	{

@@ -56,7 +56,7 @@ cbuffer SceneCB : register(b0)
            
 	int    cb_miscToggleA;
 	int    cb_miscToggleB;
-	int    cb_miscToggleC;
+	int    cb_SSAO;
 	int    cb_roughnessMapping;
            
 	int    cb_numPointLights;

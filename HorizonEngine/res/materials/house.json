@@ -1,0 +1,14 @@
+{
+  "Material": {
+    "default_material_textures": true,
+    "textures": [
+      [ "albedo", "res/textures/house/albedo.png" ],
+      [ "roughness", "res/textures/house/roughness.png" ],
+      [ "normal_map", "res/textures/house/normal_flatter.jpg" ],
+      [ "emission", "res/textures/house/emission.png" ]
+    ],
+    "vertex_shader": "default",
+    "pixel_shader": "default",
+    "gbuf_w_pixel_shader": "default"
+  }
+}

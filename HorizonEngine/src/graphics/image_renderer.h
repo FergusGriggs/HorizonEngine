@@ -28,7 +28,8 @@ namespace hrzn::gfx
 		void clearPostProcesses();
 		
 
-		void render(const DirectX::XMVECTOR& eyePos, const DirectX::XMVECTOR& eyeFacing, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix);
+		void render(const DirectX::XMVECTOR& eyePos, const DirectX::XMVECTOR& eyeFacing, const DirectX::XMMATRIX& viewMatrix,
+			const DirectX::XMMATRIX& projectionMatrix, float nearPlane, float farPlane);
 
 		RenderTexture&  getFinalImage();
 		GeometryBuffer* getGBuffer();
@@ -43,6 +44,7 @@ namespace hrzn::gfx
 		CD3D11_VIEWPORT          m_viewport;
 		GeometryBuffer           m_geometryBuffer;
 
+		RenderTexture            m_ambientOcclusion;
 		RenderTexture            m_finalImage;
 
 		ID3D11DepthStencilState* m_depthStencilState;

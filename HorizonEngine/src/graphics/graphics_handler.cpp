@@ -3,6 +3,7 @@
 
 #include "graphics_handler.h"
 
+#include <random>
 #include <shobjidl.h>
 
 #include "data/resource_manager.h"
@@ -83,7 +84,8 @@ namespace hrzn::gfx
 
 		m_useWireframe(false),
 		m_useVSync(true),
-		m_useDeferredShading(false),
+		m_useDeferredShading(true),
+		m_useSSAO(true),
 
 		m_fpsTimer(),
 		m_fpsCounter(0),
@@ -139,6 +141,14 @@ namespace hrzn::gfx
 		// Initialise compute shaders
 		m_cs_noiseGen = ResourceManager::it().getCSPtr("noise_gen");
 
+		// Load engine models
+		m_axisTranslateModel = ResourceManager::it().getModelPtr("res/models/engine/axis/translate.obj");
+		m_axisRotateModel = ResourceManager::it().getModelPtr("res/models/engine/axis/rotate.obj");
+
+		m_springModel = ResourceManager::it().getModelPtr("res/models/engine/spring.obj");
+
+		m_screenQuad = ResourceManager::it().getModelPtr("res/models/engine/screen_quad.obj");
+
 		// Initialise global shader vars
 		HRESULT hr = m_noiseTextureCB.initialize(m_device.Get(), m_deviceContext.Get());
 		COM_ERROR_IF_FAILED(hr, "Failed to create 'noiseTextureComputeShader' constant buffer.");
@@ -146,6 +156,7 @@ namespace hrzn::gfx
 
 		m_activeCameraImageRenderer.initialise(m_defaultViewport, m_depthStencilState.Get(), m_regularRasterizerState.Get());
 
+		m_activeCameraImageRenderer.addPostProcess(new BloomPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
 		m_activeCameraImageRenderer.addPostProcess(new DepthOfFieldPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
 		m_activeCameraImageRenderer.addPostProcess(new ChromaticAberrationPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
 
@@ -160,7 +171,22 @@ namespace hrzn::gfx
 		return true;
 	}
 
-	bool GraphicsHandler::initializeScene()
+	bool GraphicsHandler::postSceneManagerInitialise()
+	{
+		if (!initialiseConstantBufferData())
+		{
+			return false;
+		}
+
+		if (!initialiseSSAOResources())
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	bool GraphicsHandler::initialiseConstantBufferData()
 	{
 		try
 		{
@@ -172,7 +198,8 @@ namespace hrzn::gfx
 			m_sceneCB.m_data.m_useParallaxOcclusionMapping = true;
 			m_sceneCB.m_data.m_selfShadowing = true;
 			m_sceneCB.m_data.m_roughnessMapping = true;
-			m_sceneCB.m_data.m_depthScale = 0.05f;
+			m_sceneCB.m_data.m_depthScale = 0.035f;
+			m_sceneCB.m_data.m_SSAO = m_useSSAO;
 
 			// This slot shouldn't change over the course of the app
 			m_deviceContext->PSSetConstantBuffers(0, 1, m_sceneCB.getAddressOf());
@@ -221,6 +248,9 @@ namespace hrzn::gfx
 			m_cloudsCB.m_data.m_stepSize = cloudConfig.m_stepSize;
 			m_cloudsCB.m_data.m_cloudHeight = cloudConfig.m_cloudHeight;
 
+			hr = m_ambientOcclusionCB.initialize(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'ambient occlusion' constant buffer.");
+
 			hr = m_perFrameCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'per frame' constant buffer.");
 
@@ -232,20 +262,75 @@ namespace hrzn::gfx
 
 			hr = m_perObjectCB.initialize(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'per object' constant buffer.");
-
-			// Load axis models
-			m_axisTranslateModel = ResourceManager::it().getModelPtr("res/models/engine/axis/translate.obj");
-			m_axisRotateModel = ResourceManager::it().getModelPtr("res/models/engine/axis/rotate.obj");
-
-			m_springModel = ResourceManager::it().getModelPtr("res/models/engine/spring.obj");
-
-			m_screenQuad = ResourceManager::it().getModelPtr("res/models/engine/screen_quad.obj");
 		}
 		catch (utils::COMException& exception)
 		{
 			utils::ErrorLogger::log(exception);
 			return false;
 		}
+
+		return true;
+	}
+
+	bool GraphicsHandler::initialiseSSAOResources()
+	{
+		m_ambientOcclusionCB.m_data.m_bias = 0.0f;
+		m_ambientOcclusionCB.m_data.m_radius = 0.5f;
+		m_ambientOcclusionCB.m_data.m_kernelSize = 48;
+		m_ambientOcclusionCB.m_data.m_noiseScale = XMFLOAT2(UserConfig::it().getWindowWidthFloat() * 0.25f, UserConfig::it().getWindowHeightFloat() * 0.25f);
+
+		// Create random samples
+		std::uniform_real_distribution<float> randomFloats(0.0f, 1.0f);
+		std::default_random_engine generator;
+		for (unsigned int i = 0; i < m_ambientOcclusionCB.m_data.m_kernelSize; ++i)
+		{
+			XMVECTOR sample = XMVectorSet(randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator) * 2.0f - 1.0f, randomFloats(generator), 1.0f);
+			sample = XMVector3Normalize(sample);
+			sample *= randomFloats(generator);
+			float scale = static_cast<float>(i) / static_cast<float>(m_ambientOcclusionCB.m_data.m_kernelSize);
+
+			scale = std::lerp(0.1f, 1.0f, scale * scale);
+			sample *= scale;
+
+			m_ambientOcclusionCB.m_data.m_randomSamples[i] = XMFLOAT4(XMVectorGetX(sample), XMVectorGetY(sample), XMVectorGetZ(sample), 0.0f);
+		}
+
+		m_ambientOcclusionCB.mapToGPU();
+
+		// Noise texture
+		std::vector<XMFLOAT4> ssaoNoise;
+		for (unsigned int i = 0; i < 16; i++)
+		{
+			XMFLOAT4 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f, 0.0f);
+			ssaoNoise.push_back(noise);
+		}
+
+		D3D11_TEXTURE2D_DESC noiseTextureDesc{};
+		noiseTextureDesc.Width = 4.0f;
+		noiseTextureDesc.Height = 4.0f;
+		noiseTextureDesc.MipLevels = 1;
+		noiseTextureDesc.ArraySize = 1;
+		noiseTextureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		noiseTextureDesc.SampleDesc.Count = 1;
+		noiseTextureDesc.Usage = D3D11_USAGE_DEFAULT;
+		noiseTextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+		D3D11_SUBRESOURCE_DATA ssaoNoiseData;
+		ZeroMemory(&ssaoNoiseData, sizeof(ssaoNoiseData));
+		ssaoNoiseData.pSysMem = (void*)(&ssaoNoise[0]);
+		ssaoNoiseData.SysMemPitch = sizeof(XMFLOAT4);
+		ssaoNoiseData.SysMemSlicePitch = sizeof(XMFLOAT4) * 4;
+
+		HRESULT hr = m_device->CreateTexture2D(&noiseTextureDesc, &ssaoNoiseData, m_ambientOcclusionNoiseTexture.GetAddressOf());
+		utils::ErrorLogger::logIfFailed(hr, "SSAO noise texture creation failed");
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC noiseTextureShaderResourceViewDesc{};
+		noiseTextureShaderResourceViewDesc.Format = noiseTextureDesc.Format;
+		noiseTextureShaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		noiseTextureShaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+		hr = m_device->CreateShaderResourceView(m_ambientOcclusionNoiseTexture.Get(), &noiseTextureShaderResourceViewDesc, m_ambientOcclusionNoiseShaderResourceView.GetAddressOf());
+		utils::ErrorLogger::logIfFailed(hr, "SSAO noise texture shader resource view creation failed");
 
 		return true;
 	}
@@ -275,6 +360,16 @@ namespace hrzn::gfx
 		return m_useDeferredShading;
 	}
 
+	bool GraphicsHandler::isUsingSSAO() const
+	{
+		return m_useSSAO;
+	}
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& GraphicsHandler::getAmbientOcclusionNoiseShaderResourceView()
+	{
+		return m_ambientOcclusionNoiseShaderResourceView;
+	}
+
 	const std::wstring& GraphicsHandler::getCompiledShaderFolder() const
 	{
 		return m_compiledShaderFolder;
@@ -295,16 +390,17 @@ namespace hrzn::gfx
 		scene::SceneManager::it().getWritableActiveCamera().updateView();
 
 		// Grab active camera data
-		XMMATRIX viewMatrix = scene::SceneManager::it().getActiveCamera().getViewMatrix();
-		XMMATRIX projectionMatrix = scene::SceneManager::it().getActiveCamera().getProjectionMatrix();
+		auto& activeCamera = scene::SceneManager::it().getActiveCamera();
+		XMMATRIX viewMatrix = activeCamera.getViewMatrix();
+		XMMATRIX projectionMatrix = activeCamera.getProjectionMatrix();
 
 		XMMATRIX viewProjectionMatrix = viewMatrix * projectionMatrix;
 
-		DirectX::XMVECTOR activeCamPos = scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector();
-		DirectX::XMVECTOR activeCamFacing = scene::SceneManager::it().getActiveCamera().getTransform().getFrontVector();
+		DirectX::XMVECTOR activeCamPos = activeCamera.getTransform().getPositionVector();
+		DirectX::XMVECTOR activeCamFacing = activeCamera.getTransform().getFrontVector();
 
 		// Render scene from active camera
-		m_activeCameraImageRenderer.render(activeCamPos, activeCamFacing, viewMatrix, projectionMatrix);
+		m_activeCameraImageRenderer.render(activeCamPos, activeCamFacing, viewMatrix, projectionMatrix, activeCamera.getNearPlane(), activeCamera.getFarPlane());
 
 		// Copy final image to the back buffer
 		m_deviceContext->CopyResource(m_backBuffer.Get(), m_activeCameraImageRenderer.getFinalImage().m_texture2D.Get());
@@ -315,7 +411,7 @@ namespace hrzn::gfx
 		// Update FPS timer
 		m_fpsCounter++;
 
-		if (m_fpsTimer.getMicrosecondsElapsed() > 500000)
+		if (m_fpsTimer.getMicrosecondsElapsed() > 1000000)
 		{
 			m_fpsString = "FPS: " + std::to_string(m_fpsCounter);
 			m_fpsCounter = 0;
@@ -981,7 +1077,7 @@ namespace hrzn::gfx
 				{
 					ImGui::TreePush();
 
-					if (ImGui::Button("Add Bloom"))
+					if (ImGui::Button("Add Bloom (Only for Deferred Shading)"))
 					{
 						m_activeCameraImageRenderer.addPostProcess(new BloomPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
 					}
@@ -991,9 +1087,23 @@ namespace hrzn::gfx
 						m_activeCameraImageRenderer.addPostProcess(new DepthOfFieldPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
 					}
 
+					ImGui::SameLine();
+
 					if (ImGui::Button("Add Gaussian Blur"))
 					{
 						m_activeCameraImageRenderer.addPostProcess(new GaussianBlurPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, 0.65f));
+					}
+
+					if (ImGui::Button("Add Chromatic Abberation"))
+					{
+						m_activeCameraImageRenderer.addPostProcess(new ChromaticAberrationPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
+					}
+
+					ImGui::SameLine();
+
+					if (ImGui::Button("Add Grayscale"))
+					{
+						m_activeCameraImageRenderer.addPostProcess(new GrayscalePostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
 					}
 
 					if (ImGui::Button("Add Sepia"))
@@ -1001,19 +1111,11 @@ namespace hrzn::gfx
 						m_activeCameraImageRenderer.addPostProcess(new SepiaPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
 					}
 
-					if (ImGui::Button("Add Grayscale"))
-					{
-						m_activeCameraImageRenderer.addPostProcess(new GrayscalePostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
-					}
+					ImGui::SameLine();
 
 					if (ImGui::Button("Add Edge Detection"))
 					{
 						m_activeCameraImageRenderer.addPostProcess(new EdgeDetectionPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height, m_activeCameraImageRenderer.getGBuffer()));
-					}
-
-					if (ImGui::Button("Add Chromatic Abberation"))
-					{
-						m_activeCameraImageRenderer.addPostProcess(new ChromaticAberrationPostProcess((UINT)m_defaultViewport.Width, (UINT)m_defaultViewport.Height));
 					}
 
 					ImGui::Text("Post Processes:");
@@ -1057,15 +1159,15 @@ namespace hrzn::gfx
 
 					ImGui::SameLine();
 
-					// Self shadowing
-					bool selfShadowing = static_cast<bool>(m_sceneCB.m_data.m_selfShadowing);
-					ImGui::Checkbox("Self Shadowing", &selfShadowing);
-					m_sceneCB.m_data.m_selfShadowing = selfShadowing;
-
 					// Roughness Mapping
 					bool roughnessMapping = static_cast<bool>(m_sceneCB.m_data.m_roughnessMapping);
 					ImGui::Checkbox("Roughness Mapping", &roughnessMapping);
 					m_sceneCB.m_data.m_roughnessMapping = roughnessMapping;
+
+					// Self shadowing
+					bool selfShadowing = static_cast<bool>(m_sceneCB.m_data.m_selfShadowing);
+					ImGui::Checkbox("Self Shadowing (Not Compatible w/ Deferred Shading)", &selfShadowing);
+					m_sceneCB.m_data.m_selfShadowing = selfShadowing;
 
 					// Depth scale
 					ImGui::DragFloat("Depth Scale", &m_sceneCB.m_data.m_depthScale, 0.001f, 0.0f, 0.5f);
@@ -1115,13 +1217,6 @@ namespace hrzn::gfx
 					ImGui::Checkbox("Misc B", &miscToggleB);
 					m_sceneCB.m_data.m_miscToggleB = miscToggleB;
 
-					ImGui::SameLine();
-
-					// Misc toggle C
-					bool miscToggleC = static_cast<bool>(m_sceneCB.m_data.m_miscToggleC);
-					ImGui::Checkbox("Misc C", &miscToggleC);
-					m_sceneCB.m_data.m_miscToggleC = miscToggleC;
-
 					ImGui::TreePop();
 				}
 
@@ -1130,6 +1225,9 @@ namespace hrzn::gfx
 					ImGui::TreePush();
 
 					ImGui::Checkbox("Deferred Shading", &m_useDeferredShading);
+
+					ImGui::Checkbox("Ambient Occlusion", &m_useSSAO);
+					m_sceneCB.m_data.m_SSAO = m_useSSAO;
 
 					if (ImGui::CollapsingHeader("View Textures"))
 					{
@@ -1299,7 +1397,7 @@ namespace hrzn::gfx
 				ImGui::Checkbox("Control Camera", controller->isActivePtr());
 			}
 
-			if (ImGui::CollapsingHeader("Camera List"))
+			if (ImGui::CollapsingHeader("Camera List", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				int count = 0;
 				auto& cameras = scene::SceneManager::it().getWritableCameraList();
@@ -1369,6 +1467,11 @@ namespace hrzn::gfx
 	ConstantBuffer<PerObjectCB>& GraphicsHandler::getPerObjectCB()
 	{
 		return m_perObjectCB;
+	}
+
+	ConstantBuffer<AmbientOcclusionCB>& GraphicsHandler::getAmbientOcclusionCB()
+	{
+		return m_ambientOcclusionCB;
 	}
 
 	ID3D11BlendState* GraphicsHandler::getDefaultBlendState()
@@ -1487,11 +1590,14 @@ namespace hrzn::gfx
 		m_perFrameCB.mapToGPU();
 	}
 
-	void GraphicsHandler::updatePerPassShaderValues(DirectX::XMFLOAT3 eyePosition, DirectX::XMMATRIX view, DirectX::XMMATRIX projection)
+	void GraphicsHandler::updatePerPassShaderValues(DirectX::XMFLOAT3 eyePosition, DirectX::XMMATRIX view, DirectX::XMMATRIX projection, float nearPlane, float farPlane)
 	{
 		m_perPassCB.m_data.m_cameraPosition = eyePosition;
 
 		m_perPassCB.m_data.m_viewProjectionMatrix = view * projection;
+
+		m_perPassCB.m_data.m_nearPlane = nearPlane;
+		m_perPassCB.m_data.m_farPlane = farPlane;
 
 		m_perPassCB.mapToGPU();
 	}

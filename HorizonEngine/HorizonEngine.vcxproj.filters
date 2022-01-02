@@ -487,6 +487,7 @@
     <FxCompile Include="res\shader\pixel\misc\ps_edge_detection.hlsl" />
     <FxCompile Include="res\shader\pixel\misc\ps_bloom.hlsl" />
     <FxCompile Include="res\shader\pixel\misc\ps_chromatic_abberation.hlsl" />
+    <FxCompile Include="res\shader\pixel\misc\ps_ambient_occlusion.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini">

@@ -60,7 +60,7 @@ namespace hrzn
 
 		scene::SceneManager::it().initialise(&m_controllerManager);
 
-		if (!gfx::GraphicsHandler::it().initializeScene())
+		if (!gfx::GraphicsHandler::it().postSceneManagerInitialise())
 		{
 			return false;
 		}

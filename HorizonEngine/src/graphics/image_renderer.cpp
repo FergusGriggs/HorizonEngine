@@ -27,6 +27,7 @@ namespace hrzn::gfx
         m_geometryBuffer.initialise(static_cast<UINT>(m_viewport.Width), static_cast<UINT>(m_viewport.Height));
 
         m_finalImage.initialise(DXGI_FORMAT_R8G8B8A8_UNORM, static_cast<UINT>(m_viewport.Width), static_cast<UINT>(m_viewport.Height));
+        m_ambientOcclusion.initialise(DXGI_FORMAT_R8_UNORM, static_cast<UINT>(m_viewport.Width), static_cast<UINT>(m_viewport.Height));
 
         m_depthStencilState = depthStencilState;
         m_rasterizerState = rasterizerState;
@@ -42,6 +43,7 @@ namespace hrzn::gfx
 
         m_geometryBuffer.release();
         m_finalImage.release();
+        m_ambientOcclusion.release();
 
         m_geometryBuffer.initialise(static_cast<UINT>(m_viewport.Width), static_cast<UINT>(m_viewport.Height));
 
@@ -73,7 +75,8 @@ namespace hrzn::gfx
         m_postProcesses.clear();
     }
 
-    void ImageRenderer::render(const DirectX::XMVECTOR& eyePos, const DirectX::XMVECTOR& eyeFacing, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix)
+    void ImageRenderer::render(const DirectX::XMVECTOR& eyePos, const DirectX::XMVECTOR& eyeFacing, const DirectX::XMMATRIX& viewMatrix,
+        const DirectX::XMMATRIX& projectionMatrix, float nearPlane, float farPlane)
     {
         XMFLOAT3 eyePosFloat = XMFLOAT3(0.0f, 0.0f, 0.0f);
         XMStoreFloat3(&eyePosFloat, eyePos);
@@ -91,7 +94,7 @@ namespace hrzn::gfx
         deviceContext->PSSetConstantBuffers(2, 1, GraphicsHandler::it().getPerFrameCB().getAddressOf());
 
         // Slot 4 per-pass CB bind
-        GraphicsHandler::it().updatePerPassShaderValues(eyePosFloat, viewMatrix, projectionMatrix);
+        GraphicsHandler::it().updatePerPassShaderValues(eyePosFloat, viewMatrix, projectionMatrix, nearPlane, farPlane);
         deviceContext->VSSetConstantBuffers(4, 1, GraphicsHandler::it().getPerPassCB().getAddressOf());
         deviceContext->PSSetConstantBuffers(4, 1, GraphicsHandler::it().getPerPassCB().getAddressOf());
 
@@ -173,6 +176,7 @@ namespace hrzn::gfx
         m_geometryBuffer.release();
 
         m_finalImage.release();
+        m_ambientOcclusion.release();
     }
 
     void ImageRenderer::internalRenderStandard(const DirectX::XMVECTOR& eyePos, const DirectX::XMVECTOR& eyeFacing, const DirectX::XMMATRIX& viewMatrix, const DirectX::XMMATRIX& projectionMatrix)
@@ -214,6 +218,26 @@ namespace hrzn::gfx
         deviceContext->ClearDepthStencilView(m_geometryBuffer.m_depthStencil.m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         GraphicsHandler::it().renderSceneObjects(RenderPassType::eGBufferCompatiblePass, eyePos, eyeFacing);
+
+        // Do SSAO stuff
+        if (GraphicsHandler::it().isUsingSSAO())
+        {
+            // Unset render targets
+            ID3D11RenderTargetView* const nullRenderTargetViews[8] = { NULL };
+            deviceContext->OMSetRenderTargets(4, nullRenderTargetViews, nullptr);
+
+            deviceContext->PSSetShaderResources(0, 1, m_geometryBuffer.m_depthStencil.m_shaderResourceView.GetAddressOf());
+            deviceContext->PSSetShaderResources(1, 1, m_geometryBuffer.m_positionRoughness.m_shaderResourceView.GetAddressOf());
+            deviceContext->PSSetShaderResources(2, 1, m_geometryBuffer.m_normalAO.m_shaderResourceView.GetAddressOf());
+            deviceContext->PSSetShaderResources(3, 1, GraphicsHandler::it().getAmbientOcclusionNoiseShaderResourceView().GetAddressOf());
+
+            deviceContext->PSSetConstantBuffers(1, 1, GraphicsHandler::it().getAmbientOcclusionCB().getAddressOf());
+
+            deviceContext->PSSetShader(ResourceManager::it().getPSPtr("ambient_occlusion")->getShader(), NULL, 0);
+            m_ambientOcclusion.setAsRenderTargetAndDrawQuad();
+
+            deviceContext->PSSetShaderResources(4, 1, m_ambientOcclusion.m_shaderResourceView.GetAddressOf());
+        }
 
         // Unset render targets and set as shader resource views
         ID3D11RenderTargetView* const nullRenderTargetViews[8] = { NULL };

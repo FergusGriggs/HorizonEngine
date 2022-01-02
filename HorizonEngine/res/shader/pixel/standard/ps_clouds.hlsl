@@ -45,18 +45,18 @@ float getDensityAt(float3 position)
 	total += cloudNoise(float3(position.x * 0.00003f - cb_gameTime * cb_cloudSpeed * 0.4, position.y * 0.00005f, position.z * 0.00003f + cb_gameTime * cb_cloudSpeed * 0.5) + 1240.0f) * 0.45f;
 	total += cloudNoise(float3(position.x * 0.001f, position.y * 0.001f, position.z * 0.001f - cb_gameTime * cb_cloudSpeed * 0.8) + 414.0f) * 0.1f;
 
-	float halfCloudHeight = cb_cloudHeight * 0.5f;
-    float halfDiff = position.y - halfCloudHeight;
-    if (halfDiff > 0.0f)
-    {
-        float normalisedDistToEdge = min(halfCloudHeight, halfDiff) / halfCloudHeight;
-        total -= getLinearProgress(0.5f, 1.0f, normalisedDistToEdge);
-    }
-    else
-    {
-        float normalisedDistToEdge = min(halfCloudHeight, -halfDiff) / halfCloudHeight;
-        total -= pow(getLinearProgress(0.5f, 1.0f, normalisedDistToEdge), 2.0f);
-    }
+	//float halfCloudHeight = cb_cloudHeight * 0.5f;
+ //   float halfDiff = position.y - halfCloudHeight;
+ //   if (halfDiff > 0.0f)
+ //   {
+ //       float normalisedDistToEdge = min(halfCloudHeight, halfDiff) / halfCloudHeight;
+ //       total -= getLinearProgress(0.85f, 1.0f, normalisedDistToEdge);
+ //   }
+ //   else
+ //   {
+ //       float normalisedDistToEdge = min(halfCloudHeight, -halfDiff) / halfCloudHeight;
+ //       total -= pow(getLinearProgress(0.85f, 1.0f, normalisedDistToEdge), 2.0f);
+ //   }
 
     //total = lerp(min(1.0f, total), 0.0f, 1.0f - cloudCoverage);
    
