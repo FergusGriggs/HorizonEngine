@@ -990,10 +990,6 @@ namespace hrzn::gfx
 			ImGui::ColorEdit3("Dir Light Colour", &(scene::SceneManager::it().getWritableDirectionalLight().m_colour.x));
 			m_sceneCB.m_data.m_directionalLight.m_colour = scene::SceneManager::it().getWritableDirectionalLight().m_colour;
 
-			ImGui::Checkbox("Use VSync", &m_useVSync);
-
-			ImGui::SameLine();
-
 			ImGui::Checkbox("Day/Night Cycle", scene::SceneManager::it().getDayNightCyclePtr());
 
 			ImGui::SameLine();
@@ -1346,6 +1342,8 @@ namespace hrzn::gfx
 				bool miscToggleB = static_cast<bool>(m_sceneCB.m_data.m_miscToggleB);
 				ImGui::Checkbox("Misc B", &miscToggleB);
 				m_sceneCB.m_data.m_miscToggleB = miscToggleB;
+
+				ImGui::Checkbox("Use VSync", &m_useVSync);
 
 				ImGui::TreePop();
 			}
