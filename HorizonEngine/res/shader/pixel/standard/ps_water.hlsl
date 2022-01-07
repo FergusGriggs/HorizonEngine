@@ -3,6 +3,18 @@
 #include "../../shared/scene.hlsli"
 #include "../../shared/water.hlsli"
 
+
+/***********************************************
+
+MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
+
+DESCRIPTION: This is the shader used to shade the water in the
+default scene
+
+COMMENT INDEX: 20
+
+***********************************************/
+
 float hash11(float p)
 {
     p = frac(p * 0.1031f);

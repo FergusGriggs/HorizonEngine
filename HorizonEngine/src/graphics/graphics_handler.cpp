@@ -120,6 +120,20 @@ namespace hrzn::gfx
 #endif
 #endif
 
+		/***********************************************
+		
+		MARKING SCHEME: Normal Mapping,	Basic Parallax Mapping and Parallax Occlusion Mapping with self shadowing
+
+		DESCRIPTION: Compatible input layout. All models drawn have normal, tangent and bitangent info calculated
+		so that tangent space transform matricies can be computed in the pixel shader (this happens in the pixel shader
+		because it is easier to do the lighting calculations in world space, rather than transform all of the light data
+		into tangent space)
+
+		COMMENT INDEX: 0
+
+		***********************************************/
+
+
 		//Create vertex shader input layout
 		m_defaultVSLayout = new D3D11_INPUT_ELEMENT_DESC[5]{
 			{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -1271,6 +1285,17 @@ namespace hrzn::gfx
 			{
 				ImGui::TreePush();
 
+				/***********************************************
+
+				MARKING SCHEME: Normal Mapping,	Basic Parallax Mapping and Parallax Occlusion Mapping with self shadowing
+
+				DESCRIPTION: This is where the app lets the user select the mapping techniques they would like active.
+				These values are written to the correct constant buffer and will be mapped to the gpu later on
+
+				COMMENT INDEX: 1
+
+				***********************************************/
+
 				// Normal Mapping
 				bool useNormalMapping = static_cast<bool>(m_sceneCB.m_data.m_useNormalMapping);
 				ImGui::Checkbox("Normal Mapping", &useNormalMapping);
@@ -1347,6 +1372,17 @@ namespace hrzn::gfx
 
 				ImGui::TreePop();
 			}
+
+			/***********************************************
+
+			MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
+
+			DESCRIPTION: This is where Deferred shading and Ambient occlusion can be toggled,
+			their textures can also be viewed by expanding the "View Textures" collapsing header.
+
+			COMMENT INDEX: 8
+
+			***********************************************/
 
 			if (ImGui::CollapsingHeader("Deferred Shading"))
 			{

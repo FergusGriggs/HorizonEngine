@@ -8,6 +8,17 @@ SamplerState samplerState : SAMPLER : register(s0);
 
 static const float randomConstant = 50.0f;
 
+/***********************************************
+
+MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
+
+DESCRIPTION: This is the shader used to actually render the clouds,
+it uses the 3d noise texture created using the compute shader. 
+
+COMMENT INDEX: 18
+
+***********************************************/
+
 float getLinearProgress(float edge0, float edge1, float x)
 {
     return clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);

@@ -14,6 +14,17 @@ float getLinearProgress(float edge0, float edge1, float x)
     return clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
 }
 
+/***********************************************
+
+MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
+
+DESCRIPTION: This is the shader used to merge the blurred texture and the regular
+colour texture using the depth texture and whatever depth is sampled at the centre of the screen
+
+COMMENT INDEX: 16
+
+***********************************************/
+
 float4 main(VSPS_TRANSFER input) : SV_TARGET
 {
     float focusDepth = pow(abs(depthTexture.Sample(samplerState, float2(0.5f, 0.5f)).r), 50.0f);

@@ -22,6 +22,17 @@ Texture2D noiseTexture : TEXTURE : register(t3);
 
 SamplerState samplerState : SAMPLER : register(s0);
 
+/***********************************************
+
+MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
+
+DESCRIPTION: This is the shader used to generate the dedicated ambient occlusion
+texture, you can see the texture inputs above
+
+COMMENT INDEX: 14
+
+***********************************************/
+
 float main(VSPS_TRANSFER input) : SV_TARGET
 {
     float3 normal = normalTexture.Sample(samplerState, input.texCoord).rgb;
@@ -41,20 +52,24 @@ float main(VSPS_TRANSFER input) : SV_TARGET
 
     for (int i = 0; i < kernelSize; ++i)
     {
-        // get sample position
-        float3 randomSample = mul(randomSamples[i].xyz, TBN); // from tangent to view-space
+        // Get sample position
+        float3 randomSample = mul(randomSamples[i].xyz, TBN);
         randomSample = position + randomSample * radius;
 
-        // project sample position (to sample texture) (to get position on screen/texture)
+        // Project the sample position into the space used by textures
         float4 offset = float4(randomSample, 1.0f);
-        offset = mul(offset, cb_viewProjectionMatrix); // from view to clip-space
-        offset.xy /= offset.w; // perspective divide
-        offset.xy = offset.xy * 0.5 + 0.5; // transform to range 0.0 - 1.0
+        // From view to clip-space
+        offset = mul(offset, cb_viewProjectionMatrix); 
+        // Perspective divide
+        offset.xy /= offset.w;
+        // Transform to range 0.0f - 1.0
+        offset.xy = offset.xy * 0.5f + 0.5f; 
         offset.y = 1.0f - offset.y;
 
         if (offset.x > 0.0f && offset.x < 1.0f && offset.y > 0.0f && offset.y < 1.0f)
         {
-            float sampleDepth = depthTexture.Sample(samplerState, offset.xy).r; // get depth value of kernel sample
+            // Get depth value at offset
+            float sampleDepth = depthTexture.Sample(samplerState, offset.xy).r;
             float normalizedSampleDepth = 2.0f * sampleDepth - 1.0f;
             float trueSampleDepth = (2.0f * cb_nearPlane * cb_farPlane) / (cb_farPlane + cb_nearPlane - normalizedSampleDepth * (cb_farPlane - cb_nearPlane));
 

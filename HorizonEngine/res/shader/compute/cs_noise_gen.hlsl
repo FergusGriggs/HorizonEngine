@@ -10,6 +10,16 @@
 //               https://github.com/stegu/webgl-noise
 // 
 
+/***********************************************
+
+MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
+
+DESCRIPTION: This shader is used to generate the noise texture used by the clouds shader
+
+COMMENT INDEX: 17
+
+***********************************************/
+
 float3 mod289(float3 x) {
     return x - floor(x * (1.0 / 289.0)) * 289.0;
 }
