@@ -139,7 +139,7 @@ namespace hrzn::maths
     template<typename T>
     inline T Vec2<T>::length() const
     {
-        return sqrt(LengthSquared());
+        return sqrt(lengthSquared());
     }
 
     template<typename T>
@@ -151,7 +151,7 @@ namespace hrzn::maths
     template<typename T>
     inline void Vec2<T>::normalise()
     {
-        *this = Vec2<T>:normalise(*this);
+        *this = Vec2<T>::normalise(*this);
     }
 
     template<typename T>

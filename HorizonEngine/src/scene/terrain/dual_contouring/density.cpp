@@ -27,13 +27,17 @@ namespace hrzn::scene::terrain
 
 	float Density_Func(const maths::Vec3f& worldPosition)
 	{
-		const float MAX_HEIGHT = 20.f;
+		const float MAX_HEIGHT = 10.f;
 		const float sinCos = sin(worldPosition.x * 0.1f) + cos(worldPosition.z * 0.1f);
 		const float terrain = worldPosition.y - (MAX_HEIGHT * sinCos);
 
-		const float cube = Cuboid(worldPosition, maths::Vec3f(-4., 10.f, -4.f), maths::Vec3f(12.f));
-		const float sphere = Sphere(worldPosition, maths::Vec3f(15.f, 2.5f, 1.f), 16.f);
+		const float cube = Cuboid(worldPosition, maths::Vec3f(-4.0f, 8.f, -4.0f), maths::Vec3f(12.f));
+		const float sphere = Sphere(worldPosition, maths::Vec3f(-25.0f, 8.f, -4.0f), 16.0f);
+		const float sphere2 = Sphere(worldPosition, maths::Vec3f(-25.0f, 8.f, -20.0f), 8.0f);
+		const float sphere3 = Sphere(worldPosition, maths::Vec3f(-25.0f, 8.f, -35.0f), 4.0f);
+		const float sphere4 = Sphere(worldPosition, maths::Vec3f(-25.0f, 8.f, -40.0f), 2.0f);
+		const float sphere5 = Sphere(worldPosition, maths::Vec3f(-25.0f, 8.f, -43.0f), 1.0f);
 
-		return fmaxf(-cube, fminf(sphere, terrain));
+		return fmaxf(-cube, fminf(sphere, fminf(sphere2, fminf(sphere3, fminf(sphere4, fminf(sphere5, terrain))))));
 	}
 }

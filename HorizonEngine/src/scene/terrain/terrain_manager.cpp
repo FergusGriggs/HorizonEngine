@@ -10,7 +10,7 @@ namespace hrzn::scene
         m_mesh(nullptr)
     {
         // octreeSize must be a power of two!
-        const int octreeSize = 64;
+        const int octreeSize = 128;
 
         const int MAX_THRESHOLDS = 5;
         const float THRESHOLDS[MAX_THRESHOLDS] = { -1.f, 0.1f, 1.f, 10.f, 50.f };
@@ -23,6 +23,12 @@ namespace hrzn::scene
         terrain::GenerateMeshFromOctree(m_testOctree, vertices, indices);
 
         m_mesh = new gfx::Mesh(vertices, indices, gfx::ResourceManager::it().getDefaultMaterialPtr(), XMMatrixIdentity());
+    }
+
+    TerrainManager& TerrainManager::it()
+    {
+        static TerrainManager s;
+        return s;
     }
 
     TerrainManager::~TerrainManager()

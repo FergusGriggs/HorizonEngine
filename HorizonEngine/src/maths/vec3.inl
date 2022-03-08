@@ -190,9 +190,9 @@ namespace hrzn::maths
     template<typename T>
     inline Vec3<T> Vec3<T>::normalise(const Vec3<T>& vector)
     {
-        T lengthSquared = vector.LengthSquared();
+        T lengthSquared = vector.lengthSquared();
 
-        if (lengthSquared < (T)0.001)
+        if (lengthSquared < (T)0.0000001)
         {
             return Vec3<T>(0, -1, 0);
         }
@@ -280,7 +280,7 @@ namespace hrzn::maths
     template<typename T>
     inline Vec3<T> Vec3<T>::max(const Vec3<T>& vector1, const Vec3<T>& vector2)
     {
-        return Vec3<T>(fmaxf(vector1.x, vector2.x), fmaxf(vector1.y, vector2.y));
+        return Vec3<T>(fmaxf(vector1.x, vector2.x), fmaxf(vector1.y, vector2.y), fmaxf(vector1.z, vector2.z));
     }
 
     template<typename T>

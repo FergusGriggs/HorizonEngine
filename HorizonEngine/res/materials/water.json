@@ -3,6 +3,6 @@
     "default_material_textures": false,
     "vertex_shader": "water",
     "pixel_shader": "water",
-    "gbuf_w_pixel_shader": "water"
+    "gbuf_w_pixel_shader": "-"
   }
 }

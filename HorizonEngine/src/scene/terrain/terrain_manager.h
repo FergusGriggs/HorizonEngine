@@ -15,7 +15,8 @@ namespace hrzn::scene
     class TerrainManager
     {
     public:
-        TerrainManager();
+        static TerrainManager& it();
+
         ~TerrainManager();
 
         void SetViewerPosition(maths::Vec3f& position);
@@ -28,6 +29,8 @@ namespace hrzn::scene
         void UnloadFarChunks();        
 
     private:
+        TerrainManager();
+
         //std::unordered_map<maths::Vec3i, TerrainChunk*> m_chunks;
         terrain::OctreeNode*                              m_testOctree;
         gfx::Mesh*                                        m_mesh;

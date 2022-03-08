@@ -4,6 +4,8 @@
 
 #include "data/resource_manager.h"
 
+#include "../scene/terrain/terrain_manager.h"
+
 namespace hrzn::gfx
 {
     ImageRenderer::ImageRenderer() :
@@ -244,6 +246,8 @@ namespace hrzn::gfx
         deviceContext->ClearDepthStencilView(m_geometryBuffer.m_depthStencil.m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         GraphicsHandler::it().renderSceneObjects(RenderPassType::eGBufferCompatiblePass, eyePos, eyeFacing);
+
+        scene::TerrainManager::it().GetTestMesh()->draw(true, true);
 
         /***********************************************
 
