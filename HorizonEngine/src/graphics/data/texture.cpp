@@ -30,29 +30,12 @@ namespace hrzn::gfx
 	Texture::Texture(const std::string& filePath) :
 		Texture()
 	{
-		if (utils::string_helpers::getFileExtension(filePath) == ".dds")
-		{
-			HRESULT hr = DirectX::CreateDDSTextureFromFile(GraphicsHandler::it().getDevice(), utils::string_helpers::stringToWide(filePath).c_str(), m_texture.GetAddressOf(), m_textureView.GetAddressOf());
-			if (FAILED(hr))
-			{
-				initialize1x1ColourTexture(colours::sc_unhandledTextureColour);
-			}
-			return;
-		}
-		else
-		{
-			HRESULT hr = DirectX::CreateWICTextureFromFile(GraphicsHandler::it().getDevice(), utils::string_helpers::stringToWide(filePath).c_str(), m_texture.GetAddressOf(), m_textureView.GetAddressOf());
-			if (FAILED(hr))
-			{
-				initialize1x1ColourTexture(colours::sc_unhandledTextureColour);
-			}
-			return;
-		}
+		initialize(filePath);
 	}
 
 	bool Texture::initialize(const std::string& filePath)
 	{
-		if (utils::string_helpers::getFileExtension(filePath) == ".dds")
+		if (utils::string_helpers::getFileExtension(filePath) == "dds")
 		{
 			HRESULT hr = DirectX::CreateDDSTextureFromFile(GraphicsHandler::it().getDevice(), utils::string_helpers::stringToWide(filePath).c_str(), m_texture.GetAddressOf(), m_textureView.GetAddressOf());
 			if (FAILED(hr))

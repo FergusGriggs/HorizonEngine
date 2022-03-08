@@ -228,6 +228,8 @@
     <ClCompile Include="src\utils\timer.cpp" />
     <ClCompile Include="src\window_container.cpp" />
     <ClCompile Include="src\user_config.cpp" />
+    <ClCompile Include="src\scene\terrain\terrain_manager.cpp" />
+    <ClCompile Include="src\scene\terrain\terrain_chunk.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\graphics\post_process\chromatic_aberration_post_process.h" />
@@ -245,6 +247,11 @@
     <ClInclude Include="src\graphics\data\render_textures.h" />
     <ClInclude Include="src\graphics\render_pass_config.h" />
     <ClInclude Include="src\input\input_manager.h" />
+    <ClInclude Include="src\maths\random.h" />
+    <ClInclude Include="src\maths\rect.h" />
+    <ClInclude Include="src\maths\vec2.h" />
+    <ClInclude Include="src\maths\vec3.h" />
+    <ClInclude Include="src\maths\vec4.h" />
     <ClInclude Include="src\physics\utils\collision_helpers.h" />
     <ClInclude Include="src\scene\config\config_types.h" />
     <ClInclude Include="src\scene\config\scene_config.h" />
@@ -302,6 +309,8 @@
     <ClInclude Include="src\utils\timer.h" />
     <ClInclude Include="src\window_container.h" />
     <ClInclude Include="src\user_config.h" />
+    <ClInclude Include="src\scene\terrain\terrain_manager.h" />
+    <ClInclude Include="src\scene\terrain\terrain_chunk.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="res\shader\compute\cs_noise_gen.hlsl">
@@ -331,6 +340,12 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="res\shader\pixel\gbuffer\ps_gbuf_w_water.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="res\shader\pixel\gbuffer\ps_gbuf_r_default.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -818,6 +833,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="src\maths\rect.inl" />
+    <None Include="src\maths\vec2.inl" />
+    <None Include="src\maths\vec3.inl" />
+    <None Include="src\maths\vec4.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -177,7 +177,6 @@ namespace hrzn::gfx
 		// Init imgui
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO();
 		ImGui_ImplWin32_Init(hwnd);
 		ImGui_ImplDX11_Init(m_device.Get(), m_deviceContext.Get());
 		ImGui::StyleColorsDark();

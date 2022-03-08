@@ -254,7 +254,10 @@ namespace hrzn::gfx
 
 		m_defaultVS(nullptr),
 		m_defaultPS(nullptr),
-		m_defaultCS(nullptr)
+		m_defaultGBufferWritePS(nullptr),
+		m_defaultCS(nullptr),
+
+		m_gBufferReadPS(nullptr)
 	{
 	}
 }

@@ -2,6 +2,7 @@
 //Stores information about a single vertex of a mesh
 
 #pragma once
+
 #include <DirectXMath.h>
 
 namespace hrzn::gfx
