@@ -170,6 +170,12 @@ namespace hrzn::maths
     }
 
     template<typename T>
+    inline Vec3<float> Vec3<T>::createVec3f()
+    {
+        return Vec3<float>((float)x, (float)y, (float)z);
+    }
+
+    template<typename T>
     inline DirectX::XMVECTOR Vec3<T>::getAsXMVECTOR() const
     {
         return DirectX::XMVectorSet((float)x, (float)y, (float)z, 0.0f);
@@ -263,6 +269,24 @@ namespace hrzn::maths
     inline Vec3<T> Vec3<T>::lerp(const Vec3<T>& vector1, const Vec3<T>& vector2, T delta)
     {
         return vector1 + (vector2 - vector1) * delta;
+    }
+
+    template<typename T>
+    inline Vec3<T> Vec3<T>::min(const Vec3<T>& vector1, const Vec3<T>& vector2)
+    {
+        return Vec3<T>(fminf(vector1.x, vector2.x), fminf(vector1.y, vector2.y));
+    }
+
+    template<typename T>
+    inline Vec3<T> Vec3<T>::max(const Vec3<T>& vector1, const Vec3<T>& vector2)
+    {
+        return Vec3<T>(fmaxf(vector1.x, vector2.x), fmaxf(vector1.y, vector2.y));
+    }
+
+    template<typename T>
+    inline Vec3<T> Vec3<T>::abs(const Vec3<T>& vector)
+    {
+        return Vec3<T>(fabsf(vector.x), fabsf(vector.y), fabsf(vector.z));
     }
 
     template<typename T>

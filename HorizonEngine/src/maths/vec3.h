@@ -41,6 +41,8 @@ namespace hrzn::maths
         T                 dot(const Vec3<T>& vector) const;
         Vec3<T>           cross(const Vec3<T>& vector);
 
+        Vec3<float>       createVec3f();
+
         // XMVECTOR
         DirectX::XMVECTOR getAsXMVECTOR() const;
         DirectX::XMFLOAT3 getAsXMFLOAT3() const;
@@ -61,6 +63,11 @@ namespace hrzn::maths
         static Vec3<T>    getRandomVector();
         static Vec3<T>    getRandomDirection();
         static Vec3<T>    lerp(const Vec3<T>& vector1, const Vec3<T>& Vec3, T delta);
+
+        static Vec3<T>    min(const Vec3<T>& vector1, const Vec3<T>& vector2);
+        static Vec3<T>    max(const Vec3<T>& vector1, const Vec3<T>& vector2);
+
+        static Vec3<T>    abs(const Vec3<T>& vector);
 
         // XMVECTOR
         static Vec3<T>    makeFromXMVECTOR(const DirectX::XMVECTOR& vector);

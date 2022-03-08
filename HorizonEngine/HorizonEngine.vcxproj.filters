@@ -252,6 +252,18 @@
     <ClCompile Include="src\scene\terrain\terrain_chunk.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\scene\terrain\dual_contouring\octree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\terrain\dual_contouring\qef.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\terrain\dual_contouring\density.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\terrain\dual_contouring\svd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\graphics\buffers\constant_buffer.h">
@@ -489,6 +501,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\scene\terrain\terrain_chunk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\terrain\dual_contouring\octree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\terrain\dual_contouring\qef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\terrain\dual_contouring\density.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\terrain\dual_contouring\svd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -6,6 +6,10 @@
 
 #include "terrain_chunk.h"
 
+#include "dual_contouring/octree.h"
+
+#include "../../graphics/data/mesh.h"
+
 namespace hrzn::scene
 {
     class TerrainManager
@@ -18,12 +22,16 @@ namespace hrzn::scene
 
         void Update(float deltaTime);
 
+        gfx::Mesh* GetTestMesh();
+
         void LoadCloseChunks();
         void UnloadFarChunks();        
 
     private:
-        std::unordered_map<maths::Vec3i, TerrainChunk*> m_chunks;
+        //std::unordered_map<maths::Vec3i, TerrainChunk*> m_chunks;
+        terrain::OctreeNode*                              m_testOctree;
+        gfx::Mesh*                                        m_mesh;
 
-        maths::Vec3f                                    m_viewerPosition;
+        maths::Vec3f                                      m_viewerPosition;
     };
 }

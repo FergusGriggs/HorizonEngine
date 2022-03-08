@@ -209,6 +209,10 @@
     <ClCompile Include="src\graphics\shaders\shader.cpp" />
     <ClCompile Include="src\graphics\data\texture.cpp" />
     <ClCompile Include="src\physics\transform.cpp" />
+    <ClCompile Include="src\scene\terrain\dual_contouring\density.cpp" />
+    <ClCompile Include="src\scene\terrain\dual_contouring\octree.cpp" />
+    <ClCompile Include="src\scene\terrain\dual_contouring\qef.cpp" />
+    <ClCompile Include="src\scene\terrain\dual_contouring\svd.cpp" />
     <ClCompile Include="src\utils\adapter_reader.cpp" />
     <ClCompile Include="src\entity\utils\game_object_controller.cpp" />
     <ClCompile Include="src\entity\utils\game_object_track.cpp" />
@@ -256,6 +260,10 @@
     <ClInclude Include="src\scene\config\config_types.h" />
     <ClInclude Include="src\scene\config\scene_config.h" />
     <ClInclude Include="src\scene\scene_meta.h" />
+    <ClInclude Include="src\scene\terrain\dual_contouring\density.h" />
+    <ClInclude Include="src\scene\terrain\dual_contouring\octree.h" />
+    <ClInclude Include="src\scene\terrain\dual_contouring\qef.h" />
+    <ClInclude Include="src\scene\terrain\dual_contouring\svd.h" />
     <ClInclude Include="src\utils\io_helpers.h" />
     <ClInclude Include="src\scene\scene_loader.h" />
     <ClInclude Include="src\scene\scene_manager.h" />
