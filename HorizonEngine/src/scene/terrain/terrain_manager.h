@@ -4,7 +4,7 @@
 
 #include "../../maths/vec3.h"
 
-#include "terrain_chunk.h"
+#include "terrain_data.h"
 
 #include "dual_contouring/octree.h"
 
@@ -12,6 +12,18 @@
 
 namespace hrzn::scene
 {
+    namespace utils
+    {
+        struct HashFunctionStruct
+        {
+            template <typename T>
+            std::size_t operator()(T t) const
+            {
+                return std::hash(t);
+            }
+        };
+    }
+
     class TerrainManager
     {
     public:
@@ -19,22 +31,47 @@ namespace hrzn::scene
 
         ~TerrainManager();
 
-        void SetViewerPosition(maths::Vec3f& position);
+        void setChunkScale(float chunkScale);
+        void setOriginPosition(const maths::Vec3f& originPosition);
 
-        void Update(float deltaTime);
+        void setViewerPosition(maths::Vec3f& position);
+        void update(float deltaTime);
+        void loadCloseChunks();
+        void unloadFarChunks();
 
-        gfx::Mesh* GetTestMesh();
+        gfx::Mesh* getStaticTerrainMesh();
+        void       renderTerrain(bool useGBuffer, bool bindPSData);
 
-        void LoadCloseChunks();
-        void UnloadFarChunks();        
+        // 2D static mesh gen methods
+        void initialiseStaticTerrainHeights(const maths::Vec3i& dimensions);
+
+        void createStaticTerrainMeshFromHeightmap(const std::string& heightmapFilePath);
+        void createStaticTerrainMeshUsingDiamondSquare(const maths::Vec3i& dimensions);
+        void createStaticTerrainMeshUsingCircle(const maths::Vec3i& dimensions);
+        void createStaticTerrainMeshUsingFaultLine(const maths::Vec3i& dimensions);
+
+        void createStaticTerrainMeshUsingHeights();
+
+        // 2D static mesh gen methods
+        void createDualContouringStaticMesh();
 
     private:
         TerrainManager();
 
-        //std::unordered_map<maths::Vec3i, TerrainChunk*> m_chunks;
-        terrain::OctreeNode*                              m_testOctree;
-        gfx::Mesh*                                        m_mesh;
+        // General vars
+        maths::Vec3i         m_staticTerrainDimensions;
+        float**              m_staticTerrainHeights;
+        gfx::Mesh*           m_staticTerrainMesh;
 
-        maths::Vec3f                                      m_viewerPosition;
+        float                m_chunkScale;
+        maths::Vec3f         m_originPosition;
+
+        std::unordered_map<maths::Vec2i, terrain::DataChunk2D*, utils::HashFunctionStruct> m_chunkData2D;
+        std::unordered_map<maths::Vec3i, terrain::DataChunk3D*, utils::HashFunctionStruct> m_chunkData3D;
+
+        maths::Vec3f         m_viewerPosition;
+
+        // Type specific
+        terrain::OctreeNode* m_testOctree;
     };
 }

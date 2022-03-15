@@ -34,10 +34,12 @@ namespace hrzn::scene::terrain
 		const float cube = Cuboid(worldPosition, maths::Vec3f(-4.0f, 8.f, -4.0f), maths::Vec3f(12.f));
 		const float sphere = Sphere(worldPosition, maths::Vec3f(-25.0f, 8.f, -4.0f), 16.0f);
 		const float sphere2 = Sphere(worldPosition, maths::Vec3f(-25.0f, 8.f, -20.0f), 8.0f);
-		const float sphere3 = Sphere(worldPosition, maths::Vec3f(-25.0f, 8.f, -35.0f), 4.0f);
+		const float sphere3 = Sphere(worldPosition, maths::Vec3f(-25.0f, 8.f, -32.5f), 4.0f);
 		const float sphere4 = Sphere(worldPosition, maths::Vec3f(-25.0f, 8.f, -40.0f), 2.0f);
-		const float sphere5 = Sphere(worldPosition, maths::Vec3f(-25.0f, 8.f, -43.0f), 1.0f);
+		const float sphere5 = Cuboid(worldPosition, maths::Vec3f(-25.0f, 8.f, -45.0f), maths::Vec3f(1.5f));
 
 		return fmaxf(-cube, fminf(sphere, fminf(sphere2, fminf(sphere3, fminf(sphere4, fminf(sphere5, terrain))))));
+
+		//return fmaxf(-cube, fminf(sphere, terrain));
 	}
 }

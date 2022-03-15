@@ -139,6 +139,7 @@ namespace hrzn::scene
         combineResults(loadOceanConfig(sceneConfig), result);
         combineResults(loadCloudConfig(sceneConfig), result);
         combineResults(loadAtmosphereConfig(sceneConfig), result);
+        combineResults(loadTerrainConfig(sceneConfig), result);
 
         return result;
     }
@@ -153,6 +154,7 @@ namespace hrzn::scene
         saveOceanConfig(writer);
         saveCloudConfig(writer);
         saveAtmosphereConfig(writer);
+        saveTerrainConfig(writer);
 
         writer.EndObject();
     }
@@ -347,6 +349,123 @@ namespace hrzn::scene
 
         writer.String("night_density"); writer.Double(atmosphereConfig.m_nightDensity);
         writer.String("night_zenith_y_clamp"); writer.Double(atmosphereConfig.m_nightZenithYClamp);
+
+        writer.EndObject();
+    }
+
+    SceneLoader::LoadResult SceneLoader::loadTerrainConfig(rapidjson::Value& sceneConfig)
+    {
+        if (!sceneConfig.HasMember("TerrainConfig"))
+        {
+            utils::ErrorLogger::log("Parsing Scene JSON\nNo 'TerrainConfig' tag found");
+            return LoadResult::eFailed;
+        }
+        rapidjson::Value& jsonTerrainConfig = sceneConfig["TerrainConfig"];
+
+        config::TerrainConfig terrainConfig;
+
+        if (jsonTerrainConfig.HasMember("enabled")) terrainConfig.m_enabled = jsonTerrainConfig["enabled"].GetBool();
+
+        if (jsonTerrainConfig.HasMember("dimension_type"))
+        {
+            std::string dimensionTypeString = jsonTerrainConfig["dimension_type"].GetString();
+
+            if (dimensionTypeString == "2d")
+            {
+                terrainConfig.m_dimensionType = config::TerrainConfig::DimensionType::e2D;
+            }
+            else if (dimensionTypeString == "3d")
+            {
+                terrainConfig.m_dimensionType = config::TerrainConfig::DimensionType::e3D;
+            }
+        }
+
+        if (jsonTerrainConfig.HasMember("is_infinite")) terrainConfig.m_isInfinite = jsonTerrainConfig["is_infinite"].GetBool();
+        if (jsonTerrainConfig.HasMember("chunk_scale")) terrainConfig.m_chunkScale = jsonTerrainConfig["chunk_scale"].GetFloat();
+        if (jsonTerrainConfig.HasMember("origin_position"))
+        {
+            XMFLOAT3 origin = utils::JSONHelpers::getFloat3FromArray(jsonTerrainConfig["origin_position"].GetArray());
+            terrainConfig.m_originPosition = maths::Vec3f(origin.x, origin.y, origin.z);
+        }
+
+        // 2D Config vars
+        if (terrainConfig.m_dimensionType == config::TerrainConfig::DimensionType::e2D)
+        {
+            // Generation type
+            if (jsonTerrainConfig.HasMember("2d_generation_type"))
+            {
+                std::string generationTypeString = jsonTerrainConfig["2d_generation_type"].GetString();
+
+                if (generationTypeString == "heightmap")
+                {
+                    terrainConfig.m_generationType2D = config::TerrainConfig::GenerationType2D::eHeightmap;
+
+                    if (jsonTerrainConfig.HasMember("heightmap_path")) terrainConfig.m_heightmapPath = jsonTerrainConfig["heightmap_path"].GetString();
+                }
+                else if (generationTypeString == "diamond_square")
+                {
+                    terrainConfig.m_generationType2D = config::TerrainConfig::GenerationType2D::eDiamondSquare;
+                }
+                else if (generationTypeString == "fault_line")
+                {
+                    terrainConfig.m_generationType2D = config::TerrainConfig::GenerationType2D::eFaultLine;
+                }
+                else if (generationTypeString == "circle")
+                {
+                    terrainConfig.m_generationType2D = config::TerrainConfig::GenerationType2D::eCircle;
+                }
+            }
+        }
+        // 3D Config vars
+        else if (terrainConfig.m_dimensionType == config::TerrainConfig::DimensionType::e3D)
+        {
+            // Generation type
+            if (jsonTerrainConfig.HasMember("3d_generation_type"))
+            {
+                std::string generationTypeString = jsonTerrainConfig["3d_generation_type"].GetString();
+
+                if (generationTypeString == "default")
+                {
+                    terrainConfig.m_generationType3D = config::TerrainConfig::GenerationType3D::eDefault;
+                }
+            }
+        }
+
+        SceneManager::it().getWritableSceneConfig().setTerrainConfig(terrainConfig);
+
+        return LoadResult::eOk;
+    }
+
+    void SceneLoader::saveTerrainConfig(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
+    {
+        writer.String("TerrainConfig");
+
+        writer.StartObject();
+
+        config::TerrainConfig& terrainConfig = SceneManager::it().getWritableSceneConfig().getWritableTerrainConfig();
+
+        writer.String("enabled"); writer.Bool(terrainConfig.m_enabled);
+
+        writer.String("dimension_type"); 
+
+        if (terrainConfig.m_dimensionType == config::TerrainConfig::DimensionType::e2D) writer.String("2d");
+        else if (terrainConfig.m_dimensionType == config::TerrainConfig::DimensionType::e3D) writer.String("3d");
+        else writer.String("undefined");
+
+        writer.String("is_infinite"); writer.Bool(terrainConfig.m_isInfinite);
+        writer.String("chunk_scale"); writer.Double(terrainConfig.m_chunkScale);
+        writer.String("origin_position"); utils::JSONHelpers::writeFloat3(terrainConfig.m_originPosition.getAsXMFLOAT3(), writer);
+
+        writer.String("2d_generation_type");
+        if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eHeightmap) writer.String("heightmap");
+        else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eDiamondSquare) writer.String("diamond_square");
+        else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eFaultLine) writer.String("fault_line");
+        else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eCircle) writer.String("circle");
+
+        writer.String("heightmap_path"); writer.String(terrainConfig.m_heightmapPath.c_str());
+
+        writer.String("3d_generation_type");
+        if (terrainConfig.m_generationType3D == config::TerrainConfig::GenerationType3D::eDefault) writer.String("default");
 
         writer.EndObject();
     }

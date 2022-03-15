@@ -104,6 +104,12 @@ namespace hrzn::maths
     }
 
     template<typename T>
+    inline Vec3<T> Vec3<T>::operator/(const Vec3<T>& vector) const
+    {
+        return Vec3<T>(x / vector.x, y / vector.y, z / vector.z);
+    }
+
+    template<typename T>
     inline void Vec3<T>::operator/=(const T scalar)
     {
         x /= scalar;
@@ -173,6 +179,12 @@ namespace hrzn::maths
     inline Vec3<float> Vec3<T>::createVec3f()
     {
         return Vec3<float>((float)x, (float)y, (float)z);
+    }
+
+    template<typename T>
+    inline Vec3<T> Vec3<T>::reciprocal()
+    {
+        return Vec3<T>((T)1 / x, (T)1 / y, (T)1 / z);
     }
 
     template<typename T>

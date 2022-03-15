@@ -137,6 +137,37 @@ namespace hrzn::maths
     }
 
     template<typename T>
+    inline bool Vec2<T>::operator<(const Vec2<T>& b) const
+    {
+        if (y < b.y)
+        {
+            // y < b.y
+            return true;
+        }
+        else if (y == b.y)
+        {
+            if (x < b.x)
+            {
+                return true;
+            }
+            else if (x == b.x)
+            {
+                // completely equal
+                return false;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            // y >= b.y
+            return false;
+        }
+    }
+
+    template<typename T>
     inline T Vec2<T>::length() const
     {
         return sqrt(lengthSquared());

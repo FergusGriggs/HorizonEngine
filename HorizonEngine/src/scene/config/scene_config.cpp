@@ -77,8 +77,24 @@ namespace hrzn::scene
     {
         return m_atmosphereConfig;
     }
+
     void SceneConfig::setAtmosphereConfig(const config::AtmosphereConfig& atmosphereConfig)
     {
         m_atmosphereConfig = atmosphereConfig;
+    }
+
+    const config::TerrainConfig& SceneConfig::getTerrainConfig() const
+    {
+        return m_terrainConfig;
+    }
+
+    config::TerrainConfig& SceneConfig::getWritableTerrainConfig()
+    {
+        return m_terrainConfig;
+    }
+
+    void SceneConfig::setTerrainConfig(const config::TerrainConfig& terrainConfig)
+    {
+        m_terrainConfig = terrainConfig;
     }
 }

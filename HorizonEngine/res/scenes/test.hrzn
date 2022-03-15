@@ -37,15 +37,24 @@
                 "num_steps": 40,
                 "step_size": 85.0
             },
-            "AtmosphereConfig": {
-                "sun_size": 75.0,
-                "density": 0.6499999,
-                "multi_scatter_phase": 0.27,
-                "anisotropic_intenisty": 1.0,
-                "zenith_offset": -0.0599999,
-                "night_density": 0.75,
-                "night_zenith_y_clamp": 0.1
-            }
+          "AtmosphereConfig": {
+            "sun_size": 75.0,
+            "density": 0.6499999,
+            "multi_scatter_phase": 0.27,
+            "anisotropic_intenisty": 1.0,
+            "zenith_offset": -0.0599999,
+            "night_density": 0.75,
+            "night_zenith_y_clamp": 0.1
+          },
+          "TerrainConfig": {
+            "enabled": true,
+            "dimension_type": "3d",
+            "is_infinite": false,
+            "chunk_scale": 128.0,
+            "origin_position": [ 0.0, -50.0, 128.0 ],
+            "2d_generation_type": "heightmap",
+            "heightmap_path": "res/textures/terrain/coastMountain513.raw"
+          }
         },
         "ObjectTracks": [
             {

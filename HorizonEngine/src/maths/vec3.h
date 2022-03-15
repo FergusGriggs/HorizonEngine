@@ -27,6 +27,7 @@ namespace hrzn::maths
         void              operator*=(const T scalar);
 
         Vec3<T>           operator/(const T scalar) const;
+        Vec3<T>           operator/(const Vec3<T>& vector) const;
         void              operator/=(const T scalar);
 
         bool              operator==(const Vec3<T>& vector) const;
@@ -42,6 +43,7 @@ namespace hrzn::maths
         Vec3<T>           cross(const Vec3<T>& vector);
 
         Vec3<float>       createVec3f();
+        Vec3<T>           reciprocal();
 
         // XMVECTOR
         DirectX::XMVECTOR getAsXMVECTOR() const;

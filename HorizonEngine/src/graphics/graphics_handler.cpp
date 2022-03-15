@@ -8,6 +8,7 @@
 
 #include "data/resource_manager.h"
 #include "../scene/scene_manager.h"
+#include "../scene/terrain/terrain_manager.h"
 
 #include "post_process/bloom_post_process.h"
 #include "post_process/grayscale_post_process.h"
@@ -485,6 +486,12 @@ namespace hrzn::gfx
 		if (renderPassType == RenderPassType::eShadowPass)
 		{
 			bindPSData = false;
+		}
+
+		// Terrain
+		if (renderPassType == RenderPassType::eNonGBufferCompatiblePass || renderPassType == RenderPassType::eStandardPass)
+		{
+			scene::TerrainManager::it().renderTerrain(false, bindPSData);
 		}
 
 		// Regular objects

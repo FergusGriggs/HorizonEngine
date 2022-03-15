@@ -248,11 +248,12 @@ namespace hrzn::scene::terrain
 
 	// ----------------------------------------------------------------------------
 
-	void ContourProcessEdge(OctreeNode* node[4], int dir, std::vector<DWORD>& indexBuffer)
+	void ContourProcessEdge(OctreeNode* node[4], int dir, std::vector<gfx::Vertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		int minSize = 1000000;		// arbitrary big number
 		int minIndex = 0;
-		int indices[4] = { -1, -1, -1, -1 };
+		maths::Vec3f positions[4] = { maths::Vec3f(0.0f) };
+
 		bool flip = false;
 		bool signChange[4] = { false, false, false, false };
 
@@ -272,7 +273,7 @@ namespace hrzn::scene::terrain
 				flip = m1 != MATERIAL_AIR;
 			}
 
-			indices[i] = node[i]->m_drawInfo->m_index;
+			positions[i] = node[i]->m_drawInfo->m_position;
 
 			signChange[i] =
 				(m1 == MATERIAL_AIR && m2 != MATERIAL_AIR) ||
@@ -281,32 +282,52 @@ namespace hrzn::scene::terrain
 
 		if (signChange[minIndex])
 		{
+			DWORD currentVertices = vertexBuffer.size();
+
+			maths::Vec3f face1Normal = maths::Vec3f::normalise(maths::Vec3f::cross(positions[1] - positions[0], positions[2] - positions[0]));
+			maths::Vec3f face2Normal = maths::Vec3f::normalise(maths::Vec3f::cross(positions[1] - positions[2], positions[3] - positions[2]));
+
+			if (flip)
+			{
+				face1Normal = face1Normal * -1.0f;
+				face2Normal = face2Normal * -1.0f;
+			}
+
+			// Add vertices to the list
+			vertexBuffer.emplace_back(positions[0].x, positions[0].y, positions[0].z, face1Normal.x, face1Normal.y, face1Normal.z, 0.0f, 0.0f);
+			vertexBuffer.emplace_back(positions[1].x, positions[1].y, positions[1].z, face1Normal.x, face1Normal.y, face1Normal.z, 0.0f, 0.0f);
+			vertexBuffer.emplace_back(positions[2].x, positions[2].y, positions[2].z, face1Normal.x, face1Normal.y, face1Normal.z, 0.0f, 0.0f);
+
+			vertexBuffer.emplace_back(positions[2].x, positions[2].y, positions[2].z, face2Normal.x, face2Normal.y, face2Normal.z, 0.0f, 0.0f);
+			vertexBuffer.emplace_back(positions[1].x, positions[1].y, positions[1].z, face2Normal.x, face2Normal.y, face2Normal.z, 0.0f, 0.0f);
+			vertexBuffer.emplace_back(positions[3].x, positions[3].y, positions[3].z, face2Normal.x, face2Normal.y, face2Normal.z, 0.0f, 0.0f);
+
 			if (!flip)
 			{
-				indexBuffer.push_back(indices[0]);
-				indexBuffer.push_back(indices[1]);
-				indexBuffer.push_back(indices[3]);
+				indexBuffer.push_back(currentVertices);
+				indexBuffer.push_back(currentVertices + 1);
+				indexBuffer.push_back(currentVertices + 2);
 
-				indexBuffer.push_back(indices[0]);
-				indexBuffer.push_back(indices[3]);
-				indexBuffer.push_back(indices[2]);
+				indexBuffer.push_back(currentVertices + 3);
+				indexBuffer.push_back(currentVertices + 4);
+				indexBuffer.push_back(currentVertices + 5);
 			}
 			else
 			{
-				indexBuffer.push_back(indices[0]);
-				indexBuffer.push_back(indices[3]);
-				indexBuffer.push_back(indices[1]);
+				indexBuffer.push_back(currentVertices + 2);
+				indexBuffer.push_back(currentVertices + 1);
+				indexBuffer.push_back(currentVertices);
 
-				indexBuffer.push_back(indices[0]);
-				indexBuffer.push_back(indices[2]);
-				indexBuffer.push_back(indices[3]);
+				indexBuffer.push_back(currentVertices + 5);
+				indexBuffer.push_back(currentVertices + 4);
+				indexBuffer.push_back(currentVertices + 3);
 			}
 		}
 	}
 
 	// ----------------------------------------------------------------------------
 
-	void ContourEdgeProc(OctreeNode* node[4], int dir, std::vector<DWORD>& indexBuffer)
+	void ContourEdgeProc(OctreeNode* node[4], int dir, std::vector<gfx::Vertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		if (!node[0] || !node[1] || !node[2] || !node[3])
 		{
@@ -318,7 +339,7 @@ namespace hrzn::scene::terrain
 			node[2]->m_type != OctreeNodeType::eInternal &&
 			node[3]->m_type != OctreeNodeType::eInternal)
 		{
-			ContourProcessEdge(node, dir, indexBuffer);
+			ContourProcessEdge(node, dir, vertexBuffer, indexBuffer);
 		}
 		else
 		{
@@ -345,14 +366,14 @@ namespace hrzn::scene::terrain
 					}
 				}
 
-				ContourEdgeProc(edgeNodes, edgeProcEdgeMask[dir][i][4], indexBuffer);
+				ContourEdgeProc(edgeNodes, edgeProcEdgeMask[dir][i][4], vertexBuffer, indexBuffer);
 			}
 		}
 	}
 
 	// ----------------------------------------------------------------------------
 
-	void ContourFaceProc(OctreeNode* node[2], int dir, std::vector<DWORD>& indexBuffer)
+	void ContourFaceProc(OctreeNode* node[2], int dir, std::vector<gfx::Vertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		if (!node[0] || !node[1])
 		{
@@ -383,7 +404,7 @@ namespace hrzn::scene::terrain
 					}
 				}
 
-				ContourFaceProc(faceNodes, faceProcFaceMask[dir][i][2], indexBuffer);
+				ContourFaceProc(faceNodes, faceProcFaceMask[dir][i][2], vertexBuffer, indexBuffer);
 			}
 
 			const int orders[2][4] =
@@ -416,14 +437,14 @@ namespace hrzn::scene::terrain
 					}
 				}
 
-				ContourEdgeProc(edgeNodes, faceProcEdgeMask[dir][i][5], indexBuffer);
+				ContourEdgeProc(edgeNodes, faceProcEdgeMask[dir][i][5], vertexBuffer, indexBuffer);
 			}
 		}
 	}
 
 	// ----------------------------------------------------------------------------
 
-	void ContourCellProc(OctreeNode* node, std::vector<DWORD>& indexBuffer)
+	void ContourCellProc(OctreeNode* node, std::vector<gfx::Vertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		if (node == NULL)
 		{
@@ -434,7 +455,7 @@ namespace hrzn::scene::terrain
 		{
 			for (int i = 0; i < 8; i++)
 			{
-				ContourCellProc(node->m_children[i], indexBuffer);
+				ContourCellProc(node->m_children[i], vertexBuffer, indexBuffer);
 			}
 
 			for (int i = 0; i < 12; i++)
@@ -445,7 +466,7 @@ namespace hrzn::scene::terrain
 				faceNodes[0] = node->m_children[c[0]];
 				faceNodes[1] = node->m_children[c[1]];
 
-				ContourFaceProc(faceNodes, cellProcFaceMask[i][2], indexBuffer);
+				ContourFaceProc(faceNodes, cellProcFaceMask[i][2], vertexBuffer, indexBuffer);
 			}
 
 			for (int i = 0; i < 6; i++)
@@ -464,7 +485,7 @@ namespace hrzn::scene::terrain
 					edgeNodes[j] = node->m_children[c[j]];
 				}
 
-				ContourEdgeProc(edgeNodes, cellProcEdgeMask[i][4], indexBuffer);
+				ContourEdgeProc(edgeNodes, cellProcEdgeMask[i][4], vertexBuffer, indexBuffer);
 			}
 		}
 	}
@@ -655,8 +676,8 @@ namespace hrzn::scene::terrain
 		vertexBuffer.clear();
 		indexBuffer.clear();
 
-		GenerateVertexIndices(node, vertexBuffer);
-		ContourCellProc(node, indexBuffer);
+		//GenerateVertexIndices(node, vertexBuffer);
+		ContourCellProc(node, vertexBuffer, indexBuffer);
 	}
 
 	// -------------------------------------------------------------------------------

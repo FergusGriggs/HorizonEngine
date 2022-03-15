@@ -33,6 +33,8 @@ namespace hrzn::maths
 
         T&             operator[](int index);
 
+        bool           operator<(const Vec2<T>& b) const;
+
         // Member functions
         T              length() const;
         T              lengthSquared() const;

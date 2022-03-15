@@ -31,10 +31,15 @@ namespace hrzn::scene
         config::AtmosphereConfig&       getWritableAtmosphereConfig();
         void                            setAtmosphereConfig(const config::AtmosphereConfig& atmosphereConfig);
 
+        const config::TerrainConfig&    getTerrainConfig() const;
+        config::TerrainConfig&          getWritableTerrainConfig();
+        void                            setTerrainConfig(const config::TerrainConfig& terrainConfig);
+
     private:
         config::TimeConfig       m_timeConfig;
         config::OceanConfig      m_oceanConfig;
         config::CloudConfig      m_cloudConfig;
         config::AtmosphereConfig m_atmosphereConfig;
+        config::TerrainConfig    m_terrainConfig;
     };
 }

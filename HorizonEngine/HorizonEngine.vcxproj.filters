@@ -249,7 +249,7 @@
     <ClCompile Include="src\scene\terrain\terrain_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\scene\terrain\terrain_chunk.cpp">
+    <ClCompile Include="src\scene\terrain\terrain_render_chunk.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\scene\terrain\dual_contouring\octree.cpp">
@@ -262,6 +262,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\scene\terrain\dual_contouring\svd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\terrain\terrain_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -500,7 +503,7 @@
     <ClInclude Include="src\maths\vec4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene\terrain\terrain_chunk.h">
+    <ClInclude Include="src\scene\terrain\terrain_render_chunk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\scene\terrain\dual_contouring\octree.h">
@@ -513,6 +516,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\scene\terrain\dual_contouring\svd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\terrain\terrain_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\terrain\dual_contouring\qef_simd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -540,6 +549,7 @@
     <FxCompile Include="res\shader\pixel\misc\ps_chromatic_abberation.hlsl" />
     <FxCompile Include="res\shader\pixel\misc\ps_ambient_occlusion.hlsl" />
     <FxCompile Include="res\shader\pixel\gbuffer\ps_gbuf_w_water.hlsl" />
+    <FxCompile Include="res\shader\pixel\standard\ps_terrain.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini">

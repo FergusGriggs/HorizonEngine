@@ -45,6 +45,8 @@ namespace hrzn::scene
         void       saveCloudConfig(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
         LoadResult loadAtmosphereConfig(rapidjson::Value& sceneConfig);
         void       saveAtmosphereConfig(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
+        LoadResult loadTerrainConfig(rapidjson::Value& sceneConfig);
+        void       saveTerrainConfig(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
 
         LoadResult loadObjectTracks(rapidjson::Value& sceneObject);
         void       saveObjectTracks(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);

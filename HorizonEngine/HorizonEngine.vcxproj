@@ -233,7 +233,8 @@
     <ClCompile Include="src\window_container.cpp" />
     <ClCompile Include="src\user_config.cpp" />
     <ClCompile Include="src\scene\terrain\terrain_manager.cpp" />
-    <ClCompile Include="src\scene\terrain\terrain_chunk.cpp" />
+    <ClCompile Include="src\scene\terrain\terrain_render_chunk.cpp" />
+    <ClCompile Include="src\scene\terrain\terrain_data.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\graphics\post_process\chromatic_aberration_post_process.h" />
@@ -263,6 +264,7 @@
     <ClInclude Include="src\scene\terrain\dual_contouring\density.h" />
     <ClInclude Include="src\scene\terrain\dual_contouring\octree.h" />
     <ClInclude Include="src\scene\terrain\dual_contouring\qef.h" />
+    <ClInclude Include="src\scene\terrain\dual_contouring\qef_simd.h" />
     <ClInclude Include="src\scene\terrain\dual_contouring\svd.h" />
     <ClInclude Include="src\utils\io_helpers.h" />
     <ClInclude Include="src\scene\scene_loader.h" />
@@ -318,7 +320,8 @@
     <ClInclude Include="src\window_container.h" />
     <ClInclude Include="src\user_config.h" />
     <ClInclude Include="src\scene\terrain\terrain_manager.h" />
-    <ClInclude Include="src\scene\terrain\terrain_chunk.h" />
+    <ClInclude Include="src\scene\terrain\terrain_render_chunk.h" />
+    <ClInclude Include="src\scene\terrain\terrain_data.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="res\shader\compute\cs_noise_gen.hlsl">
@@ -672,6 +675,20 @@
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableDebuggingInformation>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="res\shader\pixel\standard\ps_terrain.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DisableOptimizations>
+      <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</EnableDebuggingInformation>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>

@@ -4,8 +4,6 @@
 
 #include "data/resource_manager.h"
 
-#include "../scene/terrain/terrain_manager.h"
-
 namespace hrzn::gfx
 {
     ImageRenderer::ImageRenderer() :
@@ -247,8 +245,6 @@ namespace hrzn::gfx
 
         GraphicsHandler::it().renderSceneObjects(RenderPassType::eGBufferCompatiblePass, eyePos, eyeFacing);
 
-        scene::TerrainManager::it().GetTestMesh()->draw(true, true);
-
         /***********************************************
 
         MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
@@ -258,6 +254,8 @@ namespace hrzn::gfx
         COMMENT INDEX: 11
 
         ***********************************************/
+
+        deviceContext->RSSetState(GraphicsHandler::it().getDefaultRasterizerState());
 
         // Do SSAO stuff
         if (GraphicsHandler::it().isUsingSSAO())
@@ -305,6 +303,8 @@ namespace hrzn::gfx
 
         deviceContext->IASetInputLayout(ResourceManager::it().getDefaultVSPtr()->getInputLayout());
         deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        deviceContext->RSSetState(m_rasterizerState);
 
         /***********************************************
 

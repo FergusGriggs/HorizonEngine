@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+
+#include "../../maths/vec3.h"
+
 namespace hrzn::scene::config
 {
     struct TimeConfig
@@ -110,5 +114,56 @@ namespace hrzn::scene::config
 
         float  m_nightDensity;
         float  m_nightZenithYClamp;
+    };
+
+    struct TerrainConfig
+    {
+        enum class DimensionType
+        {
+            eUnset,
+            e2D,
+            e3D
+        };
+
+        enum class GenerationType2D
+        {
+            eHeightmap,
+            eDiamondSquare,
+            eFaultLine,
+            eCircle
+        };
+
+        enum class GenerationType3D
+        {
+            eDefault
+        };
+
+        TerrainConfig() :
+            m_enabled(true),
+            m_dimensionType(DimensionType::e2D),
+            m_isInfinite(false),
+            m_chunkScale(128.0f),
+            m_originPosition(maths::Vec3f(0.0f)),
+            
+            m_generationType2D(GenerationType2D::eHeightmap),
+            m_heightmapPath("res/textures/terrain/coastMountain513.raw"),
+
+            m_generationType3D(GenerationType3D::eDefault)
+        {
+        }
+
+        // Always loaded
+        bool          m_enabled;
+        DimensionType m_dimensionType;
+        bool          m_isInfinite;
+        float         m_chunkScale;
+        maths::Vec3f  m_originPosition;
+
+        // Loaded if 2d
+        GenerationType2D m_generationType2D;
+        std::string      m_heightmapPath;
+
+        // Loaded if 3d
+        GenerationType3D m_generationType3D;
     };
 }
