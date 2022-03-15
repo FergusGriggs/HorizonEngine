@@ -28,7 +28,7 @@ namespace hrzn::scene
                 }
                 else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eDiamondSquare)
                 {
-                    createStaticTerrainMeshUsingDiamondSquare(maths::Vec3i(128, 1, 128));
+                    createStaticTerrainMeshUsingDiamondSquare(4);
                 }
                 else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eFaultLine)
                 {
@@ -129,9 +129,23 @@ namespace hrzn::scene
         createStaticTerrainMeshUsingHeights();
     }
 
-    void TerrainManager::createStaticTerrainMeshUsingDiamondSquare(const maths::Vec3i& dimensions)
+    void TerrainManager::createStaticTerrainMeshUsingDiamondSquare(int resolution)
     {
+        int gridSize = resolution * resolution + 1;
+        maths::Vec3i dimensions = maths::Vec3i(gridSize, 1, gridSize);
+
         initialiseStaticTerrainHeights(dimensions);
+
+        for (int iteration = 0; iteration < resolution; ++iteration)
+        {
+            int squareSize = gridSize / iteration;
+            // use this shit: http://www.lighthouse3d.com/opengl/terrain/index.php?mpd2
+
+            // Square step
+
+            // Diamond step
+
+        }
 
         createStaticTerrainMeshUsingHeights();
     }

@@ -46,7 +46,7 @@ namespace hrzn::scene
         void initialiseStaticTerrainHeights(const maths::Vec3i& dimensions);
 
         void createStaticTerrainMeshFromHeightmap(const std::string& heightmapFilePath);
-        void createStaticTerrainMeshUsingDiamondSquare(const maths::Vec3i& dimensions);
+        void createStaticTerrainMeshUsingDiamondSquare(int resolution);
         void createStaticTerrainMeshUsingCircle(const maths::Vec3i& dimensions);
         void createStaticTerrainMeshUsingFaultLine(const maths::Vec3i& dimensions);
 
