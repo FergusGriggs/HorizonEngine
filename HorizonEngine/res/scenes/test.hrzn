@@ -48,11 +48,11 @@
           },
           "TerrainConfig": {
             "enabled": true,
-            "dimension_type": "3d",
+            "dimension_type": "2d",
             "is_infinite": false,
             "chunk_scale": 128.0,
-            "origin_position": [ 0.0, -50.0, 128.0 ],
-            "2d_generation_type": "heightmap",
+            "origin_position": [ 0.0, -10.0, 128.0 ],
+            "2d_generation_type": "diamond_square",
             "heightmap_path": "res/textures/terrain/coastMountain513.raw"
           }
         },

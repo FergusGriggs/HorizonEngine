@@ -28,15 +28,15 @@ namespace hrzn::scene
                 }
                 else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eDiamondSquare)
                 {
-                    createStaticTerrainMeshUsingDiamondSquare(4);
+                    createStaticTerrainMeshUsingDiamondSquare(10);
                 }
                 else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eFaultLine)
                 {
-                    createStaticTerrainMeshUsingFaultLine(maths::Vec3i(128, 1, 128));
+                    createStaticTerrainMeshUsingFaultLine(maths::Vec3i(128, 1, 128), 1000, 1);
                 }
                 else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eCircle)
                 {
-                    createStaticTerrainMeshUsingCircle(maths::Vec3i(128, 1, 128));
+                    createStaticTerrainMeshUsingCircle(maths::Vec3i(128, 1, 128), 500, 3, 20);
                 }
             }
             else
@@ -131,35 +131,148 @@ namespace hrzn::scene
 
     void TerrainManager::createStaticTerrainMeshUsingDiamondSquare(int resolution)
     {
-        int gridSize = resolution * resolution + 1;
+        int gridSize = (1 << resolution) + 1;
         maths::Vec3i dimensions = maths::Vec3i(gridSize, 1, gridSize);
 
         initialiseStaticTerrainHeights(dimensions);
 
+        int numOperations = 1;
+        float roughness = 10.0f;
+
         for (int iteration = 0; iteration < resolution; ++iteration)
         {
-            int squareSize = gridSize / iteration;
-            // use this shit: http://www.lighthouse3d.com/opengl/terrain/index.php?mpd2
+            int squareSize = (gridSize - 1) / numOperations;
 
             // Square step
+            for (int squareX = 0; squareX < numOperations; ++squareX)
+            {
+                for (int squareY = 0; squareY < numOperations; ++squareY)
+                {
+                    float a = m_staticTerrainHeights[squareX * squareSize][squareY * squareSize];
+                    float b = m_staticTerrainHeights[squareX * squareSize + squareSize][squareY * squareSize];
+                    float c = m_staticTerrainHeights[squareX * squareSize][squareY * squareSize + squareSize];
+                    float d = m_staticTerrainHeights[squareX * squareSize + squareSize][squareY * squareSize + squareSize];
 
+                    // E
+                    m_staticTerrainHeights[squareX * squareSize + squareSize / 2][squareY * squareSize + squareSize / 2] = (a + b + c + d) / 4.0f + maths::random::negOneToOne<float>() * roughness;
+                }
+            }
+            
             // Diamond step
+            for (int squareX = 0; squareX < numOperations; ++squareX)
+            {
+                for (int squareY = 0; squareY < numOperations; ++squareY)
+                {
+                    float a = m_staticTerrainHeights[squareX * squareSize][squareY * squareSize];
+                    float b = m_staticTerrainHeights[squareX * squareSize + squareSize][squareY * squareSize];
+                    float c = m_staticTerrainHeights[squareX * squareSize][squareY * squareSize + squareSize];
+                    float d = m_staticTerrainHeights[squareX * squareSize + squareSize][squareY * squareSize + squareSize];
+                    float e = m_staticTerrainHeights[squareX * squareSize + squareSize / 2][squareY * squareSize + squareSize / 2];
 
+                    // F
+                    m_staticTerrainHeights[squareX * squareSize][squareY * squareSize + squareSize / 2] = (a + c + e * 2.0f) / 4.0f + maths::random::negOneToOne<float>() * roughness;
+                    // G
+                    m_staticTerrainHeights[squareX * squareSize + squareSize / 2][squareY * squareSize] = (a + b + e * 2.0f) / 4.0f + maths::random::negOneToOne<float>() * roughness;
+                    // H
+                    m_staticTerrainHeights[squareX * squareSize + squareSize][squareY * squareSize + squareSize / 2] = (b + d + e * 2.0f) / 4.0f + maths::random::negOneToOne<float>() * roughness;
+                    // I
+                    m_staticTerrainHeights[squareX * squareSize + squareSize / 2][squareY * squareSize + squareSize] = (c + d + e * 2.0f) / 4.0f + maths::random::negOneToOne<float>() * roughness;
+                }
+            }
+
+            numOperations <<= 1;
+            roughness *= 0.5f;
         }
 
         createStaticTerrainMeshUsingHeights();
     }
 
-    void TerrainManager::createStaticTerrainMeshUsingCircle(const maths::Vec3i& dimensions)
+    void TerrainManager::createStaticTerrainMeshUsingCircle(const maths::Vec3i& dimensions, int numCircles, int minRadius, int maxRadius)
     {
         initialiseStaticTerrainHeights(dimensions);
+
+        for (int k = 0; k < numCircles; ++k)
+        {
+            int radius = minRadius;
+            if (minRadius != maxRadius)
+            {
+                radius = minRadius + rand() % (maxRadius - minRadius);
+            }
+
+            float radiusFloat = (float)radius;
+
+            maths::Vec2i centre = maths::Vec2i(rand() % dimensions.x, rand() % dimensions.z);
+            maths::Vec2f centreFloat = maths::Vec2f(centre.x, centre.y);
+
+            maths::Vec2i minCoord = centre - radius;
+            maths::Vec2i maxCoord = centre + radius;
+
+            minCoord = maths::Vec2i::max(maths::Vec2i(0, 0), minCoord);
+            maxCoord = maths::Vec2i::min(maths::Vec2i(dimensions.x - 1, dimensions.z - 1), maxCoord);
+
+            for (int i = minCoord.x; i <= maxCoord.x; ++i)
+            {
+                for (int j = minCoord.y; j <= maxCoord.y; ++j)
+                {
+                    float distance = maths::Vec2f::dist(maths::Vec2f((float)i, (float)j), centreFloat);
+
+                    if (distance < radiusFloat)
+                    {
+                        float zeroToOneDist = distance / radiusFloat;
+
+                        float theta = zeroToOneDist * XM_PI;
+
+                        float zeroToOneHeight = cosf(theta) * 0.5f + 0.5f;
+
+                        m_staticTerrainHeights[i][j] += zeroToOneHeight * 2.5f;
+                    }
+                }
+            }
+        }
 
         createStaticTerrainMeshUsingHeights();
     }
 
-    void TerrainManager::createStaticTerrainMeshUsingFaultLine(const maths::Vec3i& dimensions)
+    void TerrainManager::createStaticTerrainMeshUsingFaultLine(const maths::Vec3i& dimensions, int numLines, int lineMode)
     {
         initialiseStaticTerrainHeights(dimensions);
+
+        for (int k = 0; k < numLines; ++k)
+        {
+            maths::Vec2f linePos1 = (maths::Vec2f::getRandomVector() * 0.5f + 0.5f) * maths::Vec2f((float)dimensions.x, (float)dimensions.z);
+
+            // Point to point
+            maths::Vec2f lineDir;
+            if (lineMode == 0)
+            {
+                maths::Vec2f linePos2 = (maths::Vec2f::getRandomVector() * 0.5f + 0.5f) * maths::Vec2f((float)dimensions.x, (float)dimensions.z);
+                lineDir = maths::Vec2f::normalise(maths::Vec2f::right(linePos2 - linePos1));
+            }
+            // Random dir
+            else if (lineMode == 1)
+            {
+                lineDir = maths::Vec2f::getRandomDirection();
+            }
+
+            for (int i = 0; i < dimensions.x; ++i)
+            {
+                for (int j = 0; j < dimensions.z; ++j)
+                {
+                    maths::Vec2f gridPoint = maths::Vec2f(i, j);
+
+                    float signedDistToLine = maths::Vec2f::dot(lineDir, gridPoint - linePos1);
+
+                    if (signedDistToLine < 0.0f)
+                    {
+                        m_staticTerrainHeights[i][j] += 0.05f;
+                    }
+                    else
+                    {
+                        m_staticTerrainHeights[i][j] -= 0.05f;
+                    }
+                }
+            }
+        }
 
         createStaticTerrainMeshUsingHeights();
     }
@@ -177,7 +290,7 @@ namespace hrzn::scene
         {
             for (int j = 0; j < m_staticTerrainDimensions.z; ++j)
             {
-                maths::Vec3f vertPosition = m_originPosition - m_chunkScale * 0.5f + maths::Vec3f(vertStep.x * (float)i, 0.0f, 0.0f) + maths::Vec3f(0.0f, 0.0f, vertStep.z * (float)j) + maths::Vec3f(0.0f, m_chunkScale * 0.5f + m_staticTerrainHeights[i][j] * m_chunkScale, 0.0f);
+                maths::Vec3f vertPosition = m_originPosition - m_chunkScale * 0.5f + maths::Vec3f(vertStep.x * (float)i, 0.0f, 0.0f) + maths::Vec3f(0.0f, 0.0f, vertStep.z * (float)j) + maths::Vec3f(0.0f, m_chunkScale * 0.5f + m_staticTerrainHeights[i][j], 0.0f);
 
                 vertexPositions.push_back(vertPosition);
             }

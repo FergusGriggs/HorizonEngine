@@ -16,7 +16,7 @@ namespace hrzn::maths::random
 	template<typename T>
 	static T zeroToOne()
 	{
-		return (T)(rand() % RAND_MAX) / (T)(RAND_MAX);
+		return (T)(rand()) / (T)(RAND_MAX);
 	}
 
 	template<typename T>

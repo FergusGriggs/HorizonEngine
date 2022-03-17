@@ -3,6 +3,7 @@
 #include "vec3.h"
 
 #include <DirectXMath.h>
+#include <algorithm>
 
 #include "random.h"
 
@@ -286,19 +287,19 @@ namespace hrzn::maths
     template<typename T>
     inline Vec3<T> Vec3<T>::min(const Vec3<T>& vector1, const Vec3<T>& vector2)
     {
-        return Vec3<T>(fminf(vector1.x, vector2.x), fminf(vector1.y, vector2.y));
+        return Vec3<T>(std::min(vector1.x, vector2.x), std::min(vector1.y, vector2.y), std::min(vector1.z, vector2.z));
     }
 
     template<typename T>
     inline Vec3<T> Vec3<T>::max(const Vec3<T>& vector1, const Vec3<T>& vector2)
     {
-        return Vec3<T>(fmaxf(vector1.x, vector2.x), fmaxf(vector1.y, vector2.y), fmaxf(vector1.z, vector2.z));
+        return Vec3<T>(std::max(vector1.x, vector2.x), std::max(vector1.y, vector2.y), std::max(vector1.z, vector2.z));
     }
 
     template<typename T>
     inline Vec3<T> Vec3<T>::abs(const Vec3<T>& vector)
     {
-        return Vec3<T>(fabsf(vector.x), fabsf(vector.y), fabsf(vector.z));
+        return Vec3<T>(std::abs(vector.x), std::abs(vector.y), std::abs(vector.z));
     }
 
     template<typename T>

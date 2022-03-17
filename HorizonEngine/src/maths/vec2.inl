@@ -3,6 +3,7 @@
 #include "vec2.h"
 
 #include <math.h>
+#include <algorithm>
 
 #include "random.h"
 
@@ -263,13 +264,25 @@ namespace hrzn::maths
     template<typename T>
     inline Vec2<T> Vec2<T>::getRandomDirection()
     {
-        return Vec2<T>::Normalise(Vec2<T>::GetRandomVector());
+        return Vec2<T>::normalise(Vec2<T>::getRandomVector());
     }
 
     template<typename T>
     inline Vec2<T> Vec2<T>::lerp(const Vec2<T>& vector1, const Vec2<T>& vector2, T delta)
     {
         return vector1 + (vector2 - vector1) * delta;
+    }
+
+    template<typename T>
+    inline Vec2<T> Vec2<T>::min(const Vec2<T>& vector1, const Vec2<T>& vector2)
+    {
+        return Vec2<T>(std::min(vector1.x, vector2.x), std::min(vector1.y, vector2.y));
+    }
+
+    template<typename T>
+    inline Vec2<T> Vec2<T>::max(const Vec2<T>& vector1, const Vec2<T>& vector2)
+    {
+        return Vec2<T>(std::max(vector1.x, vector2.x), std::max(vector1.y, vector2.y));
     }
 
     template<typename T>

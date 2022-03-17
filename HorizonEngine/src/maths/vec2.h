@@ -58,6 +58,9 @@ namespace hrzn::maths
         static Vec2<T> getRandomDirection();
         static Vec2<T> lerp(const Vec2<T>& vector1, const Vec2<T>& Vec2, T delta);
 
+        static Vec2<T> min(const Vec2<T>& vector1, const Vec2<T>& vector2);
+        static Vec2<T> max(const Vec2<T>& vector1, const Vec2<T>& vector2);
+
         static Vec2<T> rotateAroundPoint(const Vec2<T>& toRotate, const Vec2<T>& point, double rotation, bool correctNDC = false, float aspect = 0.0f);
 
     public:
