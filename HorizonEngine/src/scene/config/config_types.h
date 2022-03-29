@@ -148,6 +148,14 @@ namespace hrzn::scene::config
             m_generationType2D(GenerationType2D::eHeightmap),
             m_heightmapPath("res/textures/terrain/coastMountain513.raw"),
 
+            m_diamondSquareResolution(),
+            
+            m_dimensions(128, 128),
+            m_interations(1000),
+            
+            m_minRadius(2),
+            m_maxRadius(6),
+
             m_generationType3D(GenerationType3D::eDefault)
         {
         }
@@ -161,7 +169,16 @@ namespace hrzn::scene::config
 
         // Loaded if 2d
         GenerationType2D m_generationType2D;
+        // Heightmap
         std::string      m_heightmapPath;
+        // Diamond Square
+        int              m_diamondSquareResolution;
+        // Fault Line and Circle
+        maths::Vec2i     m_dimensions;
+        int              m_interations;
+        // Circle
+        int              m_minRadius;
+        int              m_maxRadius;
 
         // Loaded if 3d
         GenerationType3D m_generationType3D;

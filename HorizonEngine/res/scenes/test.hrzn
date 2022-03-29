@@ -52,7 +52,7 @@
             "is_infinite": false,
             "chunk_scale": 128.0,
             "origin_position": [ 0.0, -10.0, 128.0 ],
-            "2d_generation_type": "diamond_square",
+            "2d_generation_type": "fault_line",
             "heightmap_path": "res/textures/terrain/coastMountain513.raw"
           }
         },
