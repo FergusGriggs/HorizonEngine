@@ -1213,6 +1213,56 @@ namespace hrzn::gfx
 
 				ImGui::TreePop();
 			}
+
+			if (ImGui::CollapsingHeader("Terrain Options"))
+			{
+				ImGui::TreePush();
+
+				scene::config::TerrainConfig& terrainConfig = scene::SceneManager::it().getWritableSceneConfig().getWritableTerrainConfig();
+
+				ImGui::Checkbox("Enabled", &terrainConfig.m_enabled);
+
+				const char* terrainDimensions[] = { "2d", "3d" };
+				static const char* terrainDimensionString = terrainDimensions[0];
+
+				if (ImGui::BeginCombo("Terrain Dimension", terrainDimensionString))
+				{
+					for (int n = 0; n < 2; n++)
+					{
+						bool isSelected = (terrainDimensionString == terrainDimensions[n]);
+						if (ImGui::Selectable(terrainDimensions[n], isSelected))
+						{
+							terrainDimensionString = terrainDimensions[n];
+							terrainConfig.m_dimensionType = static_cast<scene::config::TerrainConfig::DimensionType>(n + 1);
+						}
+						if (isSelected)
+						{
+							ImGui::SetItemDefaultFocus();
+						}
+					}
+					ImGui::EndCombo();
+				}
+
+				ImGui::Checkbox("Is Infinite", &terrainConfig.m_isInfinite);
+				ImGui::SliderFloat("Chunk Scale", &terrainConfig.m_chunkScale, 10.0f, 512.0f);
+				ImGui::DragFloat3("Origin Position", &terrainConfig.m_originPosition.x);
+
+				if (terrainConfig.m_dimensionType == scene::config::TerrainConfig::DimensionType::e2D)
+				{
+
+				}
+				else if (terrainConfig.m_dimensionType == scene::config::TerrainConfig::DimensionType::e3D)
+				{
+
+				}
+
+				if (ImGui::Button("Re-generate Terrain"))
+				{
+					scene::TerrainManager::it().updateTerrainUsingConfig();
+				}
+
+				ImGui::TreePop();
+			}
 		}
 
 		ImGui::End();

@@ -41,9 +41,11 @@ namespace hrzn::scene
 
         gfx::Mesh* getStaticTerrainMesh();
         void       renderTerrain(bool useGBuffer, bool bindPSData);
+        void       updateTerrainUsingConfig();
 
         // 2D static mesh gen methods
         void initialiseStaticTerrainHeights(const maths::Vec3i& dimensions);
+        void deleteStaticTerrainHeights();
 
         void createStaticTerrainMeshFromHeightmap(const std::string& heightmapFilePath);
         void createStaticTerrainMeshUsingDiamondSquare(int resolution);

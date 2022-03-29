@@ -249,6 +249,7 @@ namespace hrzn::gfx
 
         MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
 
+
         DESCRIPTION: This is where the SSAO shader is run if it is enabled
 
         COMMENT INDEX: 11

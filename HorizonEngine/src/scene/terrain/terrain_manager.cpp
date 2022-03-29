@@ -13,37 +13,7 @@ namespace hrzn::scene
         m_chunkScale(128.0f),
         m_originPosition(maths::Vec3f(75.0f, -7.5f, 0.0f))
     {
-        config::TerrainConfig terrainConfig = SceneManager::it().getSceneConfig().getTerrainConfig();
-        
-        m_chunkScale = terrainConfig.m_chunkScale;
-        m_originPosition = terrainConfig.m_originPosition;
-
-        if (terrainConfig.m_enabled)
-        {
-            if (terrainConfig.m_dimensionType == config::TerrainConfig::DimensionType::e2D)
-            {
-                if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eHeightmap)
-                {
-                    createStaticTerrainMeshFromHeightmap(terrainConfig.m_heightmapPath);
-                }
-                else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eDiamondSquare)
-                {
-                    createStaticTerrainMeshUsingDiamondSquare(10);
-                }
-                else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eFaultLine)
-                {
-                    createStaticTerrainMeshUsingFaultLine(maths::Vec3i(128, 1, 128), 1000, 1);
-                }
-                else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eCircle)
-                {
-                    createStaticTerrainMeshUsingCircle(maths::Vec3i(128, 1, 128), 500, 3, 20);
-                }
-            }
-            else
-            {
-                createDualContouringStaticMesh();
-            }
-        }
+        updateTerrainUsingConfig();
     }
 
     TerrainManager& TerrainManager::it()
@@ -74,11 +44,65 @@ namespace hrzn::scene
 
     void TerrainManager::renderTerrain(bool useGBuffer, bool bindPSData)
     {
-        m_staticTerrainMesh->draw(useGBuffer, bindPSData);
+        if (m_staticTerrainMesh != nullptr)
+        {
+            m_staticTerrainMesh->draw(useGBuffer, bindPSData);
+        }
+    }
+
+    void TerrainManager::updateTerrainUsingConfig()
+    {
+        config::TerrainConfig terrainConfig = SceneManager::it().getSceneConfig().getTerrainConfig();
+
+        m_chunkScale = terrainConfig.m_chunkScale;
+        m_originPosition = terrainConfig.m_originPosition;
+
+        if (terrainConfig.m_enabled)
+        {
+            if (terrainConfig.m_dimensionType == config::TerrainConfig::DimensionType::e2D)
+            {
+                if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eHeightmap)
+                {
+                    createStaticTerrainMeshFromHeightmap(terrainConfig.m_heightmapPath);
+                }
+                else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eDiamondSquare)
+                {
+                    createStaticTerrainMeshUsingDiamondSquare(8);
+                }
+                else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eFaultLine)
+                {
+                    createStaticTerrainMeshUsingFaultLine(maths::Vec3i(128, 1, 128), 1000, 1);
+                }
+                else if (terrainConfig.m_generationType2D == config::TerrainConfig::GenerationType2D::eCircle)
+                {
+                    createStaticTerrainMeshUsingCircle(maths::Vec3i(128, 1, 128), 500, 3, 20);
+                }
+            }
+            else
+            {
+                createDualContouringStaticMesh();
+            }
+        }
     }
 
     void TerrainManager::initialiseStaticTerrainHeights(const maths::Vec3i& dimensions)
     {
+        if (m_staticTerrainHeights != nullptr)
+        {
+            // Current heights are are the same as the new ones we want, just zero them and return
+            if (m_staticTerrainDimensions.x == dimensions.x && m_staticTerrainDimensions.z == dimensions.z)
+            {
+                for (int i = 0; i < dimensions.x; ++i)
+                {
+                    memset(m_staticTerrainHeights[i], 0, dimensions.z * sizeof(float));
+                }
+
+                return;
+            }
+
+            deleteStaticTerrainHeights();
+        }
+
         m_staticTerrainDimensions = dimensions;
         m_staticTerrainHeights = new float* [dimensions.x];
 
@@ -90,6 +114,20 @@ namespace hrzn::scene
             {
                 m_staticTerrainHeights[i][j] = 0.0f;
             }
+        }
+    }
+
+    void TerrainManager::deleteStaticTerrainHeights()
+    {
+        if (m_staticTerrainHeights != nullptr)
+        {
+            for (int i = 0; i < m_staticTerrainDimensions.x; ++i)
+            {
+                delete[] m_staticTerrainHeights[i];
+            }
+
+            delete[] m_staticTerrainHeights;
+            m_staticTerrainHeights = nullptr;
         }
     }
 
@@ -290,7 +328,7 @@ namespace hrzn::scene
         {
             for (int j = 0; j < m_staticTerrainDimensions.z; ++j)
             {
-                maths::Vec3f vertPosition = m_originPosition - m_chunkScale * 0.5f + maths::Vec3f(vertStep.x * (float)i, 0.0f, 0.0f) + maths::Vec3f(0.0f, 0.0f, vertStep.z * (float)j) + maths::Vec3f(0.0f, m_chunkScale * 0.5f + m_staticTerrainHeights[i][j], 0.0f);
+                maths::Vec3f vertPosition = m_originPosition - m_chunkScale * 0.5f + maths::Vec3f(vertStep.x * (float)i, 0.0f, 0.0f) + maths::Vec3f(0.0f, 0.0f, vertStep.z * (float)j) + maths::Vec3f(0.0f, m_chunkScale * 0.5f + (m_staticTerrainHeights[i][j] / 128.0f) * m_chunkScale, 0.0f);
 
                 vertexPositions.push_back(vertPosition);
             }
@@ -333,6 +371,11 @@ namespace hrzn::scene
             }
         }
 
+        if (m_staticTerrainMesh != nullptr)
+        {
+            delete m_staticTerrainMesh;
+        }
+
         // Create mesh
         m_staticTerrainMesh = new gfx::Mesh(vertices, indices, gfx::ResourceManager::it().getMaterialPtr("terrain"), XMMatrixIdentity());
     }
@@ -344,6 +387,8 @@ namespace hrzn::scene
 
     void TerrainManager::createDualContouringStaticMesh()
     {
+        deleteStaticTerrainHeights();
+
         // octreeSize must be a power of two!
         const int octreeSize = 128;
 
@@ -356,6 +401,11 @@ namespace hrzn::scene
 
         m_testOctree = terrain::BuildOctree(maths::Vec3i(-octreeSize / 2), octreeSize, THRESHOLDS[thresholdIndex]);
         terrain::GenerateMeshFromOctree(m_testOctree, vertices, indices);
+
+        if (m_staticTerrainMesh != nullptr)
+        {
+            delete m_staticTerrainMesh;
+        }
 
         m_staticTerrainMesh = new gfx::Mesh(vertices, indices, gfx::ResourceManager::it().getMaterialPtr("terrain"), XMMatrixIdentity());
     }
