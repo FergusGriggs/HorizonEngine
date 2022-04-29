@@ -9,6 +9,8 @@
 
 #include "../graphics_handler.h"
 
+#include <iostream>
+
 namespace hrzn::gfx
 {
 	Model::Model() :
@@ -16,6 +18,8 @@ namespace hrzn::gfx
 		m_vertices(),
 		m_indices(),
 		m_currentNumVerts(0),
+
+		m_useEmbeddedMaterials(false),
 
 		m_filePath(""),
 		m_directory(""),
@@ -27,36 +31,36 @@ namespace hrzn::gfx
 	{
 	}
 
-	bool Model::initialize(const std::string& filePath)
+	Model::~Model()
 	{
-		m_filePath = filePath;
-
-		try
+		// Delete meshes
+		for (auto* mesh : m_meshes)
 		{
-			if (!loadModel(filePath))
+			delete mesh;
+		}
+		m_meshes.clear();
+
+		// Delete mesh materials if required
+		for (auto& meshMaterialIter : m_meshMaterials)
+		{
+			if (meshMaterialIter.second.m_deleteRequired)
 			{
-				return false;
+				delete meshMaterialIter.second.m_material;
 			}
 		}
-		catch (utils::COMException& exception)
-		{
-			utils::ErrorLogger::log(exception);
-			return false;
-		}
-
-		return true;
+		m_meshMaterials.clear();
 	}
 
 	void Model::draw(const XMMATRIX& modelMatrix, ConstantBuffer<PerObjectCB>* perObjectCB, bool bindPSData) const
 	{
 		for (int i = 0; i < m_meshes.size(); i++)
 		{
-			perObjectCB->m_data.m_modelMatrix = m_meshes[i].getTransformMatrix() * modelMatrix;
+			perObjectCB->m_data.m_modelMatrix = m_meshes[i]->getTransformMatrix() * modelMatrix;
 			//vertexShaderCB->data.modelMatrix = XMMatrixTranspose(vertexShaderCB->data.modelMatrix);
 
 			perObjectCB->mapToGPU();
 
-			m_meshes[i].draw(m_isGBufferCompatible && GraphicsHandler::it().isUsingDeferredShading(), bindPSData);
+			m_meshes[i]->draw(m_isGBufferCompatible && GraphicsHandler::it().isUsingDeferredShading(), bindPSData);
 		}
 	}
 
@@ -69,11 +73,11 @@ namespace hrzn::gfx
 	{
 		for (int i = 0; i < m_meshes.size(); i++)
 		{
-			m_meshes[i].draw(useGBuffer, bindPSData);
+			m_meshes[i]->draw(useGBuffer, bindPSData);
 		}
 	}
 
-	const std::vector<Mesh>& Model::getMeshes() const
+	const std::vector<Mesh*>& Model::getMeshes() const
 	{
 		return m_meshes;
 	}
@@ -116,45 +120,6 @@ namespace hrzn::gfx
 		return m_isGBufferCompatible;
 	}
 
-	bool Model::loadModel(const std::string& filePath)
-	{
-		m_directory = utils::string_helpers::getDirectoryFromPath(filePath);
-
-		std::string meshMaterialFilePath = utils::string_helpers::changeFileExtension(filePath, "mtl");
-		loadMeshMaterials(meshMaterialFilePath);
-
-		Assimp::Importer importer;
-
-		const aiScene* pScene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_ConvertToLeftHanded);
-
-		//aiProcess_ConvertToLeftHanded
-		// v
-		//aiProcess_MakeLeftHanded
-		//aiProcess_FlipUVs
-		//aiProcess_FlipWindingOrder
-
-		if (pScene == nullptr)
-		{
-			return false;
-		}
-
-		m_isGBufferCompatible = true;
-
-		processNode(pScene->mRootNode, pScene, XMMatrixIdentity());// * XMMatrixScaling(0.025f, 0.025f, 0.025f)
-
-		if (m_vertices.empty())
-		{
-			utils::ErrorLogger::log("Model at path '" + filePath + "' failed to load as it had no vertices");
-			return false;
-		}
-
-		BoundingBox::CreateFromPoints(m_boundingBox, m_vertices.size(), &(m_vertices.at(0)), sizeof(XMFLOAT3));
-
-		loadModelMetaData(filePath.substr(0, filePath.length() - 4) + "_meta.txt"); // Remove model file extension, add '_meta.txt'
-
-		return true;
-	}
-
 	void Model::loadModelMetaData(const std::string& filePath)
 	{
 		std::fstream metaDataFile(filePath);
@@ -176,7 +141,8 @@ namespace hrzn::gfx
 
 			if (checkString != "#hrznmtls")
 			{
-				utils::ErrorLogger::log("No '#hrznmtls' tag found in material link file at path '" + filePath + "'");
+				std::cout << "No '#hrznmtls' tag found in material link file at path '" + filePath + "' attempting to use embedded materials\n";
+				//utils::ErrorLogger::log();
 				materialFile.close();
 				return false;
 			}
@@ -189,7 +155,11 @@ namespace hrzn::gfx
 				std::string meshMaterialName;
 				materialFile >> meshMaterialName;
 
-				m_meshMaterials.insert(std::make_pair(meshName, ResourceManager::it().getMaterialPtr(meshMaterialName)));
+				MeshMaterial meshMaterial;
+				meshMaterial.m_material = ResourceManager::it().getMaterialPtr(meshMaterialName);
+				meshMaterial.m_deleteRequired = false;
+
+				m_meshMaterials.insert({ meshName, meshMaterial });
 			}
 
 			materialFile.close();
@@ -198,112 +168,10 @@ namespace hrzn::gfx
 		}
 		else
 		{
-			utils::ErrorLogger::log("Failed to load model material at path: " + filePath);
+			//utils::ErrorLogger::log("Failed to load model material at path: " + filePath);
 		}
 
 		return false;
-	}
-
-	void Model::processNode(aiNode* node, const aiScene* scene, const XMMATRIX& parentTransformMatrix)
-	{
-		XMMATRIX nodeTransformationMatrix = XMMatrixTranspose(XMMATRIX(&node->mTransformation.a1)) * parentTransformMatrix;
-
-		for (UINT i = 0; i < node->mNumMeshes; i++)
-		{
-			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-
-			Material* meshMaterial = nullptr;
-			const auto& meshMaterialsIterator = m_meshMaterials.find(node->mName.C_Str());
-			if (meshMaterialsIterator != m_meshMaterials.end())
-			{
-				meshMaterial = meshMaterialsIterator->second;
-			}
-			else
-			{
-				meshMaterial = ResourceManager::it().getDefaultMaterialPtr();
-			}
-
-			if (!meshMaterial->isGBufferCompatible())
-			{
-				m_isGBufferCompatible = false;
-			}
-
-			m_meshes.push_back(processMesh(mesh, meshMaterial, nodeTransformationMatrix));
-		}
-
-		for (UINT i = 0; i < node->mNumChildren; i++)
-		{
-			processNode(node->mChildren[i], scene, nodeTransformationMatrix);
-		}
-	}
-
-	Mesh Model::processMesh(aiMesh* mesh, Material* material, const XMMATRIX& transformMatrix)
-	{
-		std::vector<Vertex> meshVertices;
-		std::vector<DWORD> indices;
-
-		for (UINT i = 0; i < mesh->mNumVertices; i++)
-		{
-
-			Vertex vertex;
-
-			vertex.m_pos.x = mesh->mVertices[i].x;
-			vertex.m_pos.y = mesh->mVertices[i].y;
-			vertex.m_pos.z = mesh->mVertices[i].z;
-
-			vertex.m_normal.x = mesh->mNormals[i].x;
-			vertex.m_normal.y = mesh->mNormals[i].y;
-			vertex.m_normal.z = mesh->mNormals[i].z;
-
-			if (mesh->mTextureCoords[0])
-			{
-				vertex.m_tangent.x = mesh->mTangents[i].x;
-				vertex.m_tangent.y = mesh->mTangents[i].y;
-				vertex.m_tangent.z = mesh->mTangents[i].z;
-
-				vertex.m_bitangent.x = mesh->mBitangents[i].x;
-				vertex.m_bitangent.y = mesh->mBitangents[i].y;
-				vertex.m_bitangent.z = mesh->mBitangents[i].z;
-
-
-				vertex.m_texCoord.x = (float)mesh->mTextureCoords[0][i].x;
-				vertex.m_texCoord.y = (float)mesh->mTextureCoords[0][i].y;
-			}
-
-			meshVertices.push_back(vertex);
-			m_vertices.push_back(vertex.m_pos);
-		}
-
-		for (UINT i = 0; i < mesh->mNumFaces; i++)
-		{
-
-			aiFace face = mesh->mFaces[i];
-
-			for (UINT j = 0; j < face.mNumIndices; j++)
-			{
-				indices.push_back(face.mIndices[j]);
-				m_indices.push_back(m_currentNumVerts + face.mIndices[j]);
-			}
-		}
-
-		m_currentNumVerts = static_cast<int>(m_vertices.size());
-
-		/*std::vector<Texture*> textures;
-		aiMaterial* aiMaterial = scene->mMaterials[mesh->mMaterialIndex];
-
-		std::vector<Texture*> diffuseTextures = loadMaterialTextures(aiMaterial, aiTextureType::aiTextureType_DIFFUSE, scene);
-		textures.insert(textures.end(), diffuseTextures.begin(), diffuseTextures.end());
-
-		std::vector<Texture*> specularTextures = loadMaterialTextures(aiMaterial, aiTextureType::aiTextureType_SPECULAR, scene);
-		textures.insert(textures.end(), specularTextures.begin(), specularTextures.end());
-
-		std::vector<Texture*> normalTextures = loadMaterialTextures(aiMaterial, aiTextureType::aiTextureType_NORMALS, scene);
-		textures.insert(textures.end(), normalTextures.begin(), normalTextures.end());
-
-		std::vector<Texture*> depthTextures = loadMaterialTextures(aiMaterial, aiTextureType::aiTextureType_DISPLACEMENT, scene);
-		textures.insert(textures.end(), depthTextures.begin(), depthTextures.end());*/
-
-		return Mesh(meshVertices, indices, material, transformMatrix);
 	}
 
 	int Model::getTextureIndex(aiString* pString) const
@@ -353,9 +221,8 @@ namespace hrzn::gfx
 		return TextureStorageType::eNone;
 	}
 
-	std::vector<Texture*> Model::loadMaterialTextures(aiMaterial* pMaterial, aiTextureType textureType, const aiScene* pScene)
+	void Model::loadMaterialTextures(aiMaterial* pMaterial, aiTextureType textureType, const aiScene* pScene, std::vector<Texture*>& materialTextures)
 	{
-		std::vector<Texture*> materialTextures;
 		TextureStorageType storageType = TextureStorageType::eInvalid;
 		unsigned int textureCount = pMaterial->GetTextureCount(textureType);
 
@@ -373,22 +240,22 @@ namespace hrzn::gfx
 				if (aiColour.IsBlack())
 				{
 					materialTextures.push_back(ResourceManager::it().getColourTexturePtr(colours::sc_defaultAlbedo));
-					return materialTextures;
+					return;
 				}
 				materialTextures.push_back(ResourceManager::it().getColourTexturePtr(Colour((BYTE)aiColour.r * 255, (BYTE)aiColour.g * 255, (BYTE)aiColour.b * 255)));
-				return materialTextures;
+				return;
 			}
 			case aiTextureType_SPECULAR:
 				materialTextures.push_back(ResourceManager::it().getColourTexturePtr(colours::sc_defaultRoughness));
-				return materialTextures;
+				return;
 
 			case aiTextureType_NORMALS:
 				materialTextures.push_back(ResourceManager::it().getColourTexturePtr(colours::sc_defaultNormal));
-				return materialTextures;
+				return;
 
 			case aiTextureType_DISPLACEMENT:
 				materialTextures.push_back(ResourceManager::it().getColourTexturePtr(colours::sc_defaultDepth));
-				return materialTextures;
+				return;
 			}
 		}
 		else
@@ -424,15 +291,15 @@ namespace hrzn::gfx
 				}
 				}
 			}
-			return materialTextures;
+			return;
 		}
 
 		if (materialTextures.size() == 0)
 		{
 			materialTextures.push_back(ResourceManager::it().getColourTexturePtr(colours::sc_unhandledTextureColour));
-			return materialTextures;
+			return;
 		}
 
-		return materialTextures;
+		return;
 	}
 }

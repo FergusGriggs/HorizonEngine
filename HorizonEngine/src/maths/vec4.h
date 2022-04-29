@@ -4,7 +4,7 @@
 
 // Purely just a storage class at the moment
 
-namespace Firelight::Maths
+namespace hrzn::maths
 {
     template<typename T>
     class Vec4

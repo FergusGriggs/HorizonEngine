@@ -5,7 +5,7 @@
       [ "albedo", 1.0 ]
     ],
     "vertex_shader": "default",
-    "pixel_shader": "no_light",
+    "pixel_shader": "standard_no_light",
     "gbuf_w_pixel_shader": "-"
   }
 }

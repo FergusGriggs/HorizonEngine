@@ -61,14 +61,14 @@ namespace hrzn::gfx
 		COM_ERROR_IF_FAILED(hr, "Failed to create texture from memory.");
 	}
 
-	ID3D11ShaderResourceView* Texture::getTextureResourceView() const
+	Microsoft::WRL::ComPtr<ID3D11Resource>& Texture::getResource()
 	{
-		return m_textureView.Get();
+		return m_texture;
 	}
 
-	ID3D11ShaderResourceView** Texture::getTextureResourceViewAddress()
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& Texture::getShaderResourceView()
 	{
-		return m_textureView.GetAddressOf();
+		return m_textureView;
 	}
 
 	void Texture::initialize1x1ColourTexture(const Colour& colour)

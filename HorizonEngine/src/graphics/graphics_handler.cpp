@@ -49,11 +49,9 @@ namespace hrzn::gfx
 		m_axisRotateModel(nullptr),
 		m_springModel(nullptr),
 		m_screenQuad(nullptr),
-		
-		m_compiledShaderFolder(),
-		m_defaultVSLayout(nullptr),
-		m_defaultVSLayoutSize(0),
-		
+
+		m_compiledShaderFolder(""),
+
 		m_ps_gbuf_r_default(nullptr),
 		
 		m_cs_noiseGen(nullptr),
@@ -103,47 +101,23 @@ namespace hrzn::gfx
 			return false;
 		}
 
-		m_compiledShaderFolder = L"";
+		m_compiledShaderFolder = "";
 #pragma region DetermineShaderPath
 #ifdef _DEBUG //Debug Mode
 #ifdef _WIN64 //x64
 		//shaderFolder = L"../x64/Debug/";
-		m_compiledShaderFolder = L"../x64/Debug/res/shader/compiled/";
+		m_compiledShaderFolder = "../x64/Debug/res/shader/compiled/";
 #else  //x86 (Win32)
-		m_compiledShaderFolder = L"../Debug/";
+		m_compiledShaderFolder = "../Debug/";
 #endif
 #else //Release Mode
 #ifdef _WIN64 //x64
 		//shaderFolder = L"../x64/Release/";
-		m_compiledShaderFolder = L"res/shader/compiled/";
+		m_compiledShaderFolder = "res/shader/compiled/";
 #else  //x86 (Win32)
-		m_compiledShaderFolder = L"../Release/";
+		m_compiledShaderFolder = "../Release/";
 #endif
 #endif
-
-		/***********************************************
-		
-		MARKING SCHEME: Normal Mapping,	Basic Parallax Mapping and Parallax Occlusion Mapping with self shadowing
-
-		DESCRIPTION: Compatible input layout. All models drawn have normal, tangent and bitangent info calculated
-		so that tangent space transform matricies can be computed in the pixel shader (this happens in the pixel shader
-		because it is easier to do the lighting calculations in world space, rather than transform all of the light data
-		into tangent space)
-
-		COMMENT INDEX: 0
-
-		***********************************************/
-
-
-		//Create vertex shader input layout
-		m_defaultVSLayout = new D3D11_INPUT_ELEMENT_DESC[5]{
-			{"POSITION", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"NORMAL", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"TANGENT", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"BITANGENT", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-			{"TEXCOORD", 0, DXGI_FORMAT::DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_CLASSIFICATION::D3D11_INPUT_PER_VERTEX_DATA, 0},
-		};
-		m_defaultVSLayoutSize = 5;
 
 		if (!ResourceManager::it().initialise())
 		{
@@ -157,12 +131,12 @@ namespace hrzn::gfx
 		m_cs_noiseGen = ResourceManager::it().getCSPtr("noise_gen");
 
 		// Load engine models
-		m_axisTranslateModel = ResourceManager::it().getModelPtr("res/models/engine/axis/translate.obj");
-		m_axisRotateModel = ResourceManager::it().getModelPtr("res/models/engine/axis/rotate.obj");
+		m_axisTranslateModel = ResourceManager::it().getModelPtr<SimpleLitVertex>("res/models/engine/axis/translate.obj");
+		m_axisRotateModel = ResourceManager::it().getModelPtr<SimpleLitVertex>("res/models/engine/axis/rotate.obj");
 
-		m_springModel = ResourceManager::it().getModelPtr("res/models/engine/spring.obj");
+		m_springModel = ResourceManager::it().getModelPtr<FancyLitVertex>("res/models/engine/spring.obj");
 
-		m_screenQuad = ResourceManager::it().getModelPtr("res/models/engine/screen_quad.obj");
+		m_screenQuad = ResourceManager::it().getModelPtr<UnlitVertex>("res/models/engine/screen_quad.obj");
 
 		// Initialise global shader vars
 		HRESULT hr = m_noiseTextureCB.initialize(m_device.Get(), m_deviceContext.Get());
@@ -384,19 +358,9 @@ namespace hrzn::gfx
 		return m_ambientOcclusionNoiseShaderResourceView;
 	}
 
-	const std::wstring& GraphicsHandler::getCompiledShaderFolder() const
+	const std::string& GraphicsHandler::getCompiledShaderFolder() const
 	{
 		return m_compiledShaderFolder;
-	}
-
-	D3D11_INPUT_ELEMENT_DESC* GraphicsHandler::getDefaultVSLayout() const
-	{
-		return m_defaultVSLayout;
-	}
-
-	UINT GraphicsHandler::getDefaultVSLayoutSize() const
-	{
-		return m_defaultVSLayoutSize;
 	}
 
 	void GraphicsHandler::render()
@@ -728,6 +692,47 @@ namespace hrzn::gfx
 
 			ImGui::InputText("Object Label", &scene::SceneManager::it().getWritableSelectedObject()->getLabelPtr()->at(0), 20);
 
+			if (auto* renderable = dynamic_cast<entity::RenderableGameObject*>(scene::SceneManager::it().getWritableSelectedObject()))
+			{
+				if (ImGui::CollapsingHeader("Meshes"))
+				{
+					ImGui::TreePush();
+
+					auto& meshes = renderable->getModel().getMeshes();
+					for (int meshIndex = 0; meshIndex < meshes.size(); ++meshIndex)
+					{
+						Mesh* mesh = meshes[meshIndex];
+
+						if (ImGui::CollapsingHeader(std::string("[" + std::to_string(meshIndex) + "] -> " + mesh->getName()).c_str()))
+						{
+							ImGui::TreePush();
+
+							ImGui::Text(std::string("Mesh Name:" + mesh->getName()).c_str());
+
+							ImGui::Checkbox("Hidden", mesh->getHiddenBoolPtr());
+
+							Material* material = mesh->getMaterial();
+
+							ImGui::Text(std::string("Material Name:" + material->getName()).c_str());
+
+							ImGui::Text("Material Textures:");
+
+							for (int textureIndex = 0; textureIndex < material->getTextures().size(); ++textureIndex)
+							{
+								const MaterialTexture& materialTexture = material->getTextures()[textureIndex];
+								ImGui::Text(std::string("Bind Slot [" + std::to_string(materialTexture.m_bindSlot) + "]").c_str());
+
+								ImGui::Image(materialTexture.m_texture->getShaderResourceView().Get(), ImVec2(100.0f, 100.0f));
+							}
+
+							ImGui::TreePop();
+						}
+					}
+
+					ImGui::TreePop();
+				}
+			}
+
 			if (ImGui::CollapsingHeader("Transform"))
 			{
 				ImGui::TreePush();
@@ -1041,7 +1046,7 @@ namespace hrzn::gfx
 					ImGui::EndCombo();
 				}
 
-				static std::string path = "res/models/";
+				static char path[256] = "res/models/";
 				ImGui::InputText("Object Path", &path[0], 256);
 
 				if (chosenType == entity::GameObject::Type::eRenderable)
@@ -1080,8 +1085,13 @@ namespace hrzn::gfx
 									if (SUCCEEDED(hr))
 									{
 										std::wstring widePath = pszFilePath;
-										path = std::string(widePath.begin(), widePath.end());
-										path = utils::string_helpers::removeBeforeString(path, "res\\models\\");
+										std::string pathStr = std::string(widePath.begin(), widePath.end()).c_str();
+										pathStr = utils::string_helpers::removeBeforeString(pathStr, "res\\models\\");
+										if (pathStr.size() < 256)
+										{
+											strcpy_s(path, pathStr.c_str());
+										}
+
 										CoTaskMemFree(pszFilePath);
 									}
 									pItem->Release();

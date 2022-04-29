@@ -3,6 +3,7 @@
 #include "../graphics_handler.h"
 
 #include "../../utils/string_helpers.h"
+#include "../data/vertex_types.h"
 
 namespace hrzn::gfx
 {
@@ -16,10 +17,10 @@ namespace hrzn::gfx
 	{
 		m_defaultTexture = getTexturePtr("res/textures/missing.png");
 		m_defaultMaterial = getMaterialPtr("default");
-		m_defaultModel = getModelPtr("res/models/engine/test/horizon_statue.obj");
+		m_defaultModel = getModelPtr<FancyLitVertex>("res/models/engine/test/horizon_statue.obj");
 
 		m_defaultVS = getVSPtr("default");
-		m_defaultPS = getPSPtr("default");
+		m_defaultPS = getPSPtr("standard_default");
 		m_defaultGBufferWritePS = getGBufferWritePSPtr("default");
 		m_defaultCS = nullptr;
 
@@ -28,27 +29,7 @@ namespace hrzn::gfx
 		return true;
 	}
 
-	Model* ResourceManager::getModelPtr(std::string path)
-	{
-		const auto& modelItr = m_models.find(path);
-		if (modelItr != m_models.end())
-		{
-			return modelItr->second;
-		}
-		else
-		{
-			Model* loadedModel = new Model();
-			if (!loadedModel->initialize(path))
-			{
-				delete loadedModel;
-				loadedModel = m_defaultModel;
-			}
-			m_models.insert({ path, loadedModel });
-			return loadedModel;
-		}
-	}
-
-	Texture* ResourceManager::getTexturePtr(std::string path)
+	Texture* ResourceManager::getTexturePtr(const std::string& path)
 	{
 		const auto& textureItr = m_textures.find(path);
 		if (textureItr != m_textures.end())
@@ -68,7 +49,7 @@ namespace hrzn::gfx
 		}
 	}
 
-	Texture* ResourceManager::getTexturePtr(std::string path, const uint8_t* pData, size_t size)
+	Texture* ResourceManager::getTexturePtr(const std::string& path, const uint8_t* pData, size_t size)
 	{
 		const auto& textureItr = m_textures.find(path);
 		if (textureItr != m_textures.end())
@@ -103,7 +84,7 @@ namespace hrzn::gfx
 		}
 	}
 
-	Material* ResourceManager::getMaterialPtr(std::string name)
+	Material* ResourceManager::getMaterialPtr(const std::string& name)
 	{
 		const auto& materialItr = m_materials.find(name);
 		if (materialItr != m_materials.end())
@@ -113,7 +94,7 @@ namespace hrzn::gfx
 		else
 		{
 			Material* newMaterial = new Material();
-			if (!newMaterial->initialise(name))
+			if (!newMaterial->initialiseFromName(name))
 			{
 				delete newMaterial;
 				newMaterial = m_defaultMaterial;
@@ -123,7 +104,7 @@ namespace hrzn::gfx
 		}
 	}
 
-	VertexShader* ResourceManager::getVSPtr(std::string name)
+	VertexShader* ResourceManager::getVSPtr(const std::string& name)
 	{
 		const auto& vertexShaderItr = m_vertexShaders.find(name);
 		if (vertexShaderItr != m_vertexShaders.end())
@@ -133,8 +114,9 @@ namespace hrzn::gfx
 		else
 		{
 			VertexShader* newVertexShader = new VertexShader();
-			std::wstring shaderPath = GraphicsHandler::it().getCompiledShaderFolder() + L"vs_" + utils::string_helpers::stringToWide(name) + L".cso";
-			if (!newVertexShader->initialise(shaderPath, GraphicsHandler::it().getDefaultVSLayout(), GraphicsHandler::it().getDefaultVSLayoutSize()))
+			//std::string shaderPath =  "res/shader/vertex/vs_" + name + ".hlsl";
+			std::string shaderPath = GraphicsHandler::it().getCompiledShaderFolder() + "vs_" + name + ".cso";
+			if (!newVertexShader->loadCompiledInit(shaderPath.c_str()))
 			{
 				delete newVertexShader;
 				newVertexShader = m_defaultVS;
@@ -144,7 +126,7 @@ namespace hrzn::gfx
 		}
 	}
 
-	PixelShader* ResourceManager::getPSPtr(std::string name)
+	PixelShader* ResourceManager::getPSPtr(const std::string& name)
 	{
 		const auto& pixelShaderItr = m_pixelShaders.find(name);
 		if (pixelShaderItr != m_pixelShaders.end())
@@ -154,8 +136,9 @@ namespace hrzn::gfx
 		else
 		{
 			PixelShader* newPixelShader = new PixelShader();
-			std::wstring shaderPath = GraphicsHandler::it().getCompiledShaderFolder() + L"ps_" + utils::string_helpers::stringToWide(name) + L".cso";
-			if (!newPixelShader->initialise(shaderPath))
+			//std::string shaderPath = "res/shader/pixel/ps_" + name + ".hlsl";
+			std::string shaderPath = GraphicsHandler::it().getCompiledShaderFolder() + "ps_" + name + ".cso";
+			if (!newPixelShader->loadCompiledInit(shaderPath.c_str()))
 			{
 				delete newPixelShader;
 				newPixelShader = m_defaultPS;
@@ -165,7 +148,7 @@ namespace hrzn::gfx
 		}
 	}
 
-	PixelShader* ResourceManager::getGBufferWritePSPtr(std::string name)
+	PixelShader* ResourceManager::getGBufferWritePSPtr(const std::string& name)
 	{
 		const auto& gBufferPixelShaderItr = m_gBufferWritePixelShaders.find(name);
 		if (gBufferPixelShaderItr != m_gBufferWritePixelShaders.end())
@@ -175,8 +158,9 @@ namespace hrzn::gfx
 		else
 		{
 			PixelShader* newGBufferWritePixelShader = new PixelShader();
-			std::wstring shaderPath = GraphicsHandler::it().getCompiledShaderFolder() + L"ps_gbuf_w_" + utils::string_helpers::stringToWide(name) + L".cso";
-			if (!newGBufferWritePixelShader->initialise(shaderPath))
+			//std::string shaderPath = "res/shader/pixel/ps_gbuf_w_" + name + ".hlsl";
+			std::string shaderPath = GraphicsHandler::it().getCompiledShaderFolder() + "ps_gbuf_w_" + name + ".cso";
+			if (!newGBufferWritePixelShader->loadCompiledInit(shaderPath.c_str()))
 			{
 				delete newGBufferWritePixelShader;
 				newGBufferWritePixelShader = m_defaultGBufferWritePS;
@@ -186,7 +170,7 @@ namespace hrzn::gfx
 		}
 	}
 
-	ComputeShader* ResourceManager::getCSPtr(std::string name)
+	ComputeShader* ResourceManager::getCSPtr(const std::string& name)
 	{
 		const auto& computeShaderItr = m_computeShaders.find(name);
 		if (computeShaderItr != m_computeShaders.end())
@@ -196,8 +180,9 @@ namespace hrzn::gfx
 		else
 		{
 			ComputeShader* newComputeShader = new ComputeShader();
-			std::wstring shaderPath = GraphicsHandler::it().getCompiledShaderFolder() + L"cs_" + utils::string_helpers::stringToWide(name) + L".cso";
-			if (!newComputeShader->initialise(shaderPath))
+			//std::string shaderPath = "res/shader/compute/cs_" + name + ".hlsl";
+			std::string shaderPath = GraphicsHandler::it().getCompiledShaderFolder() + "cs_" + name + ".cso";
+			if (!newComputeShader->loadCompiledInit(shaderPath.c_str()))
 			{
 				delete newComputeShader;
 				newComputeShader = m_defaultCS;

@@ -171,6 +171,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\entity\skinned_game_object.cpp" />
+    <ClCompile Include="src\graphics\data\skinned_model.cpp" />
+    <ClCompile Include="src\graphics\data\skinned_mesh.cpp" />
+    <ClCompile Include="src\graphics\buffers\index_buffer.cpp" />
+    <ClCompile Include="src\graphics\buffers\vertex_buffer.cpp" />
+    <ClCompile Include="src\graphics\data\mesh.cpp" />
+    <ClCompile Include="src\graphics\data\vertex_types.cpp" />
     <ClCompile Include="src\graphics\post_process\chromatic_aberration_post_process.cpp" />
     <ClCompile Include="src\graphics\post_process\edge_detection_post_process.cpp" />
     <ClCompile Include="src\graphics\post_process\depth_of_field_post_process.cpp" />
@@ -184,6 +191,10 @@
     <ClCompile Include="src\graphics\image_renderer.cpp" />
     <ClCompile Include="src\graphics\buffers\geometry_buffer.cpp" />
     <ClCompile Include="src\graphics\data\render_textures.cpp" />
+    <ClCompile Include="src\graphics\shaders\compute_shader.cpp" />
+    <ClCompile Include="src\graphics\shaders\i_shader.cpp" />
+    <ClCompile Include="src\graphics\shaders\pixel_shader.cpp" />
+    <ClCompile Include="src\graphics\shaders\vertex_shader.cpp" />
     <ClCompile Include="src\input\input_manager.cpp" />
     <ClCompile Include="src\scene\config\scene_config.cpp" />
     <ClCompile Include="src\scene\scene_loader.cpp" />
@@ -202,11 +213,9 @@
     <ClCompile Include="src\entity\lights\light_game_object.cpp" />
     <ClCompile Include="src\entity\lights\point_light_game_object.cpp" />
     <ClCompile Include="src\entity\lights\spot_light_game_object.cpp" />
-    <ClCompile Include="src\graphics\data\mesh.cpp" />
     <ClCompile Include="src\graphics\data\model.cpp" />
     <ClCompile Include="src\entity\physics_game_object.cpp" />
     <ClCompile Include="src\entity\renderable_game_object.cpp" />
-    <ClCompile Include="src\graphics\shaders\shader.cpp" />
     <ClCompile Include="src\graphics\data\texture.cpp" />
     <ClCompile Include="src\physics\transform.cpp" />
     <ClCompile Include="src\scene\terrain\dual_contouring\density.cpp" />
@@ -237,6 +246,12 @@
     <ClCompile Include="src\scene\terrain\terrain_data.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\entity\skinned_game_object.h" />
+    <ClInclude Include="src\graphics\data\skinned_model.h" />
+    <ClInclude Include="src\graphics\data\skinned_mesh.h" />
+    <ClInclude Include="src\graphics\buffers\index_buffer.h" />
+    <ClInclude Include="src\graphics\buffers\vertex_buffer.h" />
+    <ClInclude Include="src\graphics\data\mesh.h" />
     <ClInclude Include="src\graphics\post_process\chromatic_aberration_post_process.h" />
     <ClInclude Include="src\graphics\post_process\edge_detection_post_process.h" />
     <ClInclude Include="src\graphics\post_process\depth_of_field_post_process.h" />
@@ -251,6 +266,10 @@
     <ClInclude Include="src\graphics\buffers\geometry_buffer.h" />
     <ClInclude Include="src\graphics\data\render_textures.h" />
     <ClInclude Include="src\graphics\render_pass_config.h" />
+    <ClInclude Include="src\graphics\shaders\compute_shader.h" />
+    <ClInclude Include="src\graphics\shaders\i_shader.h" />
+    <ClInclude Include="src\graphics\shaders\pixel_shader.h" />
+    <ClInclude Include="src\graphics\shaders\vertex_shader.h" />
     <ClInclude Include="src\input\input_manager.h" />
     <ClInclude Include="src\maths\random.h" />
     <ClInclude Include="src\maths\rect.h" />
@@ -273,8 +292,6 @@
     <ClInclude Include="src\physics\particle_system\particle_system_particle.h" />
     <ClInclude Include="src\graphics\buffers\constant_buffer.h" />
     <ClInclude Include="src\graphics\buffers\constant_buffer_types.h" />
-    <ClInclude Include="src\graphics\buffers\index_buffer.h" />
-    <ClInclude Include="src\graphics\buffers\vertex_buffer.h" />
     <ClInclude Include="src\entity\camera_game_object.h" />
     <ClInclude Include="src\graphics\data\colour.h" />
     <ClInclude Include="src\entity\game_object.h" />
@@ -290,18 +307,16 @@
     <ClInclude Include="src\entity\lights\light_game_object.h" />
     <ClInclude Include="src\entity\lights\point_light_game_object.h" />
     <ClInclude Include="src\entity\lights\spot_light_game_object.h" />
-    <ClInclude Include="src\graphics\data\mesh.h" />
     <ClInclude Include="src\graphics\data\model.h" />
     <ClInclude Include="src\entity\physics_game_object.h" />
     <ClInclude Include="src\entity\renderable_game_object.h" />
-    <ClInclude Include="src\graphics\shaders\shader.h" />
     <ClInclude Include="src\graphics\data\texture.h" />
     <ClInclude Include="src\physics\transform.h" />
     <ClInclude Include="src\utils\adapter_reader.h" />
     <ClInclude Include="src\entity\utils\game_object_controller.h" />
     <ClInclude Include="src\entity\utils\game_object_track.h" />
     <ClInclude Include="src\graphics\data\resource_manager.h" />
-    <ClInclude Include="src\graphics\data\vertex.h" />
+    <ClInclude Include="src\graphics\data\vertex_types.h" />
     <ClInclude Include="src\horizon.h" />
     <ClInclude Include="src\input\keyboard\keyboard.h" />
     <ClInclude Include="src\input\keyboard\keyboard_event.h" />
@@ -352,13 +367,13 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\gbuffer\ps_gbuf_w_water.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_gbuf_w_water.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\gbuffer\ps_gbuf_r_default.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_gbuf_r_default.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -382,7 +397,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\gbuffer\ps_gbuf_w_default.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_gbuf_w_default.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -406,7 +421,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\misc\ps_ambient_occlusion.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_misc_ambient_occlusion.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</EnableDebuggingInformation>
@@ -422,7 +437,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\misc\ps_bloom.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_misc_bloom.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -438,7 +453,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\misc\ps_chromatic_abberation.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_misc_chromatic_abberation.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -454,7 +469,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\misc\ps_depth_of_field.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_misc_depth_of_field.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -470,7 +485,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\misc\ps_edge_detection.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_misc_edge_detection.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -486,7 +501,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\misc\ps_gaussian_blur_vertical.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_misc_gaussian_blur_vertical.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -502,7 +517,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\misc\ps_grayscale.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_misc_grayscale.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -518,7 +533,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\misc\ps_gaussian_blur_horizontal.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_misc_gaussian_blur_horizontal.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -534,7 +549,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\misc\ps_quad_copy.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_misc_quad_copy.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -550,7 +565,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\misc\ps_quad_iscolate_emission.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_misc_quad_iscolate_emission.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -566,7 +581,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\misc\ps_sepia.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_misc_sepia.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -582,7 +597,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\standard\ps_atmospheric.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_standard_atmospheric.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -606,7 +621,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\standard\ps_clouds.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_standard_clouds.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -630,7 +645,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\standard\ps_default.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_standard_default.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -654,7 +669,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\standard\ps_no_light.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_standard_no_light.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -678,7 +693,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\standard\ps_terrain.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_standard_terrain.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -692,7 +707,7 @@
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)res/shader/compiled/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="res\shader\pixel\standard\ps_water.hlsl">
+    <FxCompile Include="res\shader\pixel\ps_standard_water.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -807,8 +822,13 @@
     <None Include="res\materials\layered_rock.json" />
     <None Include="res\materials\legos.json" />
     <None Include="res\materials\light.json" />
+    <None Include="res\materials\low_poly_island_cobble.json" />
     <None Include="res\materials\low_poly_island_grass.json" />
     <None Include="res\materials\low_poly_island_metal.json" />
+    <None Include="res\materials\low_poly_island_plaster.json" />
+    <None Include="res\materials\low_poly_island_roof.json" />
+    <None Include="res\materials\low_poly_island_stone.json" />
+    <None Include="res\materials\low_poly_island_wood.json" />
     <None Include="res\materials\matter.json" />
     <None Include="res\materials\metal.json" />
     <None Include="res\materials\mud.json" />
@@ -816,8 +836,12 @@
     <None Include="res\materials\pom_cube.json" />
     <None Include="res\materials\quad.json" />
     <None Include="res\materials\scales.json" />
+    <None Include="res\materials\shoe.json" />
+    <None Include="res\materials\shrek_body.json" />
+    <None Include="res\materials\shrek_head.json" />
     <None Include="res\materials\stone.json" />
     <None Include="res\materials\terracotta.json" />
+    <None Include="res\materials\terrain.json" />
     <None Include="res\materials\wall.json" />
     <None Include="res\materials\water.json" />
     <None Include="res\materials\wood.json" />
@@ -858,6 +882,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="src\graphics\data\mesh.inl" />
+    <None Include="src\graphics\data\model.inl" />
     <None Include="src\maths\rect.inl" />
     <None Include="src\maths\vec2.inl" />
     <None Include="src\maths\vec3.inl" />

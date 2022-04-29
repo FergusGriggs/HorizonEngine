@@ -116,7 +116,7 @@ namespace hrzn::gfx
 			// Set self as shader resource
 			deviceContext->PSSetShaderResources(0, 1, m_shaderResourceView.GetAddressOf());
 
-			deviceContext->PSSetShader(ResourceManager::it().getPSPtr("quad_copy")->getShader(), NULL, 0);
+			deviceContext->PSSetShader(ResourceManager::it().getPSPtr("misc_quad_copy")->getShader(), NULL, 0);
 
 			destination->setAsRenderTargetAndDrawQuad();
 

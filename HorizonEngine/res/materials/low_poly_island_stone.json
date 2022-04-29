@@ -5,7 +5,7 @@
       [ "albedo", "res/textures/low_poly_island/stone_albedo.jpg" ]
     ],
     "vertex_shader": "default",
-    "pixel_shader": "default",
+    "pixel_shader": "standard_default",
     "gbuf_w_pixel_shader": "default"
   }
 }

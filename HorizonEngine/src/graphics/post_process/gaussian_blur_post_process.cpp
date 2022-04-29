@@ -8,7 +8,7 @@ namespace hrzn::gfx
     GaussianBlurPostProcess::GaussianBlurPostProcess(DXGI_FORMAT format, UINT width, UINT height, float texSizeMult) :
         PostProcess(format, (UINT)(width * 0.5f * texSizeMult), (UINT)(height * 0.5f * texSizeMult))
     {
-        m_intermediateTexture.initialise(format, width * texSizeMult, height * texSizeMult);
+        m_intermediateTexture.initialise(format, (UINT)(width * texSizeMult), (UINT)(height * texSizeMult));
     }
 
     GaussianBlurPostProcess::~GaussianBlurPostProcess()
@@ -38,14 +38,14 @@ namespace hrzn::gfx
         deviceContext->PSSetShaderResources(0, 1, input->m_shaderResourceView.GetAddressOf());
 
         // Perform the horizontal blur
-        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("gaussian_blur_horizontal")->getShader(), NULL, 0);
+        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("misc_gaussian_blur_horizontal")->getShader(), NULL, 0);
         m_intermediateTexture.setAsRenderTargetAndDrawQuad();
 
         // Set intermediate texture as shader resource
         deviceContext->PSSetShaderResources(0, 1, m_intermediateTexture.m_shaderResourceView.GetAddressOf());
 
         // Perform the vertical blur
-        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("gaussian_blur_vertical")->getShader(), NULL, 0);
+        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("misc_gaussian_blur_vertical")->getShader(), NULL, 0);
         m_result.setAsRenderTargetAndDrawQuad();
 
         // Unset intermediate texture as shader resource

@@ -2,10 +2,16 @@
 
 #include <unordered_map>
 
-#include "model.h"
 #include "texture.h"
 #include "material.h"
-#include "../shaders/shader.h"
+#include "../shaders/vertex_shader.h"
+#include "../shaders/pixel_shader.h"
+#include "../shaders/compute_shader.h"
+
+namespace hrzn::gfx
+{
+	class Model;
+}
 
 namespace hrzn::gfx
 {
@@ -16,18 +22,19 @@ namespace hrzn::gfx
 
 		bool initialise();
 
-		Model*    getModelPtr(std::string path);
+		template<class VertexType>
+		Model*    getModelPtr(const std::string& path);
 
-		Texture*  getTexturePtr(std::string path);
-		Texture*  getTexturePtr(std::string path, const uint8_t* pData, size_t size);
+		Texture*  getTexturePtr(const std::string& path);
+		Texture*  getTexturePtr(const std::string& path, const uint8_t* pData, size_t size);
 		Texture*  getColourTexturePtr(Colour colour);
 
-		Material* getMaterialPtr(std::string name);
+		Material* getMaterialPtr(const std::string& name);
 
-		VertexShader*  getVSPtr(std::string name);
-		PixelShader*   getPSPtr(std::string name);
-		PixelShader*   getGBufferWritePSPtr(std::string name);
-		ComputeShader* getCSPtr(std::string name);
+		VertexShader*  getVSPtr(const std::string& name);
+		PixelShader*   getPSPtr(const std::string& name);
+		PixelShader*   getGBufferWritePSPtr(const std::string& name);
+		ComputeShader* getCSPtr(const std::string& name);
 
 		Model*         getDefaultModelPtr();
 		Texture*       getDefaultTexturePtr();
@@ -65,4 +72,30 @@ namespace hrzn::gfx
 
 		PixelShader*   m_gBufferReadPS;
 	};
+}
+
+#include "model.h"
+
+namespace hrzn::gfx
+{
+	template<class VertexType>
+	inline Model* ResourceManager::getModelPtr(const std::string& path)
+	{
+		const auto& modelItr = m_models.find(path);
+		if (modelItr != m_models.end())
+		{
+			return modelItr->second;
+		}
+		else
+		{
+			Model* loadedModel = new Model();
+			if (!loadedModel->initialise<VertexType>(path))
+			{
+				delete loadedModel;
+				loadedModel = m_defaultModel;
+			}
+			m_models.insert({ path, loadedModel });
+			return loadedModel;
+		}
+	}
 }

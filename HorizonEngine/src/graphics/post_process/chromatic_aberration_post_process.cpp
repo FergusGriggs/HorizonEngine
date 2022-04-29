@@ -22,7 +22,7 @@ namespace hrzn::gfx
         deviceContext->PSSetShaderResources(0, 1, input->m_shaderResourceView.GetAddressOf());
 
         // Run grayscale shader
-        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("chromatic_abberation")->getShader(), NULL, 0);
+        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("misc_chromatic_abberation")->getShader(), NULL, 0);
         m_result.setAsRenderTargetAndDrawQuad();
 
         // Unset input as shader resource

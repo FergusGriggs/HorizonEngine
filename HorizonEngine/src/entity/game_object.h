@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "model.h"
+#include "../graphics/data/model.h"
 
 #include "utils/game_object_track.h"
 
@@ -25,6 +25,7 @@ namespace hrzn::entity
 			ePointLight,
 			eSpotLight,
 			ePhysics,
+			eSkinned,
 			eNumTypes,
 		};
 
@@ -116,6 +117,7 @@ namespace hrzn::entity
 		{ "PointLight", GameObject::Type::ePointLight },
 		{ "SpotLight",  GameObject::Type::eSpotLight },
 		{ "Physics",    GameObject::Type::ePhysics },
+		{ "Skinned",    GameObject::Type::eSkinned },
 	};
 
 	static const std::unordered_map<GameObject::Type, std::string> sc_gameObjectTypeToString = {
@@ -126,5 +128,6 @@ namespace hrzn::entity
 		{ GameObject::Type::ePointLight, "PointLight" },
 		{ GameObject::Type::eSpotLight,  "SpotLight" },
 		{ GameObject::Type::ePhysics,    "Physics" },
+		{ GameObject::Type::eSkinned,    "Skinned" },
 	};
 }

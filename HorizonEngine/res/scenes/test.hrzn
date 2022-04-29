@@ -37,24 +37,25 @@
                 "num_steps": 40,
                 "step_size": 85.0
             },
-          "AtmosphereConfig": {
-            "sun_size": 75.0,
-            "density": 0.6499999,
-            "multi_scatter_phase": 0.27,
-            "anisotropic_intenisty": 1.0,
-            "zenith_offset": -0.0599999,
-            "night_density": 0.75,
-            "night_zenith_y_clamp": 0.1
-          },
-          "TerrainConfig": {
-            "enabled": true,
-            "dimension_type": "2d",
-            "is_infinite": false,
-            "chunk_scale": 128.0,
-            "origin_position": [ 0.0, -10.0, 128.0 ],
-            "2d_generation_type": "diamond_square",
-            "heightmap_path": "res/textures/terrain/coastMountain513.raw"
-          }
+            "AtmosphereConfig": {
+                "sun_size": 75.0,
+                "density": 0.6499999,
+                "multi_scatter_phase": 0.27,
+                "anisotropic_intenisty": 1.0,
+                "zenith_offset": -0.0599999,
+                "night_density": 0.75,
+                "night_zenith_y_clamp": 0.1
+            },
+            "TerrainConfig": {
+                "enabled": true,
+                "dimension_type": "2d",
+                "is_infinite": false,
+                "chunk_scale": 128.0,
+                "origin_position": [0.0, -10.0, 128.0],
+                "2d_generation_type": "diamond_square",
+                "heightmap_path": "res/textures/terrain/coastMountain513.raw",
+                "3d_generation_type": "default"
+            }
         },
         "ObjectTracks": [
             {
@@ -79,59 +80,6 @@
                     {
                         "position": [10.0, 0.0, 0.0],
                         "look_position": [0.0, -1.0, 0.0]
-                    }
-                ]
-            },
-            {
-                "id": "drapes_camera_track_2",
-                "Nodes": [
-                    {
-                        "position": [-14.0, 0.0, 3.0],
-                        "look_position": [-15.0, 0.0, 2.0]
-                    },
-                    {
-                        "position": [-14.0, 0.0, 9.0],
-                        "look_position": [-15.0, 0.0, 8.0]
-                    },
-                    {
-                        "position": [-14.0, 0.0, 15.0],
-                        "look_position": [-15.0, 0.0, 14.0]
-                    },
-                    {
-                        "position": [-16.0, 0.0, 21.0],
-                        "look_position": [-15.0, 0.0, 20.0]
-                    },
-                    {
-                        "position": [-16.0, 0.0, 27.0],
-                        "look_position": [-15.0, 0.0, 26.0]
-                    },
-                    {
-                        "position": [-16.0, 0.0, 33.0],
-                        "look_position": [-15.0, 0.0, 32.0]
-                    },
-                    {
-                        "position": [-14.0, 0.0, 39.0],
-                        "look_position": [-15.0, 0.0, 38.0]
-                    },
-                    {
-                        "position": [-14.0, 0.0, 45.0],
-                        "look_position": [-15.0, 0.0, 44.0]
-                    },
-                    {
-                        "position": [-14.0, 0.0, 51.0],
-                        "look_position": [-15.0, 0.0, 50.0]
-                    },
-                    {
-                        "position": [-16.0, 0.0, 57.0],
-                        "look_position": [-15.0, 0.0, 56.0]
-                    },
-                    {
-                        "position": [-16.0, 0.0, 63.0],
-                        "look_position": [-15.0, 0.0, 62.0]
-                    },
-                    {
-                        "position": [-14.0, 0.0, 3.0],
-                        "look_position": [-15.0, 0.0, 2.0]
                     }
                 ]
             },
@@ -185,6 +133,59 @@
                     {
                         "position": [-13.5, 2.0, -3.0],
                         "look_position": [-15.0, -1.0, -1.5]
+                    }
+                ]
+            },
+            {
+                "id": "drapes_camera_track_2",
+                "Nodes": [
+                    {
+                        "position": [-14.0, 0.0, 3.0],
+                        "look_position": [-15.0, 0.0, 2.0]
+                    },
+                    {
+                        "position": [-14.0, 0.0, 9.0],
+                        "look_position": [-15.0, 0.0, 8.0]
+                    },
+                    {
+                        "position": [-14.0, 0.0, 15.0],
+                        "look_position": [-15.0, 0.0, 14.0]
+                    },
+                    {
+                        "position": [-16.0, 0.0, 21.0],
+                        "look_position": [-15.0, 0.0, 20.0]
+                    },
+                    {
+                        "position": [-16.0, 0.0, 27.0],
+                        "look_position": [-15.0, 0.0, 26.0]
+                    },
+                    {
+                        "position": [-16.0, 0.0, 33.0],
+                        "look_position": [-15.0, 0.0, 32.0]
+                    },
+                    {
+                        "position": [-14.0, 0.0, 39.0],
+                        "look_position": [-15.0, 0.0, 38.0]
+                    },
+                    {
+                        "position": [-14.0, 0.0, 45.0],
+                        "look_position": [-15.0, 0.0, 44.0]
+                    },
+                    {
+                        "position": [-14.0, 0.0, 51.0],
+                        "look_position": [-15.0, 0.0, 50.0]
+                    },
+                    {
+                        "position": [-16.0, 0.0, 57.0],
+                        "look_position": [-15.0, 0.0, 56.0]
+                    },
+                    {
+                        "position": [-16.0, 0.0, 63.0],
+                        "look_position": [-15.0, 0.0, 62.0]
+                    },
+                    {
+                        "position": [-14.0, 0.0, 3.0],
+                        "look_position": [-15.0, 0.0, 2.0]
                     }
                 ]
             },
@@ -268,6 +269,20 @@
                 }
             },
             {
+                "id": "test_point_light_4",
+                "type": "PointLight",
+                "position": [-48.8846435, -7.3954181, -20.8086013],
+                "orientation": [0.4422492, 0.5548089, 0.5351452, 0.4584999],
+                "LightData": {
+                    "colour": [1.0, 0.4550172, 0.0735293]
+                },
+                "PointLightData": {
+                    "attenuation_constant": 1.0,
+                    "attenuation_linear": 0.086,
+                    "attenuation_quadratic": 0.006
+                }
+            },
+            {
                 "id": "layered_rock_drape",
                 "type": "Renderable",
                 "position": [-15.0, -3.0, 18.0],
@@ -296,20 +311,6 @@
                 }
             },
             {
-                "id": "test_point_light_4",
-                "type": "PointLight",
-                "position": [-48.8846435, -7.3954181, -20.8086013],
-                "orientation": [0.4422492, 0.5548089, 0.5351452, 0.4584999],
-                "LightData": {
-                    "colour": [1.0, 0.4550172, 0.0735293]
-                },
-                "PointLightData": {
-                    "attenuation_constant": 1.0,
-                    "attenuation_linear": 0.086,
-                    "attenuation_quadratic": 0.006
-                }
-            },
-            {
                 "id": "test_spot_light_1",
                 "type": "SpotLight",
                 "position": [-15.0, 4.5, -2.0],
@@ -328,30 +329,10 @@
                 }
             },
             {
-                "id": "tunnel_cam_1",
-                "type": "Camera",
-                "position": [-11.0, -1.5, 42.5906066],
-                "orientation": [-0.0881347, -0.4450371, -0.0440673, 0.8900743],
-                "CameraData": {
-                    "fov": 52.5,
-                    "near_plane": 0.1,
-                    "far_plane": 3000.0,
-                    "is_active_cam": false
-                },
-                "ObjectTracks": [
-                    {
-                        "id": "drapes_camera_track_1",
-                        "is_following": true,
-                        "track_delta": 7.5984344,
-                        "track_speed": 0.2
-                    }
-                ]
-            },
-            {
                 "id": "test_point_light_1",
                 "type": "PointLight",
-                "position": [-16.8918762, 1.4112548, 45.5906066],
-                "orientation": [0.3447971, 0.5325159, -0.2511521, 0.7310706],
+                "position": [-14.6409845, 1.6114997, 51.7915763],
+                "orientation": [-0.4647058, 0.5329619, -0.4647058, -0.5329619],
                 "LightData": {
                     "colour": [1.0, 0.8299999, 0.745]
                 },
@@ -364,7 +345,27 @@
                     {
                         "id": "drapes_light_track",
                         "is_following": true,
-                        "track_delta": 7.5984344,
+                        "track_delta": 8.6278438,
+                        "track_speed": 0.2
+                    }
+                ]
+            },
+            {
+                "id": "tunnel_cam_1",
+                "type": "Camera",
+                "position": [-11.0, -1.5, 48.7670593],
+                "orientation": [-0.0881347, -0.4450371, -0.0440673, 0.8900743],
+                "CameraData": {
+                    "fov": 52.5,
+                    "near_plane": 0.1,
+                    "far_plane": 3000.0,
+                    "is_active_cam": false
+                },
+                "ObjectTracks": [
+                    {
+                        "id": "drapes_camera_track_1",
+                        "is_following": true,
+                        "track_delta": 8.6278438,
                         "track_speed": 0.2
                     }
                 ]
@@ -390,6 +391,26 @@
                 ]
             },
             {
+                "id": "tunnel_cam_2",
+                "type": "Camera",
+                "position": [-15.8615064, 0.0, 57.7671127],
+                "orientation": [0.0, 0.9374488, 0.0, 0.348123],
+                "CameraData": {
+                    "fov": 70.0,
+                    "near_plane": 0.1,
+                    "far_plane": 3000.0,
+                    "is_active_cam": false
+                },
+                "ObjectTracks": [
+                    {
+                        "id": "drapes_camera_track_2",
+                        "is_following": true,
+                        "track_delta": 9.1278524,
+                        "track_speed": 0.2
+                    }
+                ]
+            },
+            {
                 "id": "test_point_light_2",
                 "type": "PointLight",
                 "position": [-15.3999996, -0.2, -17.0],
@@ -402,26 +423,6 @@
                     "attenuation_linear": 0.07,
                     "attenuation_quadratic": 0.017
                 }
-            },
-            {
-                "id": "tunnel_cam_2",
-                "type": "Camera",
-                "position": [-14.3581686, 0.0, 51.5908279],
-                "orientation": [0.0, 0.9595757, 0.0, -0.2814508],
-                "CameraData": {
-                    "fov": 70.0,
-                    "near_plane": 0.1,
-                    "far_plane": 3000.0,
-                    "is_active_cam": false
-                },
-                "ObjectTracks": [
-                    {
-                        "id": "drapes_camera_track_2",
-                        "is_following": true,
-                        "track_delta": 8.0984716,
-                        "track_speed": 0.2
-                    }
-                ]
             },
             {
                 "id": "terracotta_cube",
@@ -464,22 +465,22 @@
                 }
             },
             {
-                "id": "wood_cube",
-                "type": "Renderable",
-                "position": [-21.091793, -1.7990812, -20.9666805],
-                "orientation": [0.4274227, 0.1907333, -0.4037012, 0.7861016],
-                "RenderableData": {
-                    "model_path": "res/models/test_cubes/wood_clean.obj",
-                    "scale": [1.0, 1.0, 1.0]
-                }
-            },
-            {
                 "id": "lego_cube",
                 "type": "Renderable",
                 "position": [-10.4319715, 0.5, -12.8710374],
                 "orientation": [-0.2570871, 0.0707791, 0.2558254, 0.92922],
                 "RenderableData": {
                     "model_path": "res/models/test_cubes/legos.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "wood_cube",
+                "type": "Renderable",
+                "position": [-21.091793, -1.7990812, -20.9666805],
+                "orientation": [0.4274227, 0.1907333, -0.4037012, 0.7861016],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/wood_clean.obj",
                     "scale": [1.0, 1.0, 1.0]
                 }
             },
@@ -504,22 +505,22 @@
                 }
             },
             {
-                "id": "wood_drape_2",
-                "type": "Renderable",
-                "position": [-15.0, -3.0, 0.0],
-                "orientation": [0.0, 0.0, 0.0, 1.0],
-                "RenderableData": {
-                    "model_path": "res/models/test_cubes/wood_drape.obj",
-                    "scale": [1.0, 1.0, 1.0]
-                }
-            },
-            {
                 "id": "metal_cube",
                 "type": "Renderable",
                 "position": [-19.5786056, -0.0399467, -11.8087882],
                 "orientation": [-0.1542826, 0.0641683, -0.3786245, 0.9103421],
                 "RenderableData": {
                     "model_path": "res/models/test_cubes/metal.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "wood_drape_2",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 0.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/wood_drape.obj",
                     "scale": [1.0, 1.0, 1.0]
                 }
             },
@@ -564,22 +565,22 @@
                 }
             },
             {
-                "id": "stone_drape",
-                "type": "Renderable",
-                "position": [-15.0, -3.0, 36.0],
-                "orientation": [0.0, 0.0, 0.0, 1.0],
-                "RenderableData": {
-                    "model_path": "res/models/test_cubes/stone_drape.obj",
-                    "scale": [1.0, 1.0, 1.0]
-                }
-            },
-            {
                 "id": "brick_drape",
                 "type": "Renderable",
                 "position": [-15.0, -3.0, 24.0],
                 "orientation": [0.0, 0.0, 0.0, 1.0],
                 "RenderableData": {
                     "model_path": "res/models/test_cubes/brick_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
+                "id": "stone_drape",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 36.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/stone_drape.obj",
                     "scale": [1.0, 1.0, 1.0]
                 }
             },
@@ -594,6 +595,16 @@
                 }
             },
             {
+                "id": "scale_drape",
+                "type": "Renderable",
+                "position": [-15.0, -3.0, 42.0],
+                "orientation": [0.0, 0.0, 0.0, 1.0],
+                "RenderableData": {
+                    "model_path": "res/models/test_cubes/scale_drape.obj",
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            },
+            {
                 "id": "island",
                 "type": "Renderable",
                 "position": [-49.5314979, 0.1242592, -65.7347488],
@@ -604,12 +615,12 @@
                 }
             },
             {
-                "id": "scale_drape",
+                "id": "lego_drape",
                 "type": "Renderable",
-                "position": [-15.0, -3.0, 42.0],
+                "position": [-15.0, -3.0, 48.0],
                 "orientation": [0.0, 0.0, 0.0, 1.0],
                 "RenderableData": {
-                    "model_path": "res/models/test_cubes/scale_drape.obj",
+                    "model_path": "res/models/test_cubes/lego_drape.obj",
                     "scale": [1.0, 1.0, 1.0]
                 }
             },
@@ -624,13 +635,21 @@
                 }
             },
             {
-                "id": "lego_drape",
-                "type": "Renderable",
-                "position": [-15.0, -3.0, 48.0],
-                "orientation": [0.0, 0.0, 0.0, 1.0],
-                "RenderableData": {
-                    "model_path": "res/models/test_cubes/lego_drape.obj",
-                    "scale": [1.0, 1.0, 1.0]
+                "id": "Shrek Spotlight",
+                "type": "SpotLight",
+                "position": [-57.6004142, -3.2016758, 10.8955202],
+                "orientation": [-0.3422047, -0.4029632, -0.1656434, 0.8325136],
+                "LightData": {
+                    "colour": [0.9362745, 0.4300707, 0.2478374]
+                },
+                "PointLightData": {
+                    "attenuation_constant": 0.4469999,
+                    "attenuation_linear": 0.0179999,
+                    "attenuation_quadratic": 0.0
+                },
+                "SpotLightData": {
+                    "inner_cutoff": 16.5659999,
+                    "outer_cutoff": 41.7859992
                 }
             },
             {
@@ -649,7 +668,7 @@
                 "position": [-56.3936958, 1.4308679, -49.1735763],
                 "orientation": [0.1188558, 0.6608244, -0.0631474, 0.7383744],
                 "LightData": {
-                    "colour": [0.980392, 0.0, 0.0]
+                    "colour": [0.9803919, 0.0, 0.0]
                 },
                 "PointLightData": {
                     "attenuation_constant": 0.2689999,
@@ -713,6 +732,16 @@
                 "SpotLightData": {
                     "inner_cutoff": 8.6870002,
                     "outer_cutoff": 39.2659988
+                }
+            },
+            {
+                "id": "Shrek",
+                "type": "Renderable",
+                "position": [-90.1295089, -20.4166126, 39.4013099],
+                "orientation": [0.6640886, -0.2328703, 0.2209396, 0.6752357],
+                "RenderableData": {
+                    "model_path": "res/models/skinned_models/shrek-walk-cycle/source/Walking.fbx",
+                    "scale": [1.0, 1.0, 1.0]
                 }
             }
         ]

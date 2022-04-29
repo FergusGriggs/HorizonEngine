@@ -214,7 +214,7 @@ namespace hrzn::scene::terrain
 
 	// ----------------------------------------------------------------------------
 
-	void GenerateVertexIndices(OctreeNode* node, std::vector<gfx::Vertex>& vertexBuffer)
+	void GenerateVertexIndices(OctreeNode* node, std::vector<gfx::SimpleLitVertex>& vertexBuffer)
 	{
 		if (!node)
 		{
@@ -241,14 +241,20 @@ namespace hrzn::scene::terrain
 			maths::Vec3f& pos = drawInfo->m_position;
 			maths::Vec3f& norm = drawInfo->m_averageNormal;
 
-			drawInfo->m_index = vertexBuffer.size();
-			vertexBuffer.push_back(gfx::Vertex(pos.x, pos.y, pos.z, norm.x, norm.y, norm.z, 0.0f, 0.0f));
+			drawInfo->m_index = (int)(vertexBuffer.size());
+
+			gfx::SimpleLitVertex vert;
+			vert.m_pos = pos;
+			vert.m_normal = norm;
+			vert.m_texCoord = 0.0f, 0.0f;
+
+			vertexBuffer.push_back(vert);
 		}
 	}
 
 	// ----------------------------------------------------------------------------
 
-	void ContourProcessEdge(OctreeNode* node[4], int dir, std::vector<gfx::Vertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
+	void ContourProcessEdge(OctreeNode* node[4], int dir, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		int minSize = 1000000;		// arbitrary big number
 		int minIndex = 0;
@@ -294,13 +300,13 @@ namespace hrzn::scene::terrain
 			}
 
 			// Add vertices to the list
-			vertexBuffer.emplace_back(positions[0].x, positions[0].y, positions[0].z, face1Normal.x, face1Normal.y, face1Normal.z, 0.0f, 0.0f);
-			vertexBuffer.emplace_back(positions[1].x, positions[1].y, positions[1].z, face1Normal.x, face1Normal.y, face1Normal.z, 0.0f, 0.0f);
-			vertexBuffer.emplace_back(positions[2].x, positions[2].y, positions[2].z, face1Normal.x, face1Normal.y, face1Normal.z, 0.0f, 0.0f);
+			vertexBuffer.emplace_back(positions[0], face1Normal, maths::Vec2f(0.0f, 0.0f));
+			vertexBuffer.emplace_back(positions[1], face1Normal, maths::Vec2f(0.0f, 0.0f));
+			vertexBuffer.emplace_back(positions[2], face1Normal, maths::Vec2f(0.0f, 0.0f));
 
-			vertexBuffer.emplace_back(positions[2].x, positions[2].y, positions[2].z, face2Normal.x, face2Normal.y, face2Normal.z, 0.0f, 0.0f);
-			vertexBuffer.emplace_back(positions[1].x, positions[1].y, positions[1].z, face2Normal.x, face2Normal.y, face2Normal.z, 0.0f, 0.0f);
-			vertexBuffer.emplace_back(positions[3].x, positions[3].y, positions[3].z, face2Normal.x, face2Normal.y, face2Normal.z, 0.0f, 0.0f);
+			vertexBuffer.emplace_back(positions[2], face2Normal, maths::Vec2f(0.0f, 0.0f));
+			vertexBuffer.emplace_back(positions[1], face2Normal, maths::Vec2f(0.0f, 0.0f));
+			vertexBuffer.emplace_back(positions[3], face2Normal, maths::Vec2f(0.0f, 0.0f));
 
 			if (!flip)
 			{
@@ -327,7 +333,7 @@ namespace hrzn::scene::terrain
 
 	// ----------------------------------------------------------------------------
 
-	void ContourEdgeProc(OctreeNode* node[4], int dir, std::vector<gfx::Vertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
+	void ContourEdgeProc(OctreeNode* node[4], int dir, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		if (!node[0] || !node[1] || !node[2] || !node[3])
 		{
@@ -373,7 +379,7 @@ namespace hrzn::scene::terrain
 
 	// ----------------------------------------------------------------------------
 
-	void ContourFaceProc(OctreeNode* node[2], int dir, std::vector<gfx::Vertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
+	void ContourFaceProc(OctreeNode* node[2], int dir, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		if (!node[0] || !node[1])
 		{
@@ -444,7 +450,7 @@ namespace hrzn::scene::terrain
 
 	// ----------------------------------------------------------------------------
 
-	void ContourCellProc(OctreeNode* node, std::vector<gfx::Vertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
+	void ContourCellProc(OctreeNode* node, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		if (node == NULL)
 		{
@@ -541,7 +547,7 @@ namespace hrzn::scene::terrain
 		for (int i = 0; i < 8; i++)
 		{
 			const maths::Vec3i cornerPos = leaf->m_min + CHILD_MIN_OFFSETS[i];
-			const float density = Density_Func(maths::Vec3f(cornerPos.x, cornerPos.y, cornerPos.z));
+			const float density = Density_Func(maths::Vec3f((float)cornerPos.x, (float)cornerPos.y, (float)cornerPos.z));
 			const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
 			corners |= (material << i);
 		}
@@ -666,7 +672,7 @@ namespace hrzn::scene::terrain
 
 	// ----------------------------------------------------------------------------
 
-	void GenerateMeshFromOctree(OctreeNode* node, std::vector<gfx::Vertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
+	void GenerateMeshFromOctree(OctreeNode* node, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		if (!node)
 		{

@@ -203,7 +203,7 @@ namespace hrzn::maths
     template<typename T>
     inline Vec3<T> Vec3<T>::normalise(const Vec3<T>& vector)
     {
-        T lengthSquared = vector.lengthSquared();
+        T lengthSquared = (T)vector.lengthSquared();
 
         if (lengthSquared < (T)0.0000001)
         {
@@ -211,7 +211,7 @@ namespace hrzn::maths
         }
 
         // Only sqrt for non-zero input
-        T length = sqrt(lengthSquared);
+        T length = (T)(sqrt(lengthSquared));
 
         Vec3<T> normalisedVector;
         normalisedVector.x = vector.x / length;

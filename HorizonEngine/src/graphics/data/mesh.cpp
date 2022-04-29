@@ -1,45 +1,49 @@
-//Mesh.cpp
-//Function implementations for the Mesh class
+#include "mesh.h"
 
-#include "Mesh.h"
 #include "../graphics_handler.h"
 
 namespace hrzn::gfx
 {
-	Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<DWORD>& indices, Material* material, const DirectX::XMMATRIX& transformMatrix) :
-		m_vertexBuffer(),
-		m_indexBuffer(),
-
-		m_material(material),
-
-		m_transformMatrix(transformMatrix)
+	void Mesh::setMaterial(Material* material)
 	{
-		HRESULT hr = m_vertexBuffer.Initialize(GraphicsHandler::it().getDevice(), vertices.data(), static_cast<UINT>(vertices.size()));
-		COM_ERROR_IF_FAILED(hr, "Failed to initialize vertex buffer for mesh.");
-
-		hr = m_indexBuffer.initialize(GraphicsHandler::it().getDevice(), indices.data(), static_cast<UINT>(indices.size()));
-		COM_ERROR_IF_FAILED(hr, "Failed to initialize index buffer for mesh.");
-	}
-
-	Mesh::Mesh(const Mesh& mesh) :
-		m_indexBuffer(mesh.m_indexBuffer),
-		m_vertexBuffer(mesh.m_vertexBuffer),
-		m_material(mesh.m_material),
-		m_transformMatrix(mesh.m_transformMatrix)
-	{
+		m_material = material;
 	}
 
 	void Mesh::draw(bool useGBuffer, bool bindPSData) const
-	{
+    {
+		if (m_hidden)
+		{
+			return;
+		}
+
 		ID3D11DeviceContext* deviceContext = GraphicsHandler::it().getDeviceContext();
 
-		m_material->bind(useGBuffer, bindPSData);
+		// If we have a material, bind it
+		if (m_material != nullptr)
+		{
+			m_material->bind(useGBuffer, bindPSData);
+		}
 
 		UINT offset = 0;
 
-		deviceContext->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), m_vertexBuffer.StridePtr(), &offset);
-		deviceContext->IASetIndexBuffer(m_indexBuffer.get(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
-		deviceContext->DrawIndexed(m_indexBuffer.indexCount(), 0, 0);
+		deviceContext->IASetVertexBuffers(0, 1, m_vertexBuffer.getAddressOfBuffer(), m_vertexBuffer.getStridePtr(), &offset);
+		deviceContext->IASetIndexBuffer(m_indexBuffer.getBuffer(), DXGI_FORMAT::DXGI_FORMAT_R32_UINT, 0);
+		deviceContext->DrawIndexed(m_indexBuffer.getIndexCount(), 0, 0);
+    }
+
+	const std::string& Mesh::getName() const
+	{
+		return m_name;
+	}
+
+	bool* Mesh::getHiddenBoolPtr()
+	{
+		return &m_hidden;
+	}
+
+	Material* Mesh::getMaterial()
+	{
+		return m_material;
 	}
 
 	const DirectX::XMMATRIX& Mesh::getTransformMatrix() const

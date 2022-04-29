@@ -50,7 +50,7 @@ namespace hrzn::gfx
         deviceContext->PSSetShaderResources(2, 1, m_geometryBuffer->m_depthStencil.m_shaderResourceView.GetAddressOf());
 
         // Perform depth of field
-        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("depth_of_field")->getShader(), NULL, 0);
+        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("misc_depth_of_field")->getShader(), NULL, 0);
         m_result.setAsRenderTargetAndDrawQuad();
 
         // Unset shader resources

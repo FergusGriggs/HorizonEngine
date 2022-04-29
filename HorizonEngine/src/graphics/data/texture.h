@@ -6,7 +6,6 @@
 
 #include <d3d11.h>
 #include <wrl/client.h>
-#include <assimp/material.h>
 
 #include <WICTextureLoader.h>
 #include <DDSTextureLoader.h>
@@ -38,8 +37,8 @@ namespace hrzn::gfx
 
 		bool initialize(const std::string& filePath);
 
-		ID3D11ShaderResourceView*  getTextureResourceView() const;
-		ID3D11ShaderResourceView** getTextureResourceViewAddress();
+		Microsoft::WRL::ComPtr<ID3D11Resource>&           getResource();
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& getShaderResourceView();
 
 	private:
 		void initialize1x1ColourTexture(const Colour& colour);

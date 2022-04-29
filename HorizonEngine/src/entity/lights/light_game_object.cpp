@@ -4,6 +4,7 @@
 #include "light_game_object.h"
 
 #include "../../graphics/data/resource_manager.h"
+#include "../../graphics/data/vertex_types.h"
 
 namespace hrzn::entity
 {
@@ -17,7 +18,7 @@ namespace hrzn::entity
 
 	bool LightGameObject::initialize()
 	{
-		m_model = gfx::ResourceManager::it().getModelPtr("res/models/engine/light/light.obj");
+		m_model = gfx::ResourceManager::it().getModelPtr<gfx::SimpleLitVertex>("res/models/engine/light/light.obj");
 		if (m_model == nullptr) return false;
 		
 		return true;

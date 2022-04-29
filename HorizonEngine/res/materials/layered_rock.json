@@ -8,7 +8,7 @@
       [ "depth", "res/textures/layered_rock/depth.png" ]
     ],
     "vertex_shader": "default",
-    "pixel_shader": "default",
+    "pixel_shader": "standard_default",
     "gbuf_w_pixel_shader": "default"
   }
 }

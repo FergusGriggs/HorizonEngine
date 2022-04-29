@@ -123,9 +123,6 @@
     <ClCompile Include="src\graphics\graphics_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\data\mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics\data\model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -133,9 +130,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\entity\renderable_game_object.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\shaders\shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\data\texture.cpp">
@@ -267,18 +261,45 @@
     <ClCompile Include="src\scene\terrain\terrain_data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\data\vertex_types.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\data\mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\buffers\index_buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\buffers\vertex_buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\shaders\compute_shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\shaders\i_shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\shaders\pixel_shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\shaders\vertex_shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\data\skinned_mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\data\skinned_model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\entity\skinned_game_object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\graphics\buffers\constant_buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\buffers\constant_buffer_types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\buffers\index_buffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\buffers\vertex_buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\imgui\imconfig.h">
@@ -338,9 +359,6 @@
     <ClInclude Include="src\graphics\graphics_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\data\mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\data\model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -350,16 +368,13 @@
     <ClInclude Include="src\entity\renderable_game_object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\shaders\shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\data\texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\physics\transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\data\vertex.h">
+    <ClInclude Include="src\graphics\data\vertex_types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\input\keyboard\keyboard.h">
@@ -524,32 +539,62 @@
     <ClInclude Include="src\scene\terrain\dual_contouring\qef_simd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\buffers\index_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\buffers\vertex_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\shaders\compute_shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\shaders\i_shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\shaders\pixel_shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\shaders\vertex_shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\data\mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\data\skinned_mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\data\skinned_model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\entity\skinned_game_object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="res\shader\pixel\standard\ps_no_light.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_standard_no_light.hlsl" />
     <FxCompile Include="res\shader\compute\cs_noise_gen.hlsl" />
-    <FxCompile Include="res\shader\pixel\gbuffer\ps_gbuf_r_default.hlsl" />
-    <FxCompile Include="res\shader\pixel\gbuffer\ps_gbuf_w_default.hlsl" />
-    <FxCompile Include="res\shader\pixel\standard\ps_atmospheric.hlsl" />
-    <FxCompile Include="res\shader\pixel\standard\ps_clouds.hlsl" />
-    <FxCompile Include="res\shader\pixel\standard\ps_default.hlsl" />
-    <FxCompile Include="res\shader\pixel\standard\ps_water.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_gbuf_r_default.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_gbuf_w_default.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_standard_atmospheric.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_standard_clouds.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_standard_default.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_standard_water.hlsl" />
     <FxCompile Include="res\shader\vertex\vs_default.hlsl" />
     <FxCompile Include="res\shader\vertex\vs_quad.hlsl" />
     <FxCompile Include="res\shader\vertex\vs_water.hlsl" />
-    <FxCompile Include="res\shader\pixel\misc\ps_quad_copy.hlsl" />
-    <FxCompile Include="res\shader\pixel\misc\ps_quad_iscolate_emission.hlsl" />
-    <FxCompile Include="res\shader\pixel\misc\ps_sepia.hlsl" />
-    <FxCompile Include="res\shader\pixel\misc\ps_grayscale.hlsl" />
-    <FxCompile Include="res\shader\pixel\misc\ps_gaussian_blur_horizontal.hlsl" />
-    <FxCompile Include="res\shader\pixel\misc\ps_gaussian_blur_vertical.hlsl" />
-    <FxCompile Include="res\shader\pixel\misc\ps_depth_of_field.hlsl" />
-    <FxCompile Include="res\shader\pixel\misc\ps_edge_detection.hlsl" />
-    <FxCompile Include="res\shader\pixel\misc\ps_bloom.hlsl" />
-    <FxCompile Include="res\shader\pixel\misc\ps_chromatic_abberation.hlsl" />
-    <FxCompile Include="res\shader\pixel\misc\ps_ambient_occlusion.hlsl" />
-    <FxCompile Include="res\shader\pixel\gbuffer\ps_gbuf_w_water.hlsl" />
-    <FxCompile Include="res\shader\pixel\standard\ps_terrain.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_misc_quad_copy.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_misc_quad_iscolate_emission.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_misc_sepia.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_misc_grayscale.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_misc_gaussian_blur_horizontal.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_misc_gaussian_blur_vertical.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_misc_depth_of_field.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_misc_edge_detection.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_misc_bloom.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_misc_chromatic_abberation.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_misc_ambient_occlusion.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_gbuf_w_water.hlsl" />
+    <FxCompile Include="res\shader\pixel\ps_standard_terrain.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini">
@@ -604,5 +649,20 @@
     <None Include="src\maths\vec4.inl">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="src\graphics\data\mesh.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="src\graphics\data\model.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="res\materials\low_poly_island_cobble.json" />
+    <None Include="res\materials\low_poly_island_plaster.json" />
+    <None Include="res\materials\low_poly_island_roof.json" />
+    <None Include="res\materials\low_poly_island_stone.json" />
+    <None Include="res\materials\low_poly_island_wood.json" />
+    <None Include="res\materials\terrain.json" />
+    <None Include="res\materials\shoe.json" />
+    <None Include="res\materials\shrek_body.json" />
+    <None Include="res\materials\shrek_head.json" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 #include "terrain_manager.h"
 
-#include "../../graphics/data/vertex.h"
+#include "../../graphics/data/vertex_types.h"
 
 #include "../../graphics/data/resource_manager.h"
 
@@ -240,7 +240,7 @@ namespace hrzn::scene
             float radiusFloat = (float)radius;
 
             maths::Vec2i centre = maths::Vec2i(rand() % dimensions.x, rand() % dimensions.z);
-            maths::Vec2f centreFloat = maths::Vec2f(centre.x, centre.y);
+            maths::Vec2f centreFloat = maths::Vec2f((float)centre.x, (float)centre.y);
 
             maths::Vec2i minCoord = centre - radius;
             maths::Vec2i maxCoord = centre + radius;
@@ -296,7 +296,7 @@ namespace hrzn::scene
             {
                 for (int j = 0; j < dimensions.z; ++j)
                 {
-                    maths::Vec2f gridPoint = maths::Vec2f(i, j);
+                    maths::Vec2f gridPoint = maths::Vec2f((float)i, (float)j);
 
                     float signedDistToLine = maths::Vec2f::dot(lineDir, gridPoint - linePos1);
 
@@ -317,7 +317,7 @@ namespace hrzn::scene
 
     void TerrainManager::createStaticTerrainMeshUsingHeights()
     {
-        std::vector<gfx::Vertex> vertices;
+        std::vector<gfx::SimpleLitVertex> vertices;
         std::vector<DWORD> indices;
 
         maths::Vec3f vertStep = (m_staticTerrainDimensions - maths::Vec3i(1, 0, 1)).createVec3f().reciprocal() * m_chunkScale;
@@ -339,7 +339,7 @@ namespace hrzn::scene
         {
             for (int j = 0; j < m_staticTerrainDimensions.z - 1; ++j)
             {
-                DWORD currentIndex = vertices.size();
+                DWORD currentIndex = (DWORD)(vertices.size());
 
                 maths::Vec3f topLeft, topRight, botLeft, botRight;
 
@@ -352,13 +352,13 @@ namespace hrzn::scene
                 maths::Vec3f face2Normal = maths::Vec3f::normalise(maths::Vec3f::cross(topRight - botLeft, botRight - botLeft));
 
                 // Add vertices to the list
-                vertices.emplace_back(topLeft.x, topLeft.y, topLeft.z, face1Normal.x, face1Normal.y, face1Normal.z, 0.0f, 0.0f);
-                vertices.emplace_back(topRight.x, topRight.y, topRight.z, face1Normal.x, face1Normal.y, face1Normal.z, 0.0f, 0.0f);
-                vertices.emplace_back(botLeft.x, botLeft.y, botLeft.z, face1Normal.x, face1Normal.y, face1Normal.z, 0.0f, 0.0f);
+                vertices.emplace_back(gfx::SimpleLitVertex(topLeft, face1Normal, maths::Vec2f(0.0f, 0.0f)));
+                vertices.emplace_back(gfx::SimpleLitVertex(topRight, face1Normal, maths::Vec2f(0.0f, 0.0f)));
+                vertices.emplace_back(gfx::SimpleLitVertex(botLeft, face1Normal, maths::Vec2f(0.0f, 0.0f)));
 
-                vertices.emplace_back(botLeft.x, botLeft.y, botLeft.z, face2Normal.x, face2Normal.y, face2Normal.z, 0.0f, 0.0f);
-                vertices.emplace_back(topRight.x, topRight.y, topRight.z, face2Normal.x, face2Normal.y, face2Normal.z, 0.0f, 0.0f);
-                vertices.emplace_back(botRight.x, botRight.y, botRight.z, face2Normal.x, face2Normal.y, face2Normal.z, 0.0f, 0.0f);
+                vertices.emplace_back(gfx::SimpleLitVertex(botLeft, face2Normal, maths::Vec2f(0.0f, 0.0f)));
+                vertices.emplace_back(gfx::SimpleLitVertex(topRight, face2Normal, maths::Vec2f(0.0f, 0.0f)));
+                vertices.emplace_back(gfx::SimpleLitVertex(botRight, face2Normal, maths::Vec2f(0.0f, 0.0f)));
 
                 // Add indices to the list
                 indices.push_back(currentIndex);
@@ -377,7 +377,7 @@ namespace hrzn::scene
         }
 
         // Create mesh
-        m_staticTerrainMesh = new gfx::Mesh(vertices, indices, gfx::ResourceManager::it().getMaterialPtr("terrain"), XMMatrixIdentity());
+        m_staticTerrainMesh = new gfx::Mesh(vertices, indices, gfx::ResourceManager::it().getMaterialPtr("terrain"));
     }
 
     gfx::Mesh* TerrainManager::getStaticTerrainMesh()
@@ -396,7 +396,7 @@ namespace hrzn::scene
         const float THRESHOLDS[MAX_THRESHOLDS] = { -1.f, 0.1f, 1.f, 10.f, 50.f };
         int thresholdIndex = 0;
 
-        std::vector<gfx::Vertex> vertices;
+        std::vector<gfx::SimpleLitVertex> vertices;
         std::vector<DWORD> indices;
 
         m_testOctree = terrain::BuildOctree(maths::Vec3i(-octreeSize / 2), octreeSize, THRESHOLDS[thresholdIndex]);
@@ -407,6 +407,6 @@ namespace hrzn::scene
             delete m_staticTerrainMesh;
         }
 
-        m_staticTerrainMesh = new gfx::Mesh(vertices, indices, gfx::ResourceManager::it().getMaterialPtr("terrain"), XMMatrixIdentity());
+        m_staticTerrainMesh = new gfx::Mesh(vertices, indices, gfx::ResourceManager::it().getMaterialPtr("terrain"));
     }
 }

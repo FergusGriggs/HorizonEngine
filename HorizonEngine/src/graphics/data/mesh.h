@@ -1,39 +1,71 @@
-//Mesh.h
-//Stores all information required to draw a single mesh of a model
-
 #pragma once
 
 #include <vector>
+#include <string>
 
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-#include <assimp/scene.h>
+#include <DirectXMath.h>
 
-#include "vertex.h"
-#include "texture.h"
-#include "material.h"
+#include <Assimp/Importer.hpp>
+#include <Assimp/postprocess.h>
+#include <Assimp/scene.h>
 
 #include "../buffers/vertex_buffer.h"
 #include "../buffers/index_buffer.h"
-#include "../buffers/constant_buffer.h"
+
+#include "material.h"
+
+// Forward declarations
+namespace hrzn::gfx
+{
+	class Texture;
+	class Material;
+}
 
 namespace hrzn::gfx
 {
 	class Mesh
 	{
 	public:
-		Mesh(std::vector<Vertex>& vertices, std::vector<DWORD>& indices, Material* material, const DirectX::XMMATRIX& transformMatrix);
+		template<typename VertexType>
+		Mesh(std::vector<VertexType>& vertices, std::vector<DWORD>& indices);
+		template<typename VertexType>
+		Mesh(std::vector<VertexType>& vertices, std::vector<DWORD>& indices, Material* material);
+		template<typename VertexType>
+		Mesh(const std::string& name, std::vector<VertexType>& vertices, std::vector<DWORD>& indices, Material* material);
+		template<typename VertexType>
+		Mesh(const std::string& name, std::vector<VertexType>& vertices, std::vector<DWORD>& indices, const DirectX::XMMATRIX& transformMatrix);
+		template<typename VertexType>
+		Mesh(const std::string& name, std::vector<VertexType>& vertices, std::vector<DWORD>& indices, Material* material, const DirectX::XMMATRIX& transformMatrix);
+
 		Mesh(const Mesh& mesh);
 
-		void draw(bool useGBuffer, bool bindPSData = true) const;
+		template<typename VertexType>
+		void createBuffers(std::vector<VertexType>& vertices, std::vector<DWORD>& indices);
+
+		void setMaterial(Material* material);
+
+		void                     draw(bool useGBuffer, bool bindPSData = true) const;
+
+		const std::string&       getName() const;
+		bool*                    getHiddenBoolPtr();
+
+		Material*                getMaterial();
+
 		const DirectX::XMMATRIX& getTransformMatrix() const;
 
+		
 	private:
-		VertexBuffer<Vertex>  m_vertexBuffer;
-		IndexBuffer           m_indexBuffer;
+		std::string  m_name;
 
-		Material*             m_material;
+		VertexBuffer m_vertexBuffer;
+		IndexBuffer  m_indexBuffer;
 
-		DirectX::XMMATRIX     m_transformMatrix;
+		Material* m_material;
+
+		DirectX::XMMATRIX m_transformMatrix;
+
+		bool m_hidden;
 	};
 }
+
+#include "mesh.inl"

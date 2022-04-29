@@ -4,13 +4,27 @@
 #include <vector>
 
 #include "texture.h"
-#include "../shaders/shader.h"
+#include "../shaders/pixel_shader.h"
+#include "../shaders/vertex_shader.h"
 
 namespace hrzn::gfx
 {
+    enum class MaterialTextureType
+    {
+        eAlbedo,
+        eRoughness,
+        eNormal,
+        eMetallic,
+        eEmission,
+        eDepth,
+
+        eNumTypes,
+    };
+
     struct MaterialTexture
     {
         MaterialTexture();
+        MaterialTexture(MaterialTextureType textureType, Texture* texture);
         MaterialTexture(int bindSlot, Texture* texture);
 
         int      m_bindSlot;
@@ -20,28 +34,20 @@ namespace hrzn::gfx
     class Material
     {
     public:
-        enum class TextureType
-        {
-            eAlbedo,
-            eRoughness,
-            eNormal,
-            eMetallic,
-            eEmission,
-            eDepth,
-            eNumTypes,
-        };
-
-    public:
         Material();
         ~Material();
 
-        bool initialise(std::string name);
+        bool initialiseFromName(std::string name);
+        bool initialiseFromTextures(const std::vector<MaterialTexture>& textures);
 
         void bind(bool useGBuffer, bool bindPSData);
 
+        const std::string&                  getName() const;
+        const std::vector<MaterialTexture>& getTextures() const;
+
         bool isGBufferCompatible() const;
 
-        static Texture* getDefaultTexture(TextureType textureType);
+        static Texture* getDefaultTexture(MaterialTextureType textureType);
 
     private:
         std::vector<MaterialTexture> m_textures;
@@ -55,12 +61,12 @@ namespace hrzn::gfx
         std::string   m_name;
     };
 
-    static const std::unordered_map<std::string, Material::TextureType> sc_materialTextureTypeEnumMap = {
-        { "albedo",     Material::TextureType::eAlbedo },
-        { "roughness",  Material::TextureType::eRoughness },
-        { "normal_map", Material::TextureType::eNormal },
-        { "metallic",   Material::TextureType::eMetallic },
-        { "emission",   Material::TextureType::eEmission },
-        { "depth",      Material::TextureType::eDepth }
+    static const std::unordered_map<std::string, MaterialTextureType> sc_materialTextureTypeEnumMap = {
+        { "albedo",     MaterialTextureType::eAlbedo },
+        { "roughness",  MaterialTextureType::eRoughness },
+        { "normal_map", MaterialTextureType::eNormal },
+        { "metallic",   MaterialTextureType::eMetallic },
+        { "emission",   MaterialTextureType::eEmission },
+        { "depth",      MaterialTextureType::eDepth }
     };
 }

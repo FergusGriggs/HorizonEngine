@@ -1,13 +1,14 @@
 #include "particle_system.h"
 
 #include "../../graphics/data/resource_manager.h"
+#include "../../graphics/data/vertex_types.h"
 
 namespace hrzn::physics
 {
 	ParticleSystem::ParticleSystem() :
 		m_particleEmitters(),
 		m_particles(),
-		m_particleMesh(gfx::ResourceManager::it().getModelPtr("res/models/engine/particle/particle.obj"))
+		m_particleMesh(gfx::ResourceManager::it().getModelPtr<gfx::SimpleLitVertex>("res/models/engine/particle/particle.obj"))
 	{
 	}
 

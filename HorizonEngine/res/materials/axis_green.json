@@ -2,10 +2,13 @@
   "Material": {
     "default_material_textures": false,
     "textures": [
-      [ "albedo", [ 0.384313, 0.960784, 0.150000 ] ]
+      [
+        "albedo",
+        [ 0.384313, 0.960784, 0.150000 ]
+      ]
     ],
     "vertex_shader": "default",
-    "pixel_shader": "no_light",
+    "pixel_shader": "standard_no_light",
     "gbuf_w_pixel_shader": "-"
   }
 }

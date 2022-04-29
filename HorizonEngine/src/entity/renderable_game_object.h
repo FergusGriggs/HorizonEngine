@@ -5,6 +5,7 @@
 
 #include "game_object.h"
 
+#include "../graphics/buffers/constant_buffer.h"
 #include "../graphics/data/model.h"
 
 namespace hrzn::entity
@@ -16,8 +17,8 @@ namespace hrzn::entity
 
 		bool  initialize(std::string label, const std::string& filePath);
 
-		template <class T>
-		void  draw(gfx::ConstantBuffer<T>* vertexShaderCB, bool bindPSData = true) const;
+		template <class ConstantBufferType>
+		void  draw(gfx::ConstantBuffer<ConstantBufferType>* vertexShaderCB, bool bindPSData = true) const;
 
 		float getRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection) const;
 
@@ -36,8 +37,8 @@ namespace hrzn::entity
 
 namespace hrzn::entity
 {
-	template<class T>
-	inline void RenderableGameObject::draw(gfx::ConstantBuffer<T>* vertexShaderCB, bool bindPSData) const
+	template<class ConstantBufferType>
+	inline void RenderableGameObject::draw(gfx::ConstantBuffer<ConstantBufferType>* vertexShaderCB, bool bindPSData) const
 	{
 		XMFLOAT3 objectPosition = m_transform.getPositionFloat3();
 

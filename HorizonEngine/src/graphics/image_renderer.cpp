@@ -3,6 +3,7 @@
 #include "graphics_handler.h"
 
 #include "data/resource_manager.h"
+#include "data/vertex_types.h"
 
 namespace hrzn::gfx
 {
@@ -29,7 +30,7 @@ namespace hrzn::gfx
 
         setViewport(viewport);
 
-        m_quadModel = ResourceManager::it().getModelPtr("res/models/engine/screen_quad.obj");
+        m_quadModel = ResourceManager::it().getModelPtr<UnlitVertex>("res/models/engine/screen_quad.obj");
     }
 
     void ImageRenderer::setViewport(CD3D11_VIEWPORT viewport)
@@ -272,7 +273,7 @@ namespace hrzn::gfx
 
             deviceContext->PSSetConstantBuffers(1, 1, GraphicsHandler::it().getAmbientOcclusionCB().getAddressOf());
 
-            deviceContext->PSSetShader(ResourceManager::it().getPSPtr("ambient_occlusion")->getShader(), NULL, 0);
+            deviceContext->PSSetShader(ResourceManager::it().getPSPtr("misc_ambient_occlusion")->getShader(), NULL, 0);
             m_ambientOcclusionTexture.setAsRenderTargetAndDrawQuad();
 
             m_ambientOcclusionGaussianBlur->run(&m_ambientOcclusionTexture);

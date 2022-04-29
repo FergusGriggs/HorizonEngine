@@ -18,6 +18,7 @@ namespace hrzn::utils
 		static void log(HRESULT hr, std::string message);
 		static void log(HRESULT hr, std::wstring message);
 
+		// Returns true if failed
 		static bool logIfFailed(HRESULT hr, std::string message);
 		static bool logIfFailed(HRESULT hr, std::wstring message);
 	};

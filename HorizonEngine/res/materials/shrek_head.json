@@ -1,0 +1,12 @@
+{
+  "Material": {
+    "default_material_textures": true,
+    "textures": [
+      [ "albedo", "res/textures/shrek/head_albedo.jpeg" ],
+      [ "normal_map", "res/textures/shrek/head_normal.png" ]
+    ],
+    "vertex_shader": "default",
+    "pixel_shader": "standard_default",
+    "gbuf_w_pixel_shader": "default"
+  }
+}

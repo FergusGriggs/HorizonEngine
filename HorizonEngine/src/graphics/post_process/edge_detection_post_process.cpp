@@ -28,7 +28,7 @@ namespace hrzn::gfx
         deviceContext->PSSetShaderResources(2, 1, m_geometryBuffer->m_normalAO.m_shaderResourceView.GetAddressOf());
 
         // Perform depth of field
-        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("edge_detection")->getShader(), NULL, 0);
+        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("misc_edge_detection")->getShader(), NULL, 0);
         m_result.setAsRenderTargetAndDrawQuad();
 
         // Unset shader resources

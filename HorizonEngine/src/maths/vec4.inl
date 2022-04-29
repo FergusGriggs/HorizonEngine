@@ -2,7 +2,7 @@
 
 #include "vec4.h"
 
-namespace Firelight::Maths
+namespace hrzn::maths
 {
     template<typename T>
     inline Vec4<T>::Vec4() :

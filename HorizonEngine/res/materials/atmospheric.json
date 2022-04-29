@@ -2,7 +2,7 @@
   "Material": {
     "default_material_textures": false,
     "vertex_shader": "default",
-    "pixel_shader": "atmospheric",
+    "pixel_shader": "standard_atmospheric",
     "gbuf_w_pixel_shader": "-"
   }
 }

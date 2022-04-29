@@ -4,6 +4,7 @@
 #include "renderable_game_object.h"
 
 #include "../graphics/data/resource_manager.h"
+#include "../graphics/data/vertex_types.h"
 
 namespace hrzn::entity
 {
@@ -21,7 +22,7 @@ namespace hrzn::entity
 	{
 		m_label = label;
 
-		m_model = gfx::ResourceManager::it().getModelPtr(filePath);
+		m_model = gfx::ResourceManager::it().getModelPtr<gfx::FancyLitVertex>(filePath);
 
 		if (m_model == nullptr)
 		{

@@ -14,6 +14,12 @@ namespace hrzn::gfx
     {
     }
 
+    MaterialTexture::MaterialTexture(MaterialTextureType textureType, Texture* texture) :
+        m_bindSlot((int)textureType),
+        m_texture(texture)
+    {
+    }
+
     MaterialTexture::MaterialTexture(int bindSlot, Texture* texture) :
         m_bindSlot(bindSlot),
         m_texture(texture)
@@ -33,7 +39,7 @@ namespace hrzn::gfx
     {
     }
 
-    bool Material::initialise(std::string name)
+    bool Material::initialiseFromName(std::string name)
     {
         m_name = name;
 
@@ -150,7 +156,7 @@ namespace hrzn::gfx
         // Fill default textures
         if (defaultMaterialTextures)
         {
-            for (int textureSlot = 0; textureSlot < static_cast<int>(TextureType::eNumTypes); ++textureSlot)
+            for (int textureSlot = 0; textureSlot < static_cast<int>(MaterialTextureType::eNumTypes); ++textureSlot)
             {
                 bool needsDefault = true;
                 for (int textureIndex = 0; textureIndex < m_textures.size(); ++textureIndex)
@@ -164,7 +170,7 @@ namespace hrzn::gfx
 
                 if (needsDefault)
                 {
-                    m_textures.push_back(MaterialTexture(textureSlot, getDefaultTexture(static_cast<TextureType>(textureSlot))));
+                    m_textures.push_back(MaterialTexture(textureSlot, getDefaultTexture(static_cast<MaterialTextureType>(textureSlot))));
                 }
             }
         }
@@ -240,6 +246,39 @@ namespace hrzn::gfx
         return true;
     }
 
+    bool Material::initialiseFromTextures(const std::vector<MaterialTexture>& textures)
+    {
+        m_name = "null";
+
+        m_isGBufferCompatible = true;
+
+        m_textures = textures;
+
+        for (int textureSlot = 0; textureSlot < static_cast<int>(MaterialTextureType::eNumTypes); ++textureSlot)
+        {
+            bool needsDefault = true;
+            for (int textureIndex = 0; textureIndex < m_textures.size(); ++textureIndex)
+            {
+                if (m_textures[textureIndex].m_bindSlot == textureSlot)
+                {
+                    needsDefault = false;
+                    break;
+                }
+            }
+
+            if (needsDefault)
+            {
+                m_textures.push_back(MaterialTexture(textureSlot, getDefaultTexture(static_cast<MaterialTextureType>(textureSlot))));
+            }
+        }
+
+        m_vertexShader = ResourceManager::it().getDefaultVSPtr();
+        m_pixelShader = ResourceManager::it().getDefaultPSPtr();
+        m_gBufferWritePixelShader = ResourceManager::it().getDefaultGBufferWritePSPtr();
+
+        return false;
+    }
+
     void Material::bind(bool useGBuffer, bool bindPSData)
     {
         ID3D11DeviceContext* deviceContext = GraphicsHandler::it().getDeviceContext();
@@ -260,9 +299,19 @@ namespace hrzn::gfx
             for (int textureIndex = 0; textureIndex < m_textures.size(); ++textureIndex)
             {
                 MaterialTexture& materialTexture = m_textures[textureIndex];
-                deviceContext->PSSetShaderResources(materialTexture.m_bindSlot, 1, materialTexture.m_texture->getTextureResourceViewAddress());
+                deviceContext->PSSetShaderResources(materialTexture.m_bindSlot, 1, materialTexture.m_texture->getShaderResourceView().GetAddressOf());
             }
         }
+    }
+
+    const std::string& Material::getName() const
+    {
+        return m_name;
+    }
+
+    const std::vector<MaterialTexture>& Material::getTextures() const
+    {
+        return m_textures;
     }
 
     bool Material::isGBufferCompatible() const
@@ -270,23 +319,23 @@ namespace hrzn::gfx
         return m_isGBufferCompatible;
     }
 
-    Texture* Material::getDefaultTexture(TextureType textureType)
+    Texture* Material::getDefaultTexture(MaterialTextureType textureType)
     {
         switch (textureType)
         {
-        case TextureType::eAlbedo:
+        case MaterialTextureType::eAlbedo:
             return ResourceManager::it().getColourTexturePtr(colours::sc_defaultAlbedo);
-        case TextureType::eRoughness:
+        case MaterialTextureType::eRoughness:
             return ResourceManager::it().getColourTexturePtr(colours::sc_defaultRoughness);
-        case TextureType::eNormal:
+        case MaterialTextureType::eNormal:
             return ResourceManager::it().getColourTexturePtr(colours::sc_defaultNormal);
-        case TextureType::eMetallic:
+        case MaterialTextureType::eMetallic:
             return ResourceManager::it().getColourTexturePtr(colours::sc_defaultMetallic);
-        case TextureType::eEmission:
+        case MaterialTextureType::eEmission:
             return ResourceManager::it().getColourTexturePtr(colours::sc_defaultEmission);
-        case TextureType::eDepth:
+        case MaterialTextureType::eDepth:
             return ResourceManager::it().getColourTexturePtr(colours::sc_defaultDepth);
-        case TextureType::eNumTypes:
+        case MaterialTextureType::eNumTypes:
             return nullptr;
         }
         return nullptr;

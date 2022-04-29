@@ -23,7 +23,10 @@
 
 #include "../entity/renderable_game_object.h"
 
-#include "shaders/shader.h"
+#include "shaders/pixel_shader.h"
+#include "shaders/vertex_shader.h"
+#include "shaders/compute_shader.h"
+
 #include "render_pass_config.h"
 
 #include "image_renderer.h"
@@ -64,9 +67,7 @@ namespace hrzn::gfx
 
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& getAmbientOcclusionNoiseShaderResourceView();
 
-		const std::wstring&       getCompiledShaderFolder() const;
-		D3D11_INPUT_ELEMENT_DESC* getDefaultVSLayout() const;
-		UINT                      getDefaultVSLayoutSize() const;
+		const std::string& getCompiledShaderFolder() const;
 
 		ConstantBuffer<SceneCB>&              getSceneCB();
 		ConstantBuffer<CloudsCB>&             getCloudsCB();
@@ -133,9 +134,7 @@ namespace hrzn::gfx
 		Model* m_springModel;
 		Model* m_screenQuad;
 
-		std::wstring              m_compiledShaderFolder;
-		D3D11_INPUT_ELEMENT_DESC* m_defaultVSLayout;
-		UINT                      m_defaultVSLayoutSize;
+		std::string m_compiledShaderFolder;
 
 		PixelShader*  m_ps_gbuf_r_default;
 

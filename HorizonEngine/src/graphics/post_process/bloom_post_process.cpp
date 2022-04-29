@@ -24,7 +24,7 @@ namespace hrzn::gfx
         deviceContext->PSSetShaderResources(0, 1, m_geometryBuffer->m_emissionMetallic.m_shaderResourceView.GetAddressOf());
 
         // Iscolate the emission
-        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("quad_iscolate_emission")->getShader(), NULL, 0);
+        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("misc_quad_iscolate_emission")->getShader(), NULL, 0);
         m_iscolatedEmissionTexture.setAsRenderTargetAndDrawQuad();
 
         // Unset self as shader resource
@@ -40,7 +40,7 @@ namespace hrzn::gfx
         // Set the blurred emission as shader resource 1
         deviceContext->PSSetShaderResources(1, 1, m_gaussianBlur.getResult()->m_shaderResourceView.GetAddressOf());
 
-        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("bloom")->getShader(), NULL, 0);
+        deviceContext->PSSetShader(ResourceManager::it().getPSPtr("misc_bloom")->getShader(), NULL, 0);
         m_result.setAsRenderTargetAndDrawQuad();
 
         deviceContext->PSSetShaderResources(0, 1, nullShaderResourceViews);

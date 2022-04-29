@@ -27,7 +27,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "../../../maths/vec3.h"
 
 #include "qef.h"
-#include "../../../graphics/data/vertex.h"
+
+#include "../../../graphics/data/vertex_types.h"
 
 namespace hrzn::scene::terrain
 {
@@ -95,7 +96,7 @@ namespace hrzn::scene::terrain
 
 	OctreeNode* BuildOctree(const maths::Vec3i& min, const int size, const float threshold);
 	void DestroyOctree(OctreeNode* node);
-	void GenerateMeshFromOctree(OctreeNode* node, std::vector<gfx::Vertex>& vertexBuffer, std::vector<DWORD>& indexBuffer);
+	void GenerateMeshFromOctree(OctreeNode* node, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer);
 
 	// ----------------------------------------------------------------------------
 }

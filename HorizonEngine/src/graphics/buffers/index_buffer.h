@@ -1,6 +1,4 @@
 
-//Stores an ID3D11Buffer for some indices and their meta-data, automatically creates buffer description and buffer subresource data
-
 #pragma once
 
 #include <d3d11.h>
@@ -11,52 +9,14 @@ namespace hrzn::gfx
 	class IndexBuffer
 	{
 	public:
-		IndexBuffer() :
-			m_buffer(nullptr),
-			m_indexCount(0)
-		{
-		};
+		IndexBuffer();
 
-		ID3D11Buffer* get() const
-		{
-			return m_buffer.Get();
-		}
+		HRESULT              initialize(DWORD* data, UINT indexCount);
 
-		ID3D11Buffer* const* getAddressOf() const
-		{
-			return m_buffer.GetAddressOf();
-		}
+		ID3D11Buffer*        getBuffer() const;
+		ID3D11Buffer* const* getAddressOfBuffer() const;
 
-		UINT indexCount() const
-		{
-			return m_indexCount;
-		}
-
-		HRESULT initialize(ID3D11Device* device, DWORD* data, UINT indexCount)
-		{
-			if (m_buffer.Get() != nullptr)
-			{
-				m_buffer.Reset();
-			}
-
-			m_indexCount = indexCount;
-
-			D3D11_BUFFER_DESC indexBufferDesc;
-			ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
-
-			indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-			indexBufferDesc.ByteWidth = sizeof(DWORD) * m_indexCount;
-			indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-			indexBufferDesc.CPUAccessFlags = 0;
-			indexBufferDesc.MiscFlags = 0;
-
-			D3D11_SUBRESOURCE_DATA indexBufferData;
-			ZeroMemory(&indexBufferData, sizeof(indexBufferData));
-
-			indexBufferData.pSysMem = data;
-
-			return device->CreateBuffer(&indexBufferDesc, &indexBufferData, m_buffer.GetAddressOf());
-		}
+		UINT                 getIndexCount() const;
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_buffer;
