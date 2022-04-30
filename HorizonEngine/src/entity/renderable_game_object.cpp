@@ -96,4 +96,9 @@ namespace hrzn::entity
 	{
 		return *m_model;
 	}
+
+	gfx::Model& RenderableGameObject::getWritableModel()
+	{
+		return *m_model;
+	}
 }

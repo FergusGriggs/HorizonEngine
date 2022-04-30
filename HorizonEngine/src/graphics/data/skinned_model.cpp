@@ -279,9 +279,9 @@ namespace hrzn::gfx
 
     void SkinnedModel::updateAlternatePerObjectCB() const
     {
-        for (int i = 0; i < m_boneDataMap.size(); ++i)
+        for (auto& bone : m_boneDataMap)
         {
-            gfx::GraphicsHandler::it().getPerSkinnedObjectCB().m_data.m_boneTransforms[i] = XMLoadFloat4x4(&(m_boneTransforms[i]));
+            gfx::GraphicsHandler::it().getPerSkinnedObjectCB().m_data.m_boneTransforms[bone.second->m_id] = XMLoadFloat4x4(&(bone.second->m_offsetMatrix)) * XMLoadFloat4x4(&(m_boneTransforms[bone.second->m_id]));
         }
         gfx::GraphicsHandler::it().getPerSkinnedObjectCB().mapToGPU();
     }
@@ -489,6 +489,11 @@ namespace hrzn::gfx
         return m_currentAnimationName;
     }
 
+    float* SkinnedModel::getCurrentAnimationTimePtr()
+    {
+        return &m_currentAnimationTimeTicks;
+    }
+
     const SkeletonAnimation* SkinnedModel::getCurrentAnimation() const
     {
         // Can be nullptr (allowed)
@@ -511,7 +516,7 @@ namespace hrzn::gfx
         return m_rootBone;
     }
 
-    const std::map<std::string, SkeletonAnimation>& SkinnedModel::getAnimations() const
+    std::map<std::string, SkeletonAnimation>& SkinnedModel::getAnimations()
     {
         return m_animations;
     }
@@ -538,14 +543,14 @@ namespace hrzn::gfx
 
     void SkinnedModel::debugDraw(const XMMATRIX& transformMatrix, bool bindPSData) const
     {
-        //Model* debugModel = ResourceManager::it().getModelPtr<FancyLitVertex>("res/models/normal_map_test_cube.obj");
+        Model* debugModel = ResourceManager::it().getModelPtr<FancyLitVertex>("res/models/normal_map_test_cube.obj");
 
         //GraphicsHandler::it().setDepthTestingEnabled(false);
 
-        //for (int boneIndex = 0; boneIndex < m_boneDataMap.size(); ++boneIndex)
-        //{
-        //    debugModel->draw(XMMatrixScaling(5.0f, 5.0f, 5.0f) * XMLoadFloat4x4(&(m_boneTransforms[boneIndex])), bindPSData);// * transformMatrix
-        //}
+        for (int boneIndex = 0; boneIndex < m_boneDataMap.size(); ++boneIndex)
+        {
+            debugModel->draw(XMMatrixScaling(2.5f, 7.5f, 2.5f) * XMLoadFloat4x4(&(m_boneTransforms[boneIndex])), bindPSData);// * transformMatrix
+        }
 
         //GraphicsHandler::it().setDepthTestingEnabled(true);
     }
@@ -649,9 +654,9 @@ namespace hrzn::gfx
         XMMATRIX myTransform = XMMatrixScaling(bone->m_scale.x, bone->m_scale.y, bone->m_scale.z) * XMMatrixRotationQuaternion(XMLoadFloat4(&(bone->m_orientationQuaternion))) * XMMatrixTranslation(bone->m_translation.x, bone->m_translation.y, bone->m_translation.z) * XMMatrixInverse(nullptr, XMLoadFloat4x4(&(bone->m_offsetMatrix))) * parentTransform;
         //XMMATRIX myTransform = XMMatrixInverse(nullptr, XMLoadFloat4x4(&(bone->m_offsetMatrix))) * parentTransform;
 
-        myTransform = XMLoadFloat4x4(&(bone->m_offsetMatrix)) * myTransform;
-
         XMStoreFloat4x4(&(m_boneTransforms[bone->m_id]), myTransform);
+
+        myTransform = XMLoadFloat4x4(&(bone->m_offsetMatrix)) * myTransform;
 
         //myTransform = XMMatrixInverse(nullptr, XMLoadFloat4x4(&(bone->m_offsetMatrix))) * myTransform;
 

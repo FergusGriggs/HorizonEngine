@@ -162,11 +162,12 @@ namespace hrzn::gfx
 		bool                     isCurrentAnimationLooping() const;
 
 		const std::string&       getCurrentAnimationName() const;
+		float*                   getCurrentAnimationTimePtr();
 		const SkeletonAnimation* getCurrentAnimation() const;
 		const SkeletonAnimation* getAnimation(const std::string& animationName) const;
 
 		const Bone*                                     getRootBone() const;
-		const std::map<std::string, SkeletonAnimation>& getAnimations() const;
+		std::map<std::string, SkeletonAnimation>&       getAnimations();
 
 		UINT getNumBones() const;
 

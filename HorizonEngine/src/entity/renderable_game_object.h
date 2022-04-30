@@ -23,6 +23,7 @@ namespace hrzn::entity
 
 		const XMFLOAT3&    getScale() const;
 		const gfx::Model&  getModel() const;
+		gfx::Model&        getWritableModel();
 
 		void        setScale(XMFLOAT3 scale);
 

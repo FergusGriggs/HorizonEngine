@@ -837,6 +837,41 @@ namespace hrzn::gfx
 
 					ImGui::TreePop();
 				}
+
+				if (ImGui::CollapsingHeader("Model Animations"))
+				{
+					ImGui::TreePush();
+
+					if (auto* skinnedModel = dynamic_cast<gfx::SkinnedModel*>(&(scene::SceneManager::it().getWritableSelectedObject()->getWritableModel())))
+					{
+						int count = 0;
+						for (auto& animation : skinnedModel->getAnimations())
+						{
+							ImGui::PushID(count);
+							count++;
+
+							ImGui::Text(std::string("Name: " + animation.first).c_str());
+
+							ImGui::SameLine();
+
+							if (ImGui::Button("Play"))
+							{
+								skinnedModel->setCurrentAnimation(animation.first);
+							}
+
+							if (&(animation.second) == skinnedModel->getCurrentAnimation())
+							{
+								ImGui::SliderFloat("Animation Progress", skinnedModel->getCurrentAnimationTimePtr(), 0.0f, animation.second.getEndTime());
+							}
+
+							ImGui::PopID();
+
+							ImGui::NewLine();
+						}
+					}
+
+					ImGui::TreePop();
+				}
 			}
 
 			// If it's a light, allow light property changing and moving to camera
@@ -1261,7 +1296,7 @@ namespace hrzn::gfx
 
 				ImGui::Checkbox("Enabled", &terrainConfig.m_enabled);
 
-				const char* terrainDimensions[] = { "2d", "3d" };
+				const char* terrainDimensions[] = { "2d", "3d (will freeze app for 10 sec)" };
 				static const char* terrainDimensionString = terrainDimensions[0];
 
 				if (ImGui::BeginCombo("Terrain Dimension", terrainDimensionString))
