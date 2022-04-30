@@ -30,10 +30,10 @@ namespace hrzn::gfx
 	Texture::Texture(const std::string& filePath) :
 		Texture()
 	{
-		initialize(filePath);
+		initialise(filePath);
 	}
 
-	bool Texture::initialize(const std::string& filePath)
+	bool Texture::initialise(const std::string& filePath)
 	{
 		if (utils::string_helpers::getFileExtension(filePath) == "dds")
 		{

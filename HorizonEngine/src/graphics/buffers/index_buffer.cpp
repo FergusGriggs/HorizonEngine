@@ -11,7 +11,7 @@ namespace hrzn::gfx
 	{
 	}
 
-	HRESULT IndexBuffer::initialize(DWORD* data, UINT indexCount)
+	HRESULT IndexBuffer::initialise(DWORD* data, UINT indexCount)
 	{
 		if (m_buffer.Get() != nullptr)
 		{

@@ -31,6 +31,8 @@
 
 #include "image_renderer.h"
 
+#include "../graphics/data/skinned_model.h"
+
 // comicSansMS16.spritefont
 
 namespace hrzn::gfx
@@ -51,7 +53,7 @@ namespace hrzn::gfx
 	public:
 		static GraphicsHandler& it();
 
-		bool initialize(HWND hwnd);
+		bool initialise(HWND hwnd);
 		bool postSceneManagerInitialise();
 		bool initialiseConstantBufferData();
 		bool initialiseSSAOResources();
@@ -77,6 +79,7 @@ namespace hrzn::gfx
 		ConstantBuffer<PerPassCB>&            getPerPassCB();
 		ConstantBuffer<PerMaterialCB>&        getPerMaterialCB();
 		ConstantBuffer<PerObjectCB>&          getPerObjectCB();
+		ConstantBuffer<PerSkinnedObjectCB>&   getPerSkinnedObjectCB();
 		ConstantBuffer<AmbientOcclusionCB>&   getAmbientOcclusionCB();
 		
 		ID3D11BlendState* getDefaultBlendState();
@@ -85,6 +88,8 @@ namespace hrzn::gfx
 		ID3D11RasterizerState* getDefaultRasterizerState();
 
 		Model* getScreenQuad() const;
+
+		void setDepthTestingEnabled(bool depthTestEnabled);
 
 		Microsoft::WRL::ComPtr<ID3D11SamplerState>& getSamplerState();
 
@@ -104,6 +109,7 @@ namespace hrzn::gfx
 		void create3DNoiseTexture();
 
 		void updateImGui();
+		void recursivelyAddBoneImGui(const Bone* bone);
 
 		void drawAxisForObject(const entity::RenderableGameObject& gameObject);
 
@@ -123,7 +129,8 @@ namespace hrzn::gfx
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView>  m_depthStencilView;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D>         m_depthStencilBuffer;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilState;
-
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_noDepthTestDepthStencilState;
+		
 		CD3D11_VIEWPORT m_defaultViewport;
 
 		ImageRenderer m_activeCameraImageRenderer;
@@ -168,7 +175,8 @@ namespace hrzn::gfx
 
 		// Shader-specific per-object CBs || Slot 8 -> 9
 		// Slot 8
-		ConstantBuffer<PerObjectCB>    m_perObjectCB;
+		ConstantBuffer<PerObjectCB>        m_perObjectCB;
+		ConstantBuffer<PerSkinnedObjectCB> m_perSkinnedObjectCB;
 
 		// Noise texture vars
 		Microsoft::WRL::ComPtr<ID3D11Texture3D>           m_noiseTexture;

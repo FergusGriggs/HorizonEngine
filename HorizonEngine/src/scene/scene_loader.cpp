@@ -651,6 +651,7 @@ namespace hrzn::scene
             case entity::GameObject::Type::eBase:
                 gameObject = new entity::GameObject();
                 break;
+            case entity::GameObject::Type::eSkinned:
             case entity::GameObject::Type::eRenderable:
             {
                 // Ensure 'RenderableData' exists
@@ -676,11 +677,21 @@ namespace hrzn::scene
                     scale = utils::JSONHelpers::getFloat3FromArray(renderableData["scale"].GetArray());
                 }
 
-                entity::RenderableGameObject* renderable = new entity::RenderableGameObject();
-                renderable->initialize(id, modelPath);
+                entity::RenderableGameObject* renderable = nullptr;
+                if (type == entity::GameObject::Type::eSkinned)
+                {
+                    renderable = new entity::SkinnedGameObject();
+                    renderable->initialise(id, modelPath);
+                }
+                else
+                {
+                    renderable = new entity::RenderableGameObject();
+                    renderable->initialise(id, modelPath);
+                }
+                
                 renderable->setScale(scale);
-
                 gameObject = renderable;
+                
                 break;
             }
             case entity::GameObject::Type::eCamera:
@@ -787,7 +798,7 @@ namespace hrzn::scene
                 }
 
                 light->setLabel(id);
-                light->initialize();
+                light->initialise();
 
                 gameObject = light;
                 break;

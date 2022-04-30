@@ -92,7 +92,7 @@ namespace hrzn::gfx
 	{
 	}
 
-	bool GraphicsHandler::initialize(HWND hwnd)
+	bool GraphicsHandler::initialise(HWND hwnd)
 	{
 		m_fpsTimer.start();
 
@@ -139,7 +139,7 @@ namespace hrzn::gfx
 		m_screenQuad = ResourceManager::it().getModelPtr<UnlitVertex>("res/models/engine/screen_quad.obj");
 
 		// Initialise global shader vars
-		HRESULT hr = m_noiseTextureCB.initialize(m_device.Get(), m_deviceContext.Get());
+		HRESULT hr = m_noiseTextureCB.initialise(m_device.Get(), m_deviceContext.Get());
 		COM_ERROR_IF_FAILED(hr, "Failed to create 'noiseTextureComputeShader' constant buffer.");
 		create3DNoiseTexture();
 
@@ -179,7 +179,7 @@ namespace hrzn::gfx
 		try
 		{
 			// Create constant buffers
-			HRESULT hr = m_sceneCB.initialize(m_device.Get(), m_deviceContext.Get());
+			HRESULT hr = m_sceneCB.initialise(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'scene' constant buffer.");
 
 			m_sceneCB.m_data.m_useNormalMapping = true;
@@ -192,7 +192,7 @@ namespace hrzn::gfx
 			// This slot shouldn't change over the course of the app
 			m_deviceContext->PSSetConstantBuffers(0, 1, m_sceneCB.getAddressOf());
 
-			hr = m_waterCB.initialize(m_device.Get(), m_deviceContext.Get());
+			hr = m_waterCB.initialise(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'waterVertexShader' constant buffer.");
 
 			const scene::config::OceanConfig& oceanConfig = scene::SceneManager::it().getSceneConfig().getOceanConfig();
@@ -207,7 +207,7 @@ namespace hrzn::gfx
 			m_waterCB.m_data.m_foamStart = oceanConfig.m_foamStart;
 			m_waterCB.m_data.m_colourChangeStart = oceanConfig.m_colourChangeStart; //1.123f
 
-			hr = m_atmosphericCB.initialize(m_device.Get(), m_deviceContext.Get());
+			hr = m_atmosphericCB.initialise(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'atmospheric' constant buffer.");
 
 			const scene::config::AtmosphereConfig& atmosphereConfig = scene::SceneManager::it().getSceneConfig().getAtmosphereConfig();
@@ -221,7 +221,7 @@ namespace hrzn::gfx
 			m_atmosphericCB.m_data.m_nightZenithYClamp = atmosphereConfig.m_nightZenithYClamp;
 			m_atmosphericCB.mapToGPU();
 
-			hr = m_cloudsCB.initialize(m_device.Get(), m_deviceContext.Get());
+			hr = m_cloudsCB.initialise(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'clouds' constant buffer.");
 
 			const scene::config::CloudConfig& cloudConfig = scene::SceneManager::it().getSceneConfig().getCloudConfig(); // Fluffy 1 // Fluffy 2 // Bulky bois
@@ -236,20 +236,23 @@ namespace hrzn::gfx
 			m_cloudsCB.m_data.m_stepSize = cloudConfig.m_stepSize;
 			m_cloudsCB.m_data.m_cloudHeight = cloudConfig.m_cloudHeight;
 
-			hr = m_ambientOcclusionCB.initialize(m_device.Get(), m_deviceContext.Get());
+			hr = m_ambientOcclusionCB.initialise(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'ambient occlusion' constant buffer.");
 
-			hr = m_perFrameCB.initialize(m_device.Get(), m_deviceContext.Get());
+			hr = m_perFrameCB.initialise(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'per frame' constant buffer.");
 
-			hr = m_perPassCB.initialize(m_device.Get(), m_deviceContext.Get());
+			hr = m_perPassCB.initialise(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'per pass' constant buffer.");
 
-			hr = m_perMaterialCB.initialize(m_device.Get(), m_deviceContext.Get());
+			hr = m_perMaterialCB.initialise(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'per material' constant buffer.");
 
-			hr = m_perObjectCB.initialize(m_device.Get(), m_deviceContext.Get());
+			hr = m_perObjectCB.initialise(m_device.Get(), m_deviceContext.Get());
 			COM_ERROR_IF_FAILED(hr, "Failed to create 'per object' constant buffer.");
+
+			hr = m_perSkinnedObjectCB.initialise(m_device.Get(), m_deviceContext.Get());
+			COM_ERROR_IF_FAILED(hr, "Failed to create 'per skinned object' constant buffer.");
 		}
 		catch (utils::COMException& exception)
 		{
@@ -455,7 +458,7 @@ namespace hrzn::gfx
 		// Terrain
 		if (renderPassType == RenderPassType::eNonGBufferCompatiblePass || renderPassType == RenderPassType::eStandardPass)
 		{
-			scene::TerrainManager::it().renderTerrain(false, bindPSData);
+			scene::TerrainManager::it().renderTerrain(&m_perObjectCB, false, bindPSData);
 		}
 
 		// Regular objects
@@ -464,7 +467,7 @@ namespace hrzn::gfx
 			const auto& gBufferRenderables = scene::SceneManager::it().getGBufferRenderables();
 			for (size_t i = 0; i < gBufferRenderables.size(); ++i)
 			{
-				gBufferRenderables[i]->draw(&m_perObjectCB, bindPSData);
+				gBufferRenderables[i]->draw(bindPSData);
 			}
 		}
 		else if (renderPassType == RenderPassType::eNonGBufferCompatiblePass)
@@ -480,7 +483,7 @@ namespace hrzn::gfx
 					m_perMaterialCB.m_data.m_colour = XMFLOAT4(lightCol.x, lightCol.y, lightCol.z, 1.0f);
 					m_perMaterialCB.mapToGPU();
 				}
-				renderable->draw(&m_perObjectCB, bindPSData);
+				renderable->draw(bindPSData);
 			}
 		}
 		else if (renderPassType == RenderPassType::eShadowPass)
@@ -488,7 +491,7 @@ namespace hrzn::gfx
 			const auto& allRenderables = scene::SceneManager::it().getAllRenderables();
 			for (size_t i = 0; i < allRenderables.size(); ++i)
 			{
-				allRenderables[i]->draw(&m_perObjectCB, bindPSData);
+				allRenderables[i]->draw(bindPSData);
 			}
 		}
 		else if (renderPassType == RenderPassType::eStandardPass)
@@ -503,7 +506,7 @@ namespace hrzn::gfx
 					m_perMaterialCB.m_data.m_colour = XMFLOAT4(lightCol.x, lightCol.y, lightCol.z, 1.0f);
 					m_perMaterialCB.mapToGPU();
 				}
-				renderable->draw(&m_perObjectCB, bindPSData);
+				renderable->draw(bindPSData);
 			}
 		}
 		
@@ -533,7 +536,7 @@ namespace hrzn::gfx
 					springModelMatrix = XMMatrixScaling(1.0f, 1.0f, scale) * XMMATRIX(up, right, front, XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)) * XMMatrixTranslation(XMVectorGetX(springStart), XMVectorGetY(springStart), XMVectorGetZ(springStart));
 				}
 
-				m_springModel->draw(springModelMatrix, &m_perObjectCB, bindPSData);
+				m_springModel->draw(springModelMatrix, bindPSData);
 			}
 		}
 
@@ -551,7 +554,7 @@ namespace hrzn::gfx
 				XMVECTOR oceanPosition = eyePos + eyeFacing * (abs(eyePosFloat.y) + 30.0f /* + fovDistMod*/) * 1.2f;
 
 				scene::SceneManager::it().getWritableOcean().getWritableTransform().setPosition(XMVectorGetX(oceanPosition), scene::SceneManager::it().getOcean().getTransform().getPositionFloat3().y, XMVectorGetZ(oceanPosition));
-				scene::SceneManager::it().getOcean().draw(&m_perObjectCB, bindPSData);
+				scene::SceneManager::it().getOcean().draw(bindPSData);
 			}
 		}
 
@@ -565,14 +568,14 @@ namespace hrzn::gfx
 				m_deviceContext->PSSetShaderResources(0, 1, m_noiseTextureShaderResourceView.GetAddressOf());
 
 				scene::SceneManager::it().getWritableClouds().getWritableTransform().setPosition(eyePosFloat.x, scene::SceneManager::it().getClouds().getTransform().getPositionFloat3().y, eyePosFloat.z);
-				scene::SceneManager::it().getClouds().draw(&m_perObjectCB, bindPSData);
+				scene::SceneManager::it().getClouds().draw(bindPSData);
 			}
 		}
 
 		// Draw particles
 		if (renderPassType == RenderPassType::eNonGBufferCompatiblePass || renderPassType == RenderPassType::eStandardPass)
 		{
-			scene::SceneManager::it().getParticleSystem().drawParticles(&m_perObjectCB, bindPSData);
+			scene::SceneManager::it().getParticleSystem().drawParticles(bindPSData);
 		}
 	}
 
@@ -798,7 +801,7 @@ namespace hrzn::gfx
 				}
 
 				// If it's a renderable, allow scaling
-				if (selectedObjectType == entity::GameObject::Type::eRenderable)
+				if (selectedObjectType == entity::GameObject::Type::eRenderable || selectedObjectType == entity::GameObject::Type::eSkinned)
 				{
 					if (ImGui::CollapsingHeader("Scaling"))
 					{
@@ -818,6 +821,22 @@ namespace hrzn::gfx
 				}
 
 				ImGui::TreePop();
+			}
+
+			// If it's a renderable, allow scaling
+			if (selectedObjectType == entity::GameObject::Type::eSkinned)
+			{
+				if (ImGui::CollapsingHeader("Model Bones"))
+				{
+					ImGui::TreePush();
+
+					if (const auto* skinnedModel = dynamic_cast<const gfx::SkinnedModel*>(&(scene::SceneManager::it().getWritableSelectedObject()->getModel())))
+					{
+						recursivelyAddBoneImGui(skinnedModel->getRootBone());
+					}
+
+					ImGui::TreePop();
+				}
 			}
 
 			// If it's a light, allow light property changing and moving to camera
@@ -1119,9 +1138,19 @@ namespace hrzn::gfx
 						{
 							entity::RenderableGameObject* newRenderable = new entity::RenderableGameObject();
 
-							newRenderable->initialize(label, path);
+							newRenderable->initialise(label, path);
 
 							gameObject = newRenderable;
+
+							break;
+						}
+						case entity::GameObject::Type::eSkinned:
+						{
+							entity::SkinnedGameObject* newSkinned = new entity::SkinnedGameObject();
+
+							newSkinned->initialise(label, path);
+
+							gameObject = newSkinned;
 
 							break;
 						}
@@ -1129,7 +1158,7 @@ namespace hrzn::gfx
 						{
 							entity::PointLightGameObject* newPointLight = new entity::PointLightGameObject();
 
-							newPointLight->initialize();
+							newPointLight->initialise();
 							newPointLight->setLabel(label);
 
 							gameObject = newPointLight;
@@ -1140,7 +1169,7 @@ namespace hrzn::gfx
 						{
 							entity::SpotLightGameObject* newSpotLight = new entity::SpotLightGameObject();
 
-							newSpotLight->initialize();
+							newSpotLight->initialise();
 							newSpotLight->setLabel(label);
 
 							gameObject = newSpotLight;
@@ -1148,11 +1177,11 @@ namespace hrzn::gfx
 							break;
 						}
 						}
-						
-						gameObject->getWritableTransform().setPosition(scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector() + scene::SceneManager::it().getActiveCamera().getTransform().getFrontVector() * 5.0f);
 
 						if (gameObject != nullptr)
 						{
+							gameObject->getWritableTransform().setPosition(scene::SceneManager::it().getActiveCamera().getTransform().getPositionVector() + scene::SceneManager::it().getActiveCamera().getTransform().getFrontVector() * 5.0f);
+
 							scene::SceneManager::it().addGameObject(gameObject);
 
 							// Select if selectable
@@ -1253,7 +1282,28 @@ namespace hrzn::gfx
 					ImGui::EndCombo();
 				}
 
-				ImGui::Checkbox("Is Infinite", &terrainConfig.m_isInfinite);
+				const char* terrainGenTypes2d[] = { "Heightmap", "DiamondSquare", "FaultLine", "Circle" };
+				static const char* terrainGenTypes2dString = terrainGenTypes2d[(int)scene::SceneManager::it().getSceneConfig().getTerrainConfig().m_generationType2D];
+
+				if (ImGui::BeginCombo("2D Terrain Generation Type", terrainGenTypes2dString))
+				{
+					for (int n = 0; n < 4; n++)
+					{
+						bool isSelected = (terrainGenTypes2dString == terrainGenTypes2d[n]);
+						if (ImGui::Selectable(terrainGenTypes2d[n], isSelected))
+						{
+							terrainGenTypes2dString = terrainGenTypes2d[n];
+							scene::SceneManager::it().getWritableSceneConfig().getWritableTerrainConfig().m_generationType2D = (scene::config::TerrainConfig::GenerationType2D)(n);
+						}
+						if (isSelected)
+						{
+							ImGui::SetItemDefaultFocus();
+						}
+					}
+					ImGui::EndCombo();
+				}
+
+				//ImGui::Checkbox("Is Infinite", &terrainConfig.m_isInfinite);
 				ImGui::SliderFloat("Chunk Scale", &terrainConfig.m_chunkScale, 10.0f, 512.0f);
 				ImGui::DragFloat3("Origin Position", &terrainConfig.m_originPosition.x);
 
@@ -1607,6 +1657,21 @@ namespace hrzn::gfx
 		ImGui::End();
 	}
 
+	void GraphicsHandler::recursivelyAddBoneImGui(const Bone* bone)
+	{
+		for (const auto* bone : bone->m_children)
+		{
+			if (ImGui::CollapsingHeader(bone->m_name.c_str()))
+			{
+				ImGui::TreePush();
+
+				recursivelyAddBoneImGui(bone);
+
+				ImGui::TreePop();
+			}
+		}
+	}
+
 	ConstantBuffer<SceneCB>& GraphicsHandler::getSceneCB()
 	{
 		return m_sceneCB;
@@ -1647,6 +1712,11 @@ namespace hrzn::gfx
 		return m_perObjectCB;
 	}
 
+	ConstantBuffer<PerSkinnedObjectCB>& GraphicsHandler::getPerSkinnedObjectCB()
+	{
+		return m_perSkinnedObjectCB;
+	}
+
 	ConstantBuffer<AmbientOcclusionCB>& GraphicsHandler::getAmbientOcclusionCB()
 	{
 		return m_ambientOcclusionCB;
@@ -1670,6 +1740,18 @@ namespace hrzn::gfx
 	Model* GraphicsHandler::getScreenQuad() const
 	{
 		return m_screenQuad;
+	}
+
+	void GraphicsHandler::setDepthTestingEnabled(bool depthTestEnabled)
+	{
+		if (depthTestEnabled)
+		{
+			m_deviceContext->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
+		}
+		else
+		{
+			m_deviceContext->OMSetDepthStencilState(m_noDepthTestDepthStencilState.Get(), 0);
+		}
 	}
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState>& GraphicsHandler::getSamplerState()
@@ -1854,6 +1936,13 @@ namespace hrzn::gfx
 				depthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
 
 				hr = m_device->CreateDepthStencilState(&depthStencilDesc, m_depthStencilState.GetAddressOf());
+				COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil state.");
+
+				CD3D11_DEPTH_STENCIL_DESC noDepthTestDepthStencilDesc(D3D11_DEFAULT);
+				noDepthTestDepthStencilDesc.DepthEnable = false;
+				noDepthTestDepthStencilDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_ALWAYS;
+
+				hr = m_device->CreateDepthStencilState(&noDepthTestDepthStencilDesc, m_noDepthTestDepthStencilState.GetAddressOf());
 				COM_ERROR_IF_FAILED(hr, "Failed to create depth stencil state.");
 			}
 

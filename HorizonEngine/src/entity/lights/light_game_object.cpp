@@ -16,7 +16,7 @@ namespace hrzn::entity
 		m_type = GameObject::Type::eLight;
 	}
 
-	bool LightGameObject::initialize()
+	bool LightGameObject::initialise()
 	{
 		m_model = gfx::ResourceManager::it().getModelPtr<gfx::SimpleLitVertex>("res/models/engine/light/light.obj");
 		if (m_model == nullptr) return false;

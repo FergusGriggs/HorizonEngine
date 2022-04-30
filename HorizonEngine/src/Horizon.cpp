@@ -44,16 +44,16 @@ namespace hrzn
 	{
 	}
 
-	bool Horizon::initialize(HINSTANCE hInstance, std::string windowClass)
+	bool Horizon::initialise(HINSTANCE hInstance, std::string windowClass)
 	{
 		m_timer.start();
 
-		if (!m_renderWindow.initialize(this, hInstance, UserConfig::it().getWindowName(), windowClass, UserConfig::it().getWindowWidth(), UserConfig::it().getWindowHeight()))
+		if (!m_renderWindow.initialise(this, hInstance, UserConfig::it().getWindowName(), windowClass, UserConfig::it().getWindowWidth(), UserConfig::it().getWindowHeight()))
 		{
 			return false;
 		}
 
-		if (!gfx::GraphicsHandler::it().initialize(m_renderWindow.getHWND()))
+		if (!gfx::GraphicsHandler::it().initialise(m_renderWindow.getHWND()))
 		{
 			return false;
 		}

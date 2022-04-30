@@ -42,10 +42,13 @@ namespace hrzn::scene
     {
     }
 
-    void TerrainManager::renderTerrain(bool useGBuffer, bool bindPSData)
+    void TerrainManager::renderTerrain(gfx::ConstantBuffer<gfx::PerObjectCB>* perObjectCB, bool useGBuffer, bool bindPSData)
     {
         if (m_staticTerrainMesh != nullptr)
         {
+            perObjectCB->m_data.m_modelMatrix = XMMatrixIdentity() * XMMatrixTranslation(m_originPosition.x, m_originPosition.y, m_originPosition.z);
+            perObjectCB->mapToGPU();
+
             m_staticTerrainMesh->draw(useGBuffer, bindPSData);
         }
     }
@@ -154,7 +157,7 @@ namespace hrzn::scene
         int columnIndex = 0;
         for (int i = 0; i < dataSize; ++i)
         {
-            m_staticTerrainHeights[rowIndex][columnIndex] = (float)heightData[i] / 1024.0f;
+            m_staticTerrainHeights[rowIndex][columnIndex] = ((float)heightData[i] - 128.0f) / 4.0f;
 
             ++columnIndex;
             if (columnIndex == RAW_IMAGE_WIDTH)
@@ -328,7 +331,7 @@ namespace hrzn::scene
         {
             for (int j = 0; j < m_staticTerrainDimensions.z; ++j)
             {
-                maths::Vec3f vertPosition = m_originPosition - m_chunkScale * 0.5f + maths::Vec3f(vertStep.x * (float)i, 0.0f, 0.0f) + maths::Vec3f(0.0f, 0.0f, vertStep.z * (float)j) + maths::Vec3f(0.0f, m_chunkScale * 0.5f + (m_staticTerrainHeights[i][j] / 128.0f) * m_chunkScale, 0.0f);
+                maths::Vec3f vertPosition = maths::Vec3f(vertStep.x * (float)i, 0.0f, 0.0f) + maths::Vec3f(0.0f, 0.0f, vertStep.z * (float)j) - m_chunkScale * 0.5f + maths::Vec3f(0.0f, m_chunkScale * 0.5f + (m_staticTerrainHeights[i][j] / 128.0f) * m_chunkScale, 0.0f);
 
                 vertexPositions.push_back(vertPosition);
             }

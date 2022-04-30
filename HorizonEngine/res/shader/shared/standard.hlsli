@@ -32,6 +32,11 @@ cbuffer PerObjectCB : register(b8)
 	float4x4 cb_modelMatrix;
 }
 
+cbuffer PerSkinnedObjectCB : register(b9)
+{
+    float4x4 cb_boneTransforms[256];
+}
+
 struct VS_INPUT
 {
 	float3 pos : POSITION;
@@ -39,6 +44,19 @@ struct VS_INPUT
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
 	float2 texCoord : TEXCOORD;
+};
+
+
+struct VS_SKINNED_INPUT
+{
+    float3 pos : POSITION;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
+    float2 texCoord : TEXCOORD;
+	
+    int4   boneIds : BONEIDS;
+    float4 boneWeights : BONEWEIGHTS;
 };
 
 struct VSPS_TRANSFER

@@ -26,7 +26,7 @@ namespace hrzn::gfx
 		return *this;
 	}
 
-	HRESULT VertexBuffer::initialize(const void* data, UINT stride, UINT vertexCount)
+	HRESULT VertexBuffer::initialise(const void* data, UINT stride, UINT vertexCount)
 	{
 		if (m_buffer.Get() != nullptr)
 		{

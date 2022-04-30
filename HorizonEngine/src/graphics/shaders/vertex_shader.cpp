@@ -1,6 +1,9 @@
 #include "vertex_shader.h"
 
 #include <d3dcompiler.h>
+#include <d3d11shader.h>
+
+#pragma comment(lib, "dxguid.lib")
 
 #include "../graphics_handler.h"
 

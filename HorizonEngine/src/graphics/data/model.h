@@ -26,7 +26,10 @@ namespace hrzn::gfx
 		template<class VertexType>
 		bool initialise(const std::string& filePath);
 
-		void draw(const XMMATRIX& modelMatrix, gfx::ConstantBuffer<PerObjectCB>* perObjectCB, bool bindPSData = true) const;
+		void         draw(const XMMATRIX& modelMatrix, bool bindPSData = true) const;
+		virtual void debugDraw(const XMMATRIX& modelMatrix, bool bindPSData = true) const {};
+
+		virtual void updateAlternatePerObjectCB() const;
 
 		void drawRaw(bool useGBuffer, bool bindPSData = true);
 
@@ -44,9 +47,11 @@ namespace hrzn::gfx
 	protected:
 		template<class VertexType>
 		bool         loadModel(const std::string& filePath);
-		virtual void postSceneBasicParse(const aiScene* scene) {};
+		virtual void preSceneParse(const aiScene* scene) {};
+		virtual void preMeshProcessed(int meshIndex, const aiMesh* mesh) {};
 
-	private:
+		/*template<class VertexType>
+		virtual void fillAdditionalVertexInfo() {};*/
 		template<class VertexType>
 		void processNode(aiNode* node, const aiScene* scene, const XMMATRIX& parentTransformMatrix);
 
@@ -65,6 +70,7 @@ namespace hrzn::gfx
 		std::vector<Mesh*>    m_meshes;
 		std::vector<XMFLOAT3> m_vertices;
 		std::vector<DWORD>    m_indices;
+		std::vector<int>      m_meshBaseVertices;
 		int                   m_currentNumVerts;
 
 		bool                  m_useEmbeddedMaterials;

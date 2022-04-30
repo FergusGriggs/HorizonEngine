@@ -5,6 +5,7 @@
 
 #include "../graphics/data/resource_manager.h"
 #include "../graphics/data/vertex_types.h"
+#include "../graphics/graphics_handler.h"
 
 namespace hrzn::entity
 {
@@ -18,7 +19,7 @@ namespace hrzn::entity
 		m_type = GameObject::Type::eRenderable;
 	}
 
-	bool RenderableGameObject::initialize(std::string label, const std::string& filePath)
+	bool RenderableGameObject::initialise(std::string label, const std::string& filePath)
 	{
 		m_label = label;
 
@@ -30,6 +31,25 @@ namespace hrzn::entity
 		}
 
 		return true;
+	}
+
+	void RenderableGameObject::draw(bool bindPSData) const
+	{
+		XMFLOAT3 objectPosition = m_transform.getPositionFloat3();
+
+		if (m_floating)
+		{
+			objectPosition = XMFLOAT3(objectPosition.x + m_floatOffset.x, m_floatOffset.y, objectPosition.z + m_floatOffset.z);
+		}
+
+		if (m_type == GameObject::Type::eRenderable)
+		{
+			m_model->draw(XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z) * m_transform.getRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z), bindPSData);
+		}
+		else
+		{
+			m_model->draw(m_transform.getRotationMatrix() * XMMatrixTranslation(objectPosition.x, objectPosition.y, objectPosition.z), bindPSData);
+		}
 	}
 
 	float RenderableGameObject::getRayIntersectDist(XMVECTOR rayOrigin, XMVECTOR rayDirection) const

@@ -8,6 +8,7 @@
 // Entities
 #include "../entity/camera_game_object.h"
 #include "../entity/renderable_game_object.h"
+#include "../entity/skinned_game_object.h"
 #include "../entity/utils/game_object_controller.h"
 #include "../entity/physics_game_object.h"
 

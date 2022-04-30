@@ -18,7 +18,7 @@ namespace hrzn
 		}
 	}
 
-	bool RenderWindow::initialize(WindowContainer* windowContainer, HINSTANCE hInstance, const char* windowTitle, std::string windowClass, int width, int height)
+	bool RenderWindow::initialise(WindowContainer* windowContainer, HINSTANCE hInstance, const char* windowTitle, std::string windowClass, int width, int height)
 	{
 		m_hInstance = hInstance;
 		m_windowTitle = windowTitle;

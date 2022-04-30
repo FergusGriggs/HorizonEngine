@@ -35,7 +35,7 @@ namespace hrzn::gfx
 		Texture(const std::string& filePath);
 		Texture(const uint8_t* pData, size_t size);
 
-		bool initialize(const std::string& filePath);
+		bool initialise(const std::string& filePath);
 
 		Microsoft::WRL::ComPtr<ID3D11Resource>&           getResource();
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& getShaderResourceView();

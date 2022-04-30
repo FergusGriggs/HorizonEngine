@@ -5,6 +5,8 @@
 #include "../../utils/string_helpers.h"
 #include "../data/vertex_types.h"
 
+#include "../data/skinned_model.h"
+
 namespace hrzn::gfx
 {
 	ResourceManager& ResourceManager::it()
@@ -29,6 +31,26 @@ namespace hrzn::gfx
 		return true;
 	}
 
+	Model* ResourceManager::getSkinnedModelPtr(const std::string& path)
+	{
+		const auto& modelItr = m_models.find(path);
+		if (modelItr != m_models.end())
+		{
+			return modelItr->second;
+		}
+		else
+		{
+			SkinnedModel* loadedModel = new SkinnedModel();
+			if (!loadedModel->initialise(path))
+			{
+				delete loadedModel;
+				loadedModel = nullptr;
+			}
+			m_models.insert({ path, loadedModel });
+			return loadedModel;
+		}
+	}
+
 	Texture* ResourceManager::getTexturePtr(const std::string& path)
 	{
 		const auto& textureItr = m_textures.find(path);
@@ -39,7 +61,7 @@ namespace hrzn::gfx
 		else
 		{
 			Texture* loadedTexture = new Texture();
-			if (!loadedTexture->initialize(path))
+			if (!loadedTexture->initialise(path))
 			{
 				delete loadedTexture;
 				loadedTexture = m_defaultTexture;
@@ -59,7 +81,7 @@ namespace hrzn::gfx
 		else
 		{
 			Texture* newTexture = new Texture(pData, size);
-			if (!newTexture->initialize(path))
+			if (!newTexture->initialise(path))
 			{
 				delete newTexture;
 				newTexture = m_defaultTexture;

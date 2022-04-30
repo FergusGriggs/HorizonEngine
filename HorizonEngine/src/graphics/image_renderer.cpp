@@ -102,6 +102,10 @@ namespace hrzn::gfx
         deviceContext->VSSetConstantBuffers(8, 1, GraphicsHandler::it().getPerObjectCB().getAddressOf());
         deviceContext->PSSetConstantBuffers(8, 1, GraphicsHandler::it().getPerObjectCB().getAddressOf());
 
+        deviceContext->VSSetConstantBuffers(9, 1, GraphicsHandler::it().getPerSkinnedObjectCB().getAddressOf());
+        deviceContext->PSSetConstantBuffers(9, 1, GraphicsHandler::it().getPerSkinnedObjectCB().getAddressOf());
+
+
         deviceContext->RSSetViewports(1, &m_viewport);
 
         deviceContext->RSSetState(m_rasterizerState);

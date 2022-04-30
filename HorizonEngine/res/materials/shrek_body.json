@@ -5,7 +5,7 @@
       [ "albedo", "res/textures/shrek/body_albedo.png" ],
       [ "normal_map", "res/textures/shrek/body_normal.png" ]
     ],
-    "vertex_shader": "default",
+    "vertex_shader": "skinned",
     "pixel_shader": "standard_default",
     "gbuf_w_pixel_shader": "default"
   }

@@ -84,10 +84,10 @@ namespace hrzn::gfx
 	template<typename VertexType>
 	inline void Mesh::createBuffers(std::vector<VertexType>& vertices, std::vector<DWORD>& indices)
 	{
-		HRESULT hr = m_vertexBuffer.initialize(vertices.data(), sizeof(VertexType), static_cast<UINT>(vertices.size()));
+		HRESULT hr = m_vertexBuffer.initialise(vertices.data(), sizeof(VertexType), static_cast<UINT>(vertices.size()));
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize vertex buffer for mesh");
 
-		hr = m_indexBuffer.initialize(indices.data(), static_cast<UINT>(indices.size()));
+		hr = m_indexBuffer.initialise(indices.data(), static_cast<UINT>(indices.size()));
 		COM_ERROR_IF_FAILED(hr, "Failed to initialize index buffer for mesh");
 	}
 }

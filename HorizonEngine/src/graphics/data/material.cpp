@@ -283,6 +283,7 @@ namespace hrzn::gfx
     {
         ID3D11DeviceContext* deviceContext = GraphicsHandler::it().getDeviceContext();
 
+        deviceContext->IASetInputLayout(m_vertexShader->getInputLayout());
         deviceContext->VSSetShader(m_vertexShader->getShader(), nullptr, 0);
 
         if (bindPSData)

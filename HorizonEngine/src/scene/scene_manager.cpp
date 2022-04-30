@@ -85,19 +85,19 @@ namespace hrzn::scene
 		m_particleSystem = new physics::ParticleSystem();
 		m_particleSystem->addEmitter(XMVectorSet(0.0f, 3.0f, 0.0f, 0.0f), XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), 0.25f, 5.0f, 0.25f, 1.5f, 0.25f, 0.005f, 0.25f);
 
-		if (!m_skybox.initialize("Skybox", "res/models/engine/skybox.obj"))
+		if (!m_skybox.initialise("Skybox", "res/models/engine/skybox.obj"))
 		{
 			return false;
 		}
 
-		if (!m_clouds.initialize("Clouds", "res/models/engine/cloud_plane.obj"))
+		if (!m_clouds.initialise("Clouds", "res/models/engine/cloud_plane.obj"))
 		{
 			return false;
 		}
 		m_clouds.getWritableTransform().setPosition(0.0f, 2000.0f, 0.0f);
 		m_clouds.setScale(XMFLOAT3(200.0f, 200.0f, 200.0f));
 
-		if (!m_ocean.initialize("Ocean", "res/models/engine/ocean/ocean.obj"))
+		if (!m_ocean.initialise("Ocean", "res/models/engine/ocean/ocean.obj"))
 		{
 			return false;
 		}
@@ -105,7 +105,7 @@ namespace hrzn::scene
 
 		m_directionalLight.setLabel("directional_light");
 
-		if (!m_directionalLight.initialize())
+		if (!m_directionalLight.initialise())
 		{
 			return false;
 		}
@@ -156,10 +156,10 @@ namespace hrzn::scene
 	bool SceneManager::loadEngineObjects()
 	{
 		/*entity::PhysicsGameObject* physicsObject = new entity::PhysicsGameObject();
-		physicsObject->initialize("box1", "res/models/test_cubes/bricks.obj");
+		physicsObject->initialise("box1", "res/models/test_cubes/bricks.obj");
 
 		entity::PhysicsGameObject* physicsObject2 = new entity::PhysicsGameObject();
-		physicsObject2->initialize("box2", "res/models/test_cubes/bricks.obj");
+		physicsObject2->initialise("box2", "res/models/test_cubes/bricks.obj");
 
 		addGameObject(physicsObject);
 		addGameObject(physicsObject2);

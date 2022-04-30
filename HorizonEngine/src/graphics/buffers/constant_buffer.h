@@ -35,7 +35,7 @@ namespace hrzn::gfx
 			return m_buffer.GetAddressOf();
 		}
 
-		HRESULT initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+		HRESULT initialise(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 		{
 			if (m_buffer.Get() != nullptr)
 			{

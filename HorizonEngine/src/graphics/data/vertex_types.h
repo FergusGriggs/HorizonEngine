@@ -58,7 +58,7 @@ namespace hrzn::gfx
 	{
 		SkinnedVertex();
 		SkinnedVertex(const maths::Vec3f& pos, const maths::Vec3f& normal, const maths::Vec3f& tangent, const maths::Vec3f& bitangent, const maths::Vec2f& texCoord,
-			const maths::Vec4f& boneWeights, const maths::Vec4<uint8_t>& boneIndices);
+			const maths::Vec4f& boneWeights, const maths::Vec4<int>& boneIndices);
 
 		void fillUsingAssimpMesh(aiMesh* assimpMesh, int vertexIndex);
 
@@ -68,7 +68,7 @@ namespace hrzn::gfx
 		maths::Vec3f m_bitangent;
 		maths::Vec2f m_texCoord;
 
-		maths::Vec4f         m_boneWeights;
-		maths::Vec4<uint8_t> m_boneIndices;
+		maths::Vec4<int> m_boneIndices;
+		maths::Vec4f     m_boneWeights;
 	};
 }

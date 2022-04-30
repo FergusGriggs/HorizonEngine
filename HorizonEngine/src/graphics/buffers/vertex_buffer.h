@@ -17,7 +17,7 @@ namespace hrzn::gfx
 		VertexBuffer(const VertexBuffer& rhs);
 		VertexBuffer& operator=(const VertexBuffer& a);
 
-		HRESULT initialize(const void* data, UINT stride, UINT vertexCount);
+		HRESULT initialise(const void* data, UINT stride, UINT vertexCount);
 
 		ID3D11Buffer*        getBuffer() const;
 		ID3D11Buffer* const* getAddressOfBuffer() const;

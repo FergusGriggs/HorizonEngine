@@ -123,7 +123,7 @@ namespace hrzn::gfx
 	}
 
 	SkinnedVertex::SkinnedVertex(const maths::Vec3f& pos, const maths::Vec3f& normal, const maths::Vec3f& tangent, const maths::Vec3f& bitangent, const maths::Vec2f& texCoord,
-		const maths::Vec4f& boneWeights, const maths::Vec4<uint8_t>& boneIndices) :
+		const maths::Vec4f& boneWeights, const maths::Vec4<int>& boneIndices) :
 		m_pos(pos),
 		m_normal(normal),
 		m_tangent(tangent),

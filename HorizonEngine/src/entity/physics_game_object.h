@@ -12,7 +12,7 @@ namespace hrzn::entity
 		PhysicsGameObject();
 		~PhysicsGameObject();
 
-		bool initialize(std::string label, const std::string& filePath);
+		bool initialise(std::string label, const std::string& filePath);
 
 		void setMass(float mass);
 		void setDrag(float drag);

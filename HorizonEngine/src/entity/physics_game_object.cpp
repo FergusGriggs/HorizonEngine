@@ -16,9 +16,9 @@ namespace hrzn::entity
 	{
 	}
 
-	bool PhysicsGameObject::initialize(std::string label, const std::string& filePath)
+	bool PhysicsGameObject::initialise(std::string label, const std::string& filePath)
 	{
-		if (RenderableGameObject::initialize(label, filePath))
+		if (RenderableGameObject::initialise(label, filePath))
 		{
 			BoundingBox boundingBox = m_model->getBoundingBox();
 			m_rigidBody.computeBoxIntertiaTensor(boundingBox.Extents.x * 2.0f, boundingBox.Extents.y * 2.0f, boundingBox.Extents.z * 2.0f);

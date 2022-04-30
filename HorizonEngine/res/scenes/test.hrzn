@@ -51,8 +51,8 @@
                 "dimension_type": "2d",
                 "is_infinite": false,
                 "chunk_scale": 128.0,
-                "origin_position": [0.0, -10.0, 128.0],
-                "2d_generation_type": "diamond_square",
+                "origin_position": [64.0, -5.0, -15.0],
+                "2d_generation_type": "circle",
                 "heightmap_path": "res/textures/terrain/coastMountain513.raw",
                 "3d_generation_type": "default"
             }
@@ -331,8 +331,8 @@
             {
                 "id": "test_point_light_1",
                 "type": "PointLight",
-                "position": [-14.6409845, 1.6114997, 51.7915763],
-                "orientation": [-0.4647058, 0.5329619, -0.4647058, -0.5329619],
+                "position": [-16.4968051, 2.9989352, 9.276884],
+                "orientation": [0.476495, 0.327463, -0.1970731, 0.7917591],
                 "LightData": {
                     "colour": [1.0, 0.8299999, 0.745]
                 },
@@ -345,7 +345,7 @@
                     {
                         "id": "drapes_light_track",
                         "is_following": true,
-                        "track_delta": 8.6278438,
+                        "track_delta": 1.5461472,
                         "track_speed": 0.2
                     }
                 ]
@@ -353,7 +353,7 @@
             {
                 "id": "tunnel_cam_1",
                 "type": "Camera",
-                "position": [-11.0, -1.5, 48.7670593],
+                "position": [-11.0, -1.5, 6.2768831],
                 "orientation": [-0.0881347, -0.4450371, -0.0440673, 0.8900743],
                 "CameraData": {
                     "fov": 52.5,
@@ -365,7 +365,7 @@
                     {
                         "id": "drapes_camera_track_1",
                         "is_following": true,
-                        "track_delta": 8.6278438,
+                        "track_delta": 1.5461472,
                         "track_speed": 0.2
                     }
                 ]
@@ -393,8 +393,8 @@
             {
                 "id": "tunnel_cam_2",
                 "type": "Camera",
-                "position": [-15.8615064, 0.0, 57.7671127],
-                "orientation": [0.0, 0.9374488, 0.0, 0.348123],
+                "position": [-14.2982664, 0.0, 15.2768287],
+                "orientation": [0.0, 0.9535629, 0.0, -0.3011937],
                 "CameraData": {
                     "fov": 70.0,
                     "near_plane": 0.1,
@@ -405,7 +405,7 @@
                     {
                         "id": "drapes_camera_track_2",
                         "is_following": true,
-                        "track_delta": 9.1278524,
+                        "track_delta": 2.046138,
                         "track_speed": 0.2
                     }
                 ]
@@ -640,7 +640,7 @@
                 "position": [-57.6004142, -3.2016758, 10.8955202],
                 "orientation": [-0.3422047, -0.4029632, -0.1656434, 0.8325136],
                 "LightData": {
-                    "colour": [0.9362745, 0.4300707, 0.2478374]
+                    "colour": [0.9362745, 0.4300706, 0.2478373]
                 },
                 "PointLightData": {
                     "attenuation_constant": 0.4469999,
@@ -735,13 +735,31 @@
                 }
             },
             {
-                "id": "Shrek",
-                "type": "Renderable",
-                "position": [-90.1295089, -20.4166126, 39.4013099],
-                "orientation": [0.6640886, -0.2328703, 0.2209396, 0.6752357],
+                "id": "Viking",
+                "type": "Skinned",
+                "position": [-44.0901069, -2.2301821, -40.6183776],
+                "orientation": [-0.0119991, -0.5084894, -0.0069453, 0.8609566],
                 "RenderableData": {
-                    "model_path": "res/models/skinned_models/shrek-walk-cycle/source/Walking.fbx",
-                    "scale": [1.0, 1.0, 1.0]
+                    "model_path": "res/models/skinned_models/Free_Warriors_Turbosquid/models/FBX (animated)/blue/viking_C.fbx",
+                    "scale": [0.025, 0.025, 0.025]
+                }
+            },
+            {
+                "id": "Terrain Spotlight",
+                "type": "SpotLight",
+                "position": [38.7384948, 16.2890644, -83.7319793],
+                "orientation": [0.1846784, 0.2054711, -0.039516, 0.9602676],
+                "LightData": {
+                    "colour": [0.8333333, 0.2205882, 0.0]
+                },
+                "PointLightData": {
+                    "attenuation_constant": 0.2669999,
+                    "attenuation_linear": 0.004,
+                    "attenuation_quadratic": 0.0
+                },
+                "SpotLightData": {
+                    "inner_cutoff": 39.3129997,
+                    "outer_cutoff": 52.1699981
                 }
             }
         ]

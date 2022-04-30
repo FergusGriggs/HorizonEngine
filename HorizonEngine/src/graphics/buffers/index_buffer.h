@@ -11,7 +11,7 @@ namespace hrzn::gfx
 	public:
 		IndexBuffer();
 
-		HRESULT              initialize(DWORD* data, UINT indexCount);
+		HRESULT              initialise(DWORD* data, UINT indexCount);
 
 		ID3D11Buffer*        getBuffer() const;
 		ID3D11Buffer* const* getAddressOfBuffer() const;

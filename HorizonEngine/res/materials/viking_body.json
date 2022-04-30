@@ -1,0 +1,11 @@
+{
+  "Material": {
+    "default_material_textures": true,
+    "textures": [
+      [ "albedo", "res/models/skinned_models/Free_Warriors_Turbosquid/textures/viking_blue_C_texture.jpg" ]
+    ],
+    "vertex_shader": "skinned",
+    "pixel_shader": "standard_default",
+    "gbuf_w_pixel_shader": "default"
+  }
+}

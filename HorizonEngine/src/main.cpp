@@ -14,7 +14,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	}
 
 	hrzn::Horizon engine = hrzn::Horizon();
-	if (engine.initialize(hInstance, "windowClass"))
+	if (engine.initialise(hInstance, "windowClass"))
 	{
 		while (engine.processMessages())
 		{

@@ -18,7 +18,7 @@ namespace hrzn
 		RenderWindow();
 		~RenderWindow();
 
-		bool initialize(WindowContainer* windowContainer, HINSTANCE hInstance, const char* windowTitle, std::string windowClass, int width, int height);
+		bool initialise(WindowContainer* windowContainer, HINSTANCE hInstance, const char* windowTitle, std::string windowClass, int width, int height);
 		bool processMessages();
 		HWND getHWND() const;
 		

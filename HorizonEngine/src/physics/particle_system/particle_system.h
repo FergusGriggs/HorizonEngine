@@ -16,7 +16,7 @@ namespace hrzn::physics
 		ParticleSystem();
 
 		void update(float deltaTime);
-		void drawParticles(gfx::ConstantBuffer<gfx::PerObjectCB>* perObjectCB, bool bindPSData) const;
+		void drawParticles(bool bindPSData) const;
 
 		void addParticle(const XMVECTOR& position, const XMVECTOR& velocity, float maxAge);
 		void addEmitter(const XMVECTOR& position, const XMVECTOR& direction, float directionRandomness, float power, float powerRandomModifier, float maxAge, float maxAgeRandomModifier, float spawnDelay, float spawnDelayRandomModifier);

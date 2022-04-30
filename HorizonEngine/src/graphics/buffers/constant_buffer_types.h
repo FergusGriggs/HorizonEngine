@@ -163,4 +163,11 @@ namespace hrzn::gfx
 	{
 		DirectX::XMMATRIX m_modelMatrix;
 	};
+
+#define MAX_SKINNED_MODEL_BONES 256
+
+	struct PerSkinnedObjectCB
+	{
+		DirectX::XMMATRIX m_boneTransforms[MAX_SKINNED_MODEL_BONES];
+	};
 }

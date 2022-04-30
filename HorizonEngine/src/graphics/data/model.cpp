@@ -51,17 +51,26 @@ namespace hrzn::gfx
 		m_meshMaterials.clear();
 	}
 
-	void Model::draw(const XMMATRIX& modelMatrix, ConstantBuffer<PerObjectCB>* perObjectCB, bool bindPSData) const
+	void Model::draw(const XMMATRIX& modelMatrix, bool bindPSData) const
 	{
+		updateAlternatePerObjectCB();
+
+		auto& perObjectCB = GraphicsHandler::it().getPerObjectCB();
 		for (int i = 0; i < m_meshes.size(); i++)
 		{
-			perObjectCB->m_data.m_modelMatrix = m_meshes[i]->getTransformMatrix() * modelMatrix;
+			perObjectCB.m_data.m_modelMatrix = m_meshes[i]->getTransformMatrix() * modelMatrix;
 			//vertexShaderCB->data.modelMatrix = XMMatrixTranspose(vertexShaderCB->data.modelMatrix);
 
-			perObjectCB->mapToGPU();
+			perObjectCB.mapToGPU();
 
 			m_meshes[i]->draw(m_isGBufferCompatible && GraphicsHandler::it().isUsingDeferredShading(), bindPSData);
 		}
+
+		debugDraw(modelMatrix, bindPSData);
+	}
+
+	void Model::updateAlternatePerObjectCB() const
+	{
 	}
 
 	float Model::getHitRadius() const

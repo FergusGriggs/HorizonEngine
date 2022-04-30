@@ -24,6 +24,7 @@ namespace hrzn::gfx
 
 		template<class VertexType>
 		Model*    getModelPtr(const std::string& path);
+		Model*    getSkinnedModelPtr(const std::string& path);
 
 		Texture*  getTexturePtr(const std::string& path);
 		Texture*  getTexturePtr(const std::string& path, const uint8_t* pData, size_t size);

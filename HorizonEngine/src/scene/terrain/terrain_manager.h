@@ -9,6 +9,7 @@
 #include "dual_contouring/octree.h"
 
 #include "../../graphics/data/mesh.h"
+#include "../../graphics/buffers/constant_buffer.h"
 
 namespace hrzn::scene
 {
@@ -40,7 +41,7 @@ namespace hrzn::scene
         void unloadFarChunks();
 
         gfx::Mesh* getStaticTerrainMesh();
-        void       renderTerrain(bool useGBuffer, bool bindPSData);
+        void       renderTerrain(gfx::ConstantBuffer<gfx::PerObjectCB>* perObjectCB, bool useGBuffer, bool bindPSData);
         void       updateTerrainUsingConfig();
 
         // 2D static mesh gen methods

@@ -52,6 +52,8 @@ namespace hrzn::gfx
 			return false;
 		}
 
+		preSceneParse(scene);
+
 		m_isGBufferCompatible = true;
 
 		processNode<VertexType>(scene->mRootNode, scene, XMMatrixIdentity());// * XMMatrixScaling(0.025f, 0.025f, 0.025f)
@@ -61,8 +63,6 @@ namespace hrzn::gfx
 			utils::ErrorLogger::log("Model at path '" + filePath + "' failed to load as it had no vertices");
 			return false;
 		}
-
-		postSceneBasicParse(scene);
 
 		BoundingBox::CreateFromPoints(m_boundingBox, m_vertices.size(), &(m_vertices.at(0)), sizeof(XMFLOAT3));
 
@@ -163,12 +163,17 @@ namespace hrzn::gfx
 		std::vector<VertexType> meshVertices;
 		std::vector<DWORD> indices;
 
+		m_meshBaseVertices.push_back((int)m_vertices.size());
+
+		preMeshProcessed(m_meshes.size(), mesh);
+
 		for (UINT i = 0; i < mesh->mNumVertices; i++)
 		{
 			VertexType vertex;
 			vertex.fillUsingAssimpMesh(mesh, i);
 
 			meshVertices.push_back(vertex);
+
 			m_vertices.push_back(vertex.m_pos.getAsXMFLOAT3());
 		}
 
@@ -186,7 +191,6 @@ namespace hrzn::gfx
 		m_currentNumVerts = static_cast<int>(m_vertices.size());
 
 		std::string meshName = mesh->mName.C_Str();
-
 		return new Mesh(meshName, meshVertices, indices, material);
 	}
 }
