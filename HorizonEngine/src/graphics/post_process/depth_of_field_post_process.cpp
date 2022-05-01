@@ -16,22 +16,6 @@ namespace hrzn::gfx
     {
     }
 
-    /***********************************************
-
-    MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
-
-    DESCRIPTION: This is the post process class which runs the Depth of Field post process,
-    It uses two gaussain blurs to get a more powerful blur, as iterative blurring is not possible yet
-
-    Once these blurs have been performed it sets the final one as a shader resource, along with the
-    colour image and the geometry buffer's depth stencil buffer. Then the depth of field shader is run
-    while rendering to a quad. The focus depth is automatically calculated by sampling the pixel in the
-    middle of the screen in the shader.
-
-    COMMENT INDEX: 15
-
-    ***********************************************/
-
     void DepthOfFieldPostProcess::run(RenderTexture* input)
     {
         ID3D11DeviceContext* deviceContext = GraphicsHandler::it().getDeviceContext();

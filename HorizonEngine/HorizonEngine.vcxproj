@@ -854,6 +854,7 @@
     <None Include="res\materials\water.json" />
     <None Include="res\materials\wood.json" />
     <None Include="res\materials\wood_clean.json" />
+    <None Include="res\scenes\test.hrzn" />
     <None Include="res\shader\shared\atmospheric.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

@@ -5,6 +5,15 @@
 
 #include <map>
 
+/***********************************************
+
+MARKING SCHEME: Human skeletal structure + Walking animation + Loading a humanoid character
+COMMENT INDEX: 9
+DESCRIPTION: skinned_model.h and skinned_model.cpp is where you can find all of the code
+             used to load, process and ultimately render skinned (mostly humanoid) characters
+
+***********************************************/
+
 #define MAX_BONES_PER_VERTEX 4
 
 namespace hrzn::gfx

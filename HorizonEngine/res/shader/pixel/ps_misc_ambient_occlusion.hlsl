@@ -22,17 +22,6 @@ Texture2D noiseTexture : TEXTURE : register(t3);
 
 SamplerState samplerState : SAMPLER : register(s0);
 
-/***********************************************
-
-MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
-
-DESCRIPTION: This is the shader used to generate the dedicated ambient occlusion
-texture, you can see the texture inputs above
-
-COMMENT INDEX: 14
-
-***********************************************/
-
 float main(VSPS_TRANSFER input) : SV_TARGET
 {
     float3 normal = normalTexture.Sample(samplerState, input.texCoord).rgb;

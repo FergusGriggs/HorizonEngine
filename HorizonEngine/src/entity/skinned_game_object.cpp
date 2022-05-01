@@ -29,7 +29,8 @@ namespace hrzn::entity
 
     void SkinnedGameObject::update(float deltaTime)
     {
-        
+        RenderableGameObject::update(deltaTime);
+
         XMMATRIX transformMatrix = XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z) * m_transform.getRotationMatrix() * XMMatrixTranslation(m_transform.getPositionFloat3().x, m_transform.getPositionFloat3().y, m_transform.getPositionFloat3().z);
         if (auto* skinnedModel = dynamic_cast<gfx::SkinnedModel*>(m_model))
         {

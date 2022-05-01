@@ -43,6 +43,7 @@ namespace hrzn::gfx
 		bool               rayInersectAllFaces(XMVECTOR rayOrigin, XMVECTOR rayDirection, float* rayDistance) const;
 
 		bool               isGBufferCompatible() const;
+		bool*              getDebugDrawPtr();
 
 	protected:
 		template<class VertexType>
@@ -74,6 +75,7 @@ namespace hrzn::gfx
 		int                   m_currentNumVerts;
 
 		bool                  m_useEmbeddedMaterials;
+		bool                  m_debugDrawEnabled;
 
 		struct MeshMaterial
 		{

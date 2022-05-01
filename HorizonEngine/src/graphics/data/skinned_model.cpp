@@ -277,6 +277,16 @@ namespace hrzn::gfx
         return true;
     }
 
+    /***********************************************
+
+    MARKING SCHEME: Walking animation
+
+    COMMENT INDEX: 17
+    DESCRIPTION: This is the function that actually sends the bone transforms to the
+                 GPU so that they can be used in the vertex shader
+
+    ***********************************************/
+
     void SkinnedModel::updateAlternatePerObjectCB() const
     {
         for (auto& bone : m_boneDataMap)
@@ -451,6 +461,17 @@ namespace hrzn::gfx
         return new Mesh(meshName, meshVertices, indices, material);
     }
 
+    /***********************************************
+
+    MARKING SCHEME: Loading a humanoid character
+
+    COMMENT INDEX: 16
+    DESCRIPTION: This function is called on every vertex after the standard information has been loaded.
+                 It uses a global map of vertex skinning information called m_vertexBoneData and the vertexes global index
+                 to set the correct bone indices and bone weights
+
+    ***********************************************/
+
     void SkinnedModel::fillVertexSkinningData(int vertexIndex, gfx::SkinnedVertex& vertex)
     {
         vertex.m_boneIndices[0] = m_vertexBoneData[vertexIndex].m_boneIds[0];
@@ -555,6 +576,16 @@ namespace hrzn::gfx
         //GraphicsHandler::it().setDepthTestingEnabled(true);
     }
 
+    /***********************************************
+
+    MARKING SCHEME: Walking animation
+
+    COMMENT INDEX: 15
+    DESCRIPTION: This function is where the animation data of the current animation is queried using the current animantion
+                 time to get the current transform of the bones. It also updates the final transforms of the bones.
+
+    ***********************************************/
+
     void SkinnedModel::updateBoneTransforms(const XMMATRIX& modelMatrix)
     {
         UINT numBones = m_boneDataMap.size();
@@ -605,6 +636,15 @@ namespace hrzn::gfx
         }
     }
 
+    /***********************************************
+
+    MARKING SCHEME: Human skeletal structure + Loading a humanoid character
+    COMMENT INDEX: 10
+    DESCRIPTION: This function is used to grab all the available bones in the loaded model
+                 and store them in an easy to access (but non hierarchical) way
+
+    ***********************************************/
+
     void SkinnedModel::generateAssimpBoneMap(const aiScene* scene)
     {
         m_assimpBoneMap.clear();
@@ -620,6 +660,16 @@ namespace hrzn::gfx
             }
         }
     }
+
+    /***********************************************
+
+    MARKING SCHEME: Human skeletal structure + Loading a humanoid character
+    COMMENT INDEX: 11
+    DESCRIPTION: This function is used to recursively traverse all the nodes in the loaded model
+                 file and search for bones, when they are found, they are linked to their parent bone
+                 using my own structure (gfx::Bone instead of aiBone)
+
+    ***********************************************/
 
     void SkinnedModel::recursiveGenerateBoneHierarchy(Bone* bone, const aiNode* assimpNode, int& latestId)
     {
@@ -649,6 +699,15 @@ namespace hrzn::gfx
         }
     }
 
+    /***********************************************
+
+    MARKING SCHEME: Human skeletal structure + Walking animation + Loading a humanoid character
+
+    COMMENT INDEX: 13
+    DESCRIPTION: This function is used to update the bone transforms which are ultimately sent to the PerSkinnedObject Constant Buffer
+
+    ***********************************************/
+
     void SkinnedModel::recursiveApplyBoneTransform(Bone* bone, XMMATRIX parentTransform)
     {
         XMMATRIX myTransform = XMMatrixScaling(bone->m_scale.x, bone->m_scale.y, bone->m_scale.z) * XMMatrixRotationQuaternion(XMLoadFloat4(&(bone->m_orientationQuaternion))) * XMMatrixTranslation(bone->m_translation.x, bone->m_translation.y, bone->m_translation.z) * XMMatrixInverse(nullptr, XMLoadFloat4x4(&(bone->m_offsetMatrix))) * parentTransform;
@@ -665,6 +724,16 @@ namespace hrzn::gfx
             recursiveApplyBoneTransform(child, myTransform);
         }
     }
+
+    /***********************************************
+
+    MARKING SCHEME: Walking animation
+
+    COMMENT INDEX: 14
+    DESCRIPTION: This function retrieves all the relevant information needed to animate the loaded bones
+                 from the parsed assimp scene
+
+    ***********************************************/
 
     void SkinnedModel::loadAnimations(const aiScene* scene)
     {

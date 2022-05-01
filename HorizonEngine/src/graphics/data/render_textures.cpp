@@ -126,18 +126,6 @@ namespace hrzn::gfx
 		}
 	}
 
-	/***********************************************
-
-	MARKING SCHEME: Special Effects Pipeline
-
-	DESCRIPTION: This function is used to render to texture using a full screen quad (NDC from -1.0 to 1.0)
-	This function is used heavily by the textures in the post processing pipeline. They also frequently use the above function
-	which allows for quick copying of textures, which occasionally needs to use a full screen quad draw too.
-
-	COMMENT INDEX: 6
-
-	***********************************************/
-
 	void RenderTexture::setAsRenderTargetAndDrawQuad(bool clearRenderTarget)
 	{
 		ID3D11DeviceContext* deviceContext = GraphicsHandler::it().getDeviceContext();

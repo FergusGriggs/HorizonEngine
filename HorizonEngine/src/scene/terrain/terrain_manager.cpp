@@ -53,6 +53,18 @@ namespace hrzn::scene
         }
     }
 
+    /***********************************************
+
+    MARKING SCHEME: Terrain construction & Procedural Terrain generation
+    COMMENT INDEX: 3
+    DESCRIPTION: This function uses the loaded (and potentially modified in engine) terrain setup
+                 data to create the mesh for the desired terrain type.
+                 
+                 All of the 2d terrain types just generate height data which is fed into a function
+                 which actually creates the mesh. This reduces code duplication for this process.
+
+    ***********************************************/
+
     void TerrainManager::updateTerrainUsingConfig()
     {
         config::TerrainConfig terrainConfig = SceneManager::it().getSceneConfig().getTerrainConfig();
@@ -134,6 +146,14 @@ namespace hrzn::scene
         }
     }
 
+    /***********************************************
+
+    MARKING SCHEME: Terrain construction
+    COMMENT INDEX: 4
+    DESCRIPTION: This function loads height information from a raw file and creates a mesh for it
+
+    ***********************************************/
+
     void TerrainManager::createStaticTerrainMeshFromHeightmap(const std::string& heightmapFilePath)
     {
 #define RAW_IMAGE_WIDTH 513
@@ -169,6 +189,14 @@ namespace hrzn::scene
 
         createStaticTerrainMeshUsingHeights();
     }
+
+    /***********************************************
+
+    MARKING SCHEME: Procedural Terrain generation
+    COMMENT INDEX: 5
+    DESCRIPTION: This is the code to generate heights using the diamond square method
+
+    ***********************************************/
 
     void TerrainManager::createStaticTerrainMeshUsingDiamondSquare(int resolution)
     {
@@ -228,6 +256,14 @@ namespace hrzn::scene
         createStaticTerrainMeshUsingHeights();
     }
 
+    /***********************************************
+
+    MARKING SCHEME: Procedural Terrain generation
+    COMMENT INDEX: 6
+    DESCRIPTION: This is the code to generate heights using the circle method
+
+    ***********************************************/
+
     void TerrainManager::createStaticTerrainMeshUsingCircle(const maths::Vec3i& dimensions, int numCircles, int minRadius, int maxRadius)
     {
         initialiseStaticTerrainHeights(dimensions);
@@ -273,6 +309,14 @@ namespace hrzn::scene
 
         createStaticTerrainMeshUsingHeights();
     }
+
+    /***********************************************
+
+    MARKING SCHEME: Procedural Terrain generation
+    COMMENT INDEX: 7
+    DESCRIPTION: This is the code to generate heights using the fault line method
+
+    ***********************************************/
 
     void TerrainManager::createStaticTerrainMeshUsingFaultLine(const maths::Vec3i& dimensions, int numLines, int lineMode)
     {
@@ -388,6 +432,16 @@ namespace hrzn::scene
         return m_staticTerrainMesh;
     }
 
+    /***********************************************
+
+    MARKING SCHEME: Advanced Terrain generation
+    COMMENT INDEX: 8
+    DESCRIPTION: This function constructs an octree of nodes using various density functions (spheres, cubes and sin waves)
+                 It then recursively traverses the octree adding faces between the vertices of each node (which are calculated with
+                 an imported qef function). These buffers are used to create a renderable mesh.
+
+    ***********************************************/
+
     void TerrainManager::createDualContouringStaticMesh()
     {
         deleteStaticTerrainHeights();
@@ -402,8 +456,8 @@ namespace hrzn::scene
         std::vector<gfx::SimpleLitVertex> vertices;
         std::vector<DWORD> indices;
 
-        m_testOctree = terrain::BuildOctree(maths::Vec3i(-octreeSize / 2), octreeSize, THRESHOLDS[thresholdIndex]);
-        terrain::GenerateMeshFromOctree(m_testOctree, vertices, indices);
+        m_testOctree = terrain::buildOctree(maths::Vec3i(-octreeSize / 2), octreeSize, THRESHOLDS[thresholdIndex]);
+        terrain::generateMeshFromOctree(m_testOctree, vertices, indices);
 
         if (m_staticTerrainMesh != nullptr)
         {

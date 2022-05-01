@@ -94,9 +94,9 @@ namespace hrzn::scene::terrain
 
 	// ----------------------------------------------------------------------------
 
-	OctreeNode* BuildOctree(const maths::Vec3i& min, const int size, const float threshold);
-	void DestroyOctree(OctreeNode* node);
-	void GenerateMeshFromOctree(OctreeNode* node, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer);
+	OctreeNode* buildOctree(const maths::Vec3i& min, const int size, const float threshold);
+	void destroyOctree(OctreeNode* node);
+	void generateMeshFromOctree(OctreeNode* node, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer);
 
 	// ----------------------------------------------------------------------------
 }

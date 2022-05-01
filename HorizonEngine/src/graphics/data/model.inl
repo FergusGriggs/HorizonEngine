@@ -26,7 +26,7 @@ namespace hrzn::gfx
 
 		return true;
 	}
-
+	
 	template <class VertexType>
 	inline bool Model::loadModel(const std::string& filePath)
 	{

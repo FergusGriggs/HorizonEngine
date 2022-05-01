@@ -830,8 +830,10 @@ namespace hrzn::gfx
 				{
 					ImGui::TreePush();
 
-					if (const auto* skinnedModel = dynamic_cast<const gfx::SkinnedModel*>(&(scene::SceneManager::it().getWritableSelectedObject()->getModel())))
+					if (auto* skinnedModel = dynamic_cast<gfx::SkinnedModel*>(&(scene::SceneManager::it().getWritableSelectedObject()->getWritableModel())))
 					{
+						ImGui::Checkbox("Debug draw bones", skinnedModel->getDebugDrawPtr());
+
 						recursivelyAddBoneImGui(skinnedModel->getRootBone());
 					}
 
@@ -1436,17 +1438,6 @@ namespace hrzn::gfx
 			{
 				ImGui::TreePush();
 
-				/***********************************************
-
-				MARKING SCHEME: Normal Mapping,	Basic Parallax Mapping and Parallax Occlusion Mapping with self shadowing
-
-				DESCRIPTION: This is where the app lets the user select the mapping techniques they would like active.
-				These values are written to the correct constant buffer and will be mapped to the gpu later on
-
-				COMMENT INDEX: 1
-
-				***********************************************/
-
 				// Normal Mapping
 				bool useNormalMapping = static_cast<bool>(m_sceneCB.m_data.m_useNormalMapping);
 				ImGui::Checkbox("Normal Mapping", &useNormalMapping);
@@ -1523,17 +1514,6 @@ namespace hrzn::gfx
 
 				ImGui::TreePop();
 			}
-
-			/***********************************************
-
-			MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
-
-			DESCRIPTION: This is where Deferred shading and Ambient occlusion can be toggled,
-			their textures can also be viewed by expanding the "View Textures" collapsing header.
-
-			COMMENT INDEX: 8
-
-			***********************************************/
 
 			if (ImGui::CollapsingHeader("Deferred Shading"))
 			{

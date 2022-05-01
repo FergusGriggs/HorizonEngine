@@ -353,6 +353,15 @@ namespace hrzn::scene
         writer.EndObject();
     }
 
+    /***********************************************
+    
+    MARKING SCHEME: Terrain construction
+    COMMENT INDEX: 1
+    DESCRIPTION: This is where the terrain setup info is loaded from the scene
+                 json file (generation type, where it is in the level etc)
+
+    ***********************************************/
+
     SceneLoader::LoadResult SceneLoader::loadTerrainConfig(rapidjson::Value& sceneConfig)
     {
         if (!sceneConfig.HasMember("TerrainConfig"))

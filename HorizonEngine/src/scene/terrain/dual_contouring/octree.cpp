@@ -97,7 +97,7 @@ namespace hrzn::scene::terrain
 
 	// -------------------------------------------------------------------------------
 
-	OctreeNode* SimplifyOctree(OctreeNode* node, float threshold)
+	OctreeNode* simplifyOctree(OctreeNode* node, float threshold)
 	{
 		if (!node)
 		{
@@ -118,7 +118,7 @@ namespace hrzn::scene::terrain
 
 		for (int i = 0; i < 8; i++)
 		{
-			node->m_children[i] = SimplifyOctree(node->m_children[i], threshold);
+			node->m_children[i] = simplifyOctree(node->m_children[i], threshold);
 			if (node->m_children[i])
 			{
 				OctreeNode* child = node->m_children[i];
@@ -202,7 +202,7 @@ namespace hrzn::scene::terrain
 
 		for (int i = 0; i < 8; i++)
 		{
-			DestroyOctree(node->m_children[i]);
+			destroyOctree(node->m_children[i]);
 			node->m_children[i] = nullptr;
 		}
 
@@ -214,7 +214,7 @@ namespace hrzn::scene::terrain
 
 	// ----------------------------------------------------------------------------
 
-	void GenerateVertexIndices(OctreeNode* node, std::vector<gfx::SimpleLitVertex>& vertexBuffer)
+	void generateVertexIndices(OctreeNode* node, std::vector<gfx::SimpleLitVertex>& vertexBuffer)
 	{
 		if (!node)
 		{
@@ -225,7 +225,7 @@ namespace hrzn::scene::terrain
 		{
 			for (int i = 0; i < 8; i++)
 			{
-				GenerateVertexIndices(node->m_children[i], vertexBuffer);
+				generateVertexIndices(node->m_children[i], vertexBuffer);
 			}
 		}
 
@@ -254,7 +254,7 @@ namespace hrzn::scene::terrain
 
 	// ----------------------------------------------------------------------------
 
-	void ContourProcessEdge(OctreeNode* node[4], int dir, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
+	void contourProcessEdge(OctreeNode* node[4], int dir, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		int minSize = 1000000;		// arbitrary big number
 		int minIndex = 0;
@@ -333,7 +333,7 @@ namespace hrzn::scene::terrain
 
 	// ----------------------------------------------------------------------------
 
-	void ContourEdgeProc(OctreeNode* node[4], int dir, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
+	void contourEdgeProc(OctreeNode* node[4], int dir, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		if (!node[0] || !node[1] || !node[2] || !node[3])
 		{
@@ -345,7 +345,7 @@ namespace hrzn::scene::terrain
 			node[2]->m_type != OctreeNodeType::eInternal &&
 			node[3]->m_type != OctreeNodeType::eInternal)
 		{
-			ContourProcessEdge(node, dir, vertexBuffer, indexBuffer);
+			contourProcessEdge(node, dir, vertexBuffer, indexBuffer);
 		}
 		else
 		{
@@ -372,14 +372,14 @@ namespace hrzn::scene::terrain
 					}
 				}
 
-				ContourEdgeProc(edgeNodes, edgeProcEdgeMask[dir][i][4], vertexBuffer, indexBuffer);
+				contourEdgeProc(edgeNodes, edgeProcEdgeMask[dir][i][4], vertexBuffer, indexBuffer);
 			}
 		}
 	}
 
 	// ----------------------------------------------------------------------------
 
-	void ContourFaceProc(OctreeNode* node[2], int dir, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
+	void contourFaceProc(OctreeNode* node[2], int dir, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		if (!node[0] || !node[1])
 		{
@@ -410,7 +410,7 @@ namespace hrzn::scene::terrain
 					}
 				}
 
-				ContourFaceProc(faceNodes, faceProcFaceMask[dir][i][2], vertexBuffer, indexBuffer);
+				contourFaceProc(faceNodes, faceProcFaceMask[dir][i][2], vertexBuffer, indexBuffer);
 			}
 
 			const int orders[2][4] =
@@ -443,14 +443,14 @@ namespace hrzn::scene::terrain
 					}
 				}
 
-				ContourEdgeProc(edgeNodes, faceProcEdgeMask[dir][i][5], vertexBuffer, indexBuffer);
+				contourEdgeProc(edgeNodes, faceProcEdgeMask[dir][i][5], vertexBuffer, indexBuffer);
 			}
 		}
 	}
 
 	// ----------------------------------------------------------------------------
 
-	void ContourCellProc(OctreeNode* node, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
+	void contourCellProc(OctreeNode* node, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		if (node == NULL)
 		{
@@ -461,7 +461,7 @@ namespace hrzn::scene::terrain
 		{
 			for (int i = 0; i < 8; i++)
 			{
-				ContourCellProc(node->m_children[i], vertexBuffer, indexBuffer);
+				contourCellProc(node->m_children[i], vertexBuffer, indexBuffer);
 			}
 
 			for (int i = 0; i < 12; i++)
@@ -472,7 +472,7 @@ namespace hrzn::scene::terrain
 				faceNodes[0] = node->m_children[c[0]];
 				faceNodes[1] = node->m_children[c[1]];
 
-				ContourFaceProc(faceNodes, cellProcFaceMask[i][2], vertexBuffer, indexBuffer);
+				contourFaceProc(faceNodes, cellProcFaceMask[i][2], vertexBuffer, indexBuffer);
 			}
 
 			for (int i = 0; i < 6; i++)
@@ -491,14 +491,14 @@ namespace hrzn::scene::terrain
 					edgeNodes[j] = node->m_children[c[j]];
 				}
 
-				ContourEdgeProc(edgeNodes, cellProcEdgeMask[i][4], vertexBuffer, indexBuffer);
+				contourEdgeProc(edgeNodes, cellProcEdgeMask[i][4], vertexBuffer, indexBuffer);
 			}
 		}
 	}
 
 	// ----------------------------------------------------------------------------
 
-	maths::Vec3f ApproximateZeroCrossingPosition(const maths::Vec3f& p0, const maths::Vec3f& p1)
+	maths::Vec3f approximateZeroCrossingPosition(const maths::Vec3f& p0, const maths::Vec3f& p1)
 	{
 		// approximate the zero crossing by finding the min value along the edge
 		float minValue = 100000.f;
@@ -524,7 +524,7 @@ namespace hrzn::scene::terrain
 
 	// ----------------------------------------------------------------------------
 
-	maths::Vec3f  CalculateSurfaceNormal(const maths::Vec3f& p)
+	maths::Vec3f  calculateSurfaceNormal(const maths::Vec3f& p)
 	{
 		const float H = 0.001f;
 		const float dx = Density_Func(p + maths::Vec3f(H, 0.0f, 0.f)) - Density_Func(p - maths::Vec3f(H, 0.0f, 0.0f));
@@ -536,7 +536,7 @@ namespace hrzn::scene::terrain
 
 	// ----------------------------------------------------------------------------
 
-	OctreeNode* ConstructLeaf(OctreeNode* leaf)
+	OctreeNode* constructLeaf(OctreeNode* leaf)
 	{
 		if (!leaf || leaf->m_size != 1)
 		{
@@ -582,8 +582,8 @@ namespace hrzn::scene::terrain
 
 			const maths::Vec3f p1 = (leaf->m_min + CHILD_MIN_OFFSETS[c1]).createVec3f();
 			const maths::Vec3f p2 = (leaf->m_min + CHILD_MIN_OFFSETS[c2]).createVec3f();
-			const maths::Vec3f p = ApproximateZeroCrossingPosition(p1, p2);
-			const maths::Vec3f n = CalculateSurfaceNormal(p);
+			const maths::Vec3f p = approximateZeroCrossingPosition(p1, p2);
+			const maths::Vec3f n = calculateSurfaceNormal(p);
 			qef.add(p.x, p.y, p.z, n.x, n.y, n.z);
 
 			averageNormal += n;
@@ -620,7 +620,7 @@ namespace hrzn::scene::terrain
 
 	// -------------------------------------------------------------------------------
 
-	OctreeNode* ConstructOctreeNodes(OctreeNode* node)
+	OctreeNode* constructOctreeNodes(OctreeNode* node)
 	{
 		if (!node)
 		{
@@ -629,7 +629,7 @@ namespace hrzn::scene::terrain
 
 		if (node->m_size == 1)
 		{
-			return ConstructLeaf(node);
+			return constructLeaf(node);
 		}
 
 		const int childSize = node->m_size / 2;
@@ -642,7 +642,7 @@ namespace hrzn::scene::terrain
 			child->m_min = node->m_min + (CHILD_MIN_OFFSETS[i] * childSize);
 			child->m_type = OctreeNodeType::eInternal;
 
-			node->m_children[i] = ConstructOctreeNodes(child);
+			node->m_children[i] = constructOctreeNodes(child);
 			hasChildren |= (node->m_children[i] != nullptr);
 		}
 
@@ -657,22 +657,22 @@ namespace hrzn::scene::terrain
 
 	// -------------------------------------------------------------------------------
 
-	OctreeNode* BuildOctree(const maths::Vec3i& min, const int size, const float threshold)
+	OctreeNode* buildOctree(const maths::Vec3i& min, const int size, const float threshold)
 	{
 		OctreeNode* root = new OctreeNode;
 		root->m_min = min;
 		root->m_size = size;
 		root->m_type = OctreeNodeType::eInternal;
 
-		ConstructOctreeNodes(root);
-		root = SimplifyOctree(root, threshold);
+		constructOctreeNodes(root);
+		root = simplifyOctree(root, threshold);
 
 		return root;
 	}
 
 	// ----------------------------------------------------------------------------
 
-	void GenerateMeshFromOctree(OctreeNode* node, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
+	void generateMeshFromOctree(OctreeNode* node, std::vector<gfx::SimpleLitVertex>& vertexBuffer, std::vector<DWORD>& indexBuffer)
 	{
 		if (!node)
 		{
@@ -683,12 +683,12 @@ namespace hrzn::scene::terrain
 		indexBuffer.clear();
 
 		//GenerateVertexIndices(node, vertexBuffer);
-		ContourCellProc(node, vertexBuffer, indexBuffer);
+		contourCellProc(node, vertexBuffer, indexBuffer);
 	}
 
 	// -------------------------------------------------------------------------------
 
-	void DestroyOctree(OctreeNode* node)
+	void destroyOctree(OctreeNode* node)
 	{
 		if (!node)
 		{
@@ -697,7 +697,7 @@ namespace hrzn::scene::terrain
 
 		for (int i = 0; i < 8; i++)
 		{
-			DestroyOctree(node->m_children[i]);
+			destroyOctree(node->m_children[i]);
 		}
 
 		if (node->m_drawInfo)

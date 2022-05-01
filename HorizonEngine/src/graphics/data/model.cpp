@@ -20,6 +20,7 @@ namespace hrzn::gfx
 		m_currentNumVerts(0),
 
 		m_useEmbeddedMaterials(false),
+		m_debugDrawEnabled(false),
 
 		m_filePath(""),
 		m_directory(""),
@@ -66,7 +67,10 @@ namespace hrzn::gfx
 			m_meshes[i]->draw(m_isGBufferCompatible && GraphicsHandler::it().isUsingDeferredShading(), bindPSData);
 		}
 
-		debugDraw(modelMatrix, bindPSData);
+		if (m_debugDrawEnabled)
+		{
+			debugDraw(modelMatrix, bindPSData);
+		}
 	}
 
 	void Model::updateAlternatePerObjectCB() const
@@ -127,6 +131,11 @@ namespace hrzn::gfx
 	bool Model::isGBufferCompatible() const
 	{
 		return m_isGBufferCompatible;
+	}
+
+	bool* Model::getDebugDrawPtr()
+	{
+		return &m_debugDrawEnabled;
 	}
 
 	void Model::loadModelMetaData(const std::string& filePath)

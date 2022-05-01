@@ -8,17 +8,6 @@
 
 SamplerState samplerState : SAMPLER : register(s0);
 
-/***********************************************
-
-MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
-
-DESCRIPTION: This is the shader used to move the verticies of the
-water mesh in the default scene
-
-COMMENT INDEX: 19
-
-***********************************************/
-
 VSPS_TRANSFER_WATER main(VS_INPUT input)
 {
 	VSPS_TRANSFER_WATER output;

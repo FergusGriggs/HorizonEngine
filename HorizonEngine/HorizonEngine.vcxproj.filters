@@ -659,5 +659,6 @@
     <None Include="res\materials\shoe.json" />
     <None Include="res\materials\shrek_body.json" />
     <None Include="res\materials\shrek_head.json" />
+    <None Include="res\scenes\test.hrzn" />
   </ItemGroup>
 </Project>

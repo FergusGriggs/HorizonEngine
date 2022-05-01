@@ -17,18 +17,6 @@ Texture2D ambientOcclusionTexture : TEXTURE : register(t6);
 float4 main(VSPS_TRANSFER input) : SV_TARGET
 {
     float3 viewDirection = normalize(cb_cameraPosition - input.worldPos);
-
-    /***********************************************
-
-	MARKING SCHEME: Normal Mapping,	Basic Parallax Mapping and Parallax Occlusion Mapping with self shadowing
-
-	DESCRIPTION: The extra tangent space information is recieved in the pixel shader and use to create two
-    space transformation matricies. (All of the tangent space related code in this shader happens in the geometry
-    pass when using deferred shading)
-
-	COMMENT INDEX: 3
-	
-	***********************************************/
     
     float3 normal = normalize(input.normal);
     float3 tangent = normalize(input.tangent);
@@ -36,20 +24,6 @@ float4 main(VSPS_TRANSFER input) : SV_TARGET
 
     float3x3 tangentToWorld = float3x3(tangent, bitangent, normal);
     float3x3 worldToTangent = transpose(tangentToWorld);
-
-    /***********************************************
-
-	MARKING SCHEME: Basic Parallax Mapping and Parallax Occlusion Mapping with self shadowing
-
-	DESCRIPTION: If parallax occlusion mapping is enabled then it works out the view direction vector in tangent space
-    and parses it to the getParallaxTextureCoords (defined in "shared/POM.hlsli"), along with the current uvs, a depth texture
-    and a depth scale. This function will step into the depth texture at the given UV (with a number of steps calculated using
-    the angle between the view direction and the surface) and return a new set of UVs where it estimates the "ray" collided
-    with the virtual geometry described by the depth texture
-
-	COMMENT INDEX: 4
-	
-	***********************************************/
     
     float2 unmodifiedTexCoord = input.texCoord;
     if (cb_useParallaxOcclusionMapping)
@@ -82,17 +56,6 @@ float4 main(VSPS_TRANSFER input) : SV_TARGET
         specularMultiplier = (1.0f - roughnessSample);
         specularPower = lerp(1.0f, 128.0f, pow(1.0f - roughnessSample, 3.0f));
     }
-
-    /***********************************************
-
-	MARKING SCHEME: Normal Mapping
-
-	DESCRIPTION: The tangent space normal is loaded from the normal map texture, decompressed, then transformed
-    into world space. And then used for shading.
-
-	COMMENT INDEX: 5
-	
-	***********************************************/
     
 	if (cb_useNormalMapping)
     {

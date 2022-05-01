@@ -128,16 +128,6 @@ namespace hrzn::gfx
         deviceContext->PSSetSamplers(0, 1, GraphicsHandler::it().getSamplerState().GetAddressOf());
         deviceContext->PSSetSamplers(1, 1, GraphicsHandler::it().getSamplerState().GetAddressOf());
 
-        /***********************************************
-
-        MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
-
-        DESCRIPTION: This is where the Deferred Shading pipeline branches from the standard pipeline
-
-        COMMENT INDEX: 9
-
-        ***********************************************/
-
         // Render and shade all objects
         if (GraphicsHandler::it().isUsingDeferredShading())
         {
@@ -232,34 +222,12 @@ namespace hrzn::gfx
         // Set gbuffer blend state
         deviceContext->OMSetBlendState(GraphicsHandler::it().getGBufferBlendState(), NULL, 0xFFFFFFFF);
 
-        /***********************************************
-
-        MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
-
-        DESCRIPTION: The call to renderSceneObjects will render all objects that are compatible with the gbuffer to it
-        (some aren't because they dont have a valid gbuffer write pixel shader set in their material)
-
-        COMMENT INDEX: 10
-
-        ***********************************************/
-
         // Render skybox to the gbuffer albedo texture
         GraphicsHandler::it().renderSkybox(eyePos);
 
         deviceContext->ClearDepthStencilView(m_geometryBuffer.m_depthStencil.m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
         GraphicsHandler::it().renderSceneObjects(RenderPassType::eGBufferCompatiblePass, eyePos, eyeFacing);
-
-        /***********************************************
-
-        MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
-
-
-        DESCRIPTION: This is where the SSAO shader is run if it is enabled
-
-        COMMENT INDEX: 11
-
-        ***********************************************/
 
         deviceContext->RSSetState(GraphicsHandler::it().getDefaultRasterizerState());
 
@@ -285,17 +253,6 @@ namespace hrzn::gfx
             deviceContext->PSSetShaderResources(4, 1, m_ambientOcclusionGaussianBlur->getResult()->m_shaderResourceView.GetAddressOf());
         }
 
-        /***********************************************
-
-        MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
-
-        DESCRIPTION: Now that the geometry pass has been completed, the data of the
-        compatible objects is shaded into the final image
-
-        COMMENT INDEX: 12
-
-        ***********************************************/
-
         // Unset render targets and set as shader resource views
         ID3D11RenderTargetView* const nullRenderTargetViews[8] = { NULL };
         deviceContext->OMSetRenderTargets(4, nullRenderTargetViews, nullptr);
@@ -311,17 +268,6 @@ namespace hrzn::gfx
         deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         deviceContext->RSSetState(m_rasterizerState);
-
-        /***********************************************
-
-        MARKING SCHEME: Recent / Advanced graphics algorithms or techniques
-
-        DESCRIPTION: Then the objects that cannot be shaded with deferred shading are rendered
-        directly to the final image texture
-
-        COMMENT INDEX: 13
-
-        ***********************************************/
 
         // Unset shader resource view and set as render targets once more to merge with nonCompatible pass
         ID3D11ShaderResourceView* const nullShaderResourceViews[8] = { NULL };

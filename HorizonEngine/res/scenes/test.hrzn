@@ -57,192 +57,221 @@
                 "3d_generation_type": "default"
             }
         },
-        "ObjectTracks": [
+      "ObjectTracks": [
+        {
+          "id": "test_track",
+          "Nodes": [
             {
-                "id": "test_track",
-                "Nodes": [
-                    {
-                        "position": [10.0, 0.0, 0.0],
-                        "look_position": [0.0, -1.0, 0.0]
-                    },
-                    {
-                        "position": [0.0, 5.0, 10.0],
-                        "look_position": [0.0, -1.0, 0.0]
-                    },
-                    {
-                        "position": [-10.0, 0.0, 0.0],
-                        "look_position": [0.0, -1.0, 0.0]
-                    },
-                    {
-                        "position": [0.0, -5.0, -10.0],
-                        "look_position": [0.0, -1.0, 0.0]
-                    },
-                    {
-                        "position": [10.0, 0.0, 0.0],
-                        "look_position": [0.0, -1.0, 0.0]
-                    }
-                ]
+              "position": [ 10.0, 0.0, 0.0 ],
+              "look_position": [ 0.0, -1.0, 0.0 ]
             },
             {
-                "id": "drapes_light_track",
-                "Nodes": [
-                    {
-                        "position": [-16.5, 2.0, -3.0],
-                        "look_position": [-15.0, -1.0, -1.5]
-                    },
-                    {
-                        "position": [-16.5, 3.0, 6.0],
-                        "look_position": [-15.0, -1.0, 7.5]
-                    },
-                    {
-                        "position": [-16.5, 3.0, 12.0],
-                        "look_position": [-15.0, -1.0, 13.5]
-                    },
-                    {
-                        "position": [-13.5, 2.0, 18.0],
-                        "look_position": [-15.0, -1.0, 19.5]
-                    },
-                    {
-                        "position": [-13.5, 1.0, 24.0],
-                        "look_position": [-15.0, -1.0, 25.5]
-                    },
-                    {
-                        "position": [-13.5, 2.0, 30.0],
-                        "look_position": [-15.0, -1.0, 31.5]
-                    },
-                    {
-                        "position": [-16.5, 1.0, 36.0],
-                        "look_position": [-15.0, -1.0, 37.5]
-                    },
-                    {
-                        "position": [-17.5, 2.0, 42.0],
-                        "look_position": [-15.0, -1.0, 43.5]
-                    },
-                    {
-                        "position": [-16.5, 1.0, 48.0],
-                        "look_position": [-15.0, -1.0, 48.0]
-                    },
-                    {
-                        "position": [-13.5, 2.0, 54.0],
-                        "look_position": [-15.0, -1.0, 54.0]
-                    },
-                    {
-                        "position": [-13.5, 1.0, 63.0],
-                        "look_position": [-15.0, -1.0, 63.0]
-                    },
-                    {
-                        "position": [-13.5, 2.0, -3.0],
-                        "look_position": [-15.0, -1.0, -1.5]
-                    }
-                ]
+              "position": [ 0.0, 5.0, 10.0 ],
+              "look_position": [ 0.0, -1.0, 0.0 ]
             },
             {
-                "id": "drapes_camera_track_2",
-                "Nodes": [
-                    {
-                        "position": [-14.0, 0.0, 3.0],
-                        "look_position": [-15.0, 0.0, 2.0]
-                    },
-                    {
-                        "position": [-14.0, 0.0, 9.0],
-                        "look_position": [-15.0, 0.0, 8.0]
-                    },
-                    {
-                        "position": [-14.0, 0.0, 15.0],
-                        "look_position": [-15.0, 0.0, 14.0]
-                    },
-                    {
-                        "position": [-16.0, 0.0, 21.0],
-                        "look_position": [-15.0, 0.0, 20.0]
-                    },
-                    {
-                        "position": [-16.0, 0.0, 27.0],
-                        "look_position": [-15.0, 0.0, 26.0]
-                    },
-                    {
-                        "position": [-16.0, 0.0, 33.0],
-                        "look_position": [-15.0, 0.0, 32.0]
-                    },
-                    {
-                        "position": [-14.0, 0.0, 39.0],
-                        "look_position": [-15.0, 0.0, 38.0]
-                    },
-                    {
-                        "position": [-14.0, 0.0, 45.0],
-                        "look_position": [-15.0, 0.0, 44.0]
-                    },
-                    {
-                        "position": [-14.0, 0.0, 51.0],
-                        "look_position": [-15.0, 0.0, 50.0]
-                    },
-                    {
-                        "position": [-16.0, 0.0, 57.0],
-                        "look_position": [-15.0, 0.0, 56.0]
-                    },
-                    {
-                        "position": [-16.0, 0.0, 63.0],
-                        "look_position": [-15.0, 0.0, 62.0]
-                    },
-                    {
-                        "position": [-14.0, 0.0, 3.0],
-                        "look_position": [-15.0, 0.0, 2.0]
-                    }
-                ]
+              "position": [ -10.0, 0.0, 0.0 ],
+              "look_position": [ 0.0, -1.0, 0.0 ]
             },
             {
-                "id": "drapes_camera_track_1",
-                "Nodes": [
-                    {
-                        "position": [-11.0, -1.5, -6.0],
-                        "look_position": [-15.0, -0.5, -3.0]
-                    },
-                    {
-                        "position": [-11.0, -1.5, 3.0],
-                        "look_position": [-15.0, -0.5, 6.0]
-                    },
-                    {
-                        "position": [-11.0, -1.5, 9.0],
-                        "look_position": [-15.0, -0.5, 12.0]
-                    },
-                    {
-                        "position": [-11.0, -1.5, 15.0],
-                        "look_position": [-15.0, -0.5, 18.0]
-                    },
-                    {
-                        "position": [-11.0, -1.5, 21.0],
-                        "look_position": [-15.0, -0.5, 24.0]
-                    },
-                    {
-                        "position": [-11.0, -1.5, 27.0],
-                        "look_position": [-15.0, -0.5, 30.0]
-                    },
-                    {
-                        "position": [-11.0, -1.5, 33.0],
-                        "look_position": [-15.0, -0.5, 36.0]
-                    },
-                    {
-                        "position": [-11.0, -1.5, 39.0],
-                        "look_position": [-15.0, -0.5, 42.0]
-                    },
-                    {
-                        "position": [-11.0, -1.5, 45.0],
-                        "look_position": [-15.0, -0.5, 48.0]
-                    },
-                    {
-                        "position": [-11.0, -1.5, 51.0],
-                        "look_position": [-15.0, -0.5, 54.0]
-                    },
-                    {
-                        "position": [-11.0, -1.5, 57.0],
-                        "look_position": [-15.0, -0.5, 60.0]
-                    },
-                    {
-                        "position": [-11.0, -1.5, -6.0],
-                        "look_position": [-15.0, -0.5, -3.0]
-                    }
-                ]
+              "position": [ 0.0, -5.0, -10.0 ],
+              "look_position": [ 0.0, -1.0, 0.0 ]
+            },
+            {
+              "position": [ 10.0, 0.0, 0.0 ],
+              "look_position": [ 0.0, -1.0, 0.0 ]
             }
-        ],
+          ]
+        },
+        {
+          "id": "drapes_light_track",
+          "Nodes": [
+            {
+              "position": [ -16.5, 2.0, -3.0 ],
+              "look_position": [ -15.0, -1.0, -1.5 ]
+            },
+            {
+              "position": [ -16.5, 3.0, 6.0 ],
+              "look_position": [ -15.0, -1.0, 7.5 ]
+            },
+            {
+              "position": [ -16.5, 3.0, 12.0 ],
+              "look_position": [ -15.0, -1.0, 13.5 ]
+            },
+            {
+              "position": [ -13.5, 2.0, 18.0 ],
+              "look_position": [ -15.0, -1.0, 19.5 ]
+            },
+            {
+              "position": [ -13.5, 1.0, 24.0 ],
+              "look_position": [ -15.0, -1.0, 25.5 ]
+            },
+            {
+              "position": [ -13.5, 2.0, 30.0 ],
+              "look_position": [ -15.0, -1.0, 31.5 ]
+            },
+            {
+              "position": [ -16.5, 1.0, 36.0 ],
+              "look_position": [ -15.0, -1.0, 37.5 ]
+            },
+            {
+              "position": [ -17.5, 2.0, 42.0 ],
+              "look_position": [ -15.0, -1.0, 43.5 ]
+            },
+            {
+              "position": [ -16.5, 1.0, 48.0 ],
+              "look_position": [ -15.0, -1.0, 48.0 ]
+            },
+            {
+              "position": [ -13.5, 2.0, 54.0 ],
+              "look_position": [ -15.0, -1.0, 54.0 ]
+            },
+            {
+              "position": [ -13.5, 1.0, 63.0 ],
+              "look_position": [ -15.0, -1.0, 63.0 ]
+            },
+            {
+              "position": [ -13.5, 2.0, -3.0 ],
+              "look_position": [ -15.0, -1.0, -1.5 ]
+            }
+          ]
+        },
+        {
+          "id": "lad_runner_track",
+          "Nodes": [
+            {
+              "position": [ -17.0, -2.2, -52.0 ],
+              "look_position": [ -18.0, -2.2, -51.0 ]
+            },
+            {
+              "position": [ -27.0, -2.2, -83.0 ],
+              "look_position": [ -26.0, -2.2, -82.0 ]
+            },
+            {
+              "position": [ -44.0, -2.2, -75.0 ],
+              "look_position": [ -43.0, -2.2, -76.0 ]
+            },
+            {
+              "position": [ -40.0, -2.2, -61.0 ],
+              "look_position": [ -41.0, -2.2, -62.0 ]
+            },
+            {
+              "position": [ -43.0, -2.2, -42.0 ],
+              "look_position": [ -42.0, -2.2, -43.0 ]
+            },
+            {
+              "position": [ -17.0, -2.2, -52.0 ],
+              "look_position": [ -18.0, -2.2, -51.0 ]
+            }
+          ]
+        },
+        {
+          "id": "drapes_camera_track_2",
+          "Nodes": [
+            {
+              "position": [ -14.0, 0.0, 3.0 ],
+              "look_position": [ -15.0, 0.0, 2.0 ]
+            },
+            {
+              "position": [ -14.0, 0.0, 9.0 ],
+              "look_position": [ -15.0, 0.0, 8.0 ]
+            },
+            {
+              "position": [ -14.0, 0.0, 15.0 ],
+              "look_position": [ -15.0, 0.0, 14.0 ]
+            },
+            {
+              "position": [ -16.0, 0.0, 21.0 ],
+              "look_position": [ -15.0, 0.0, 20.0 ]
+            },
+            {
+              "position": [ -16.0, 0.0, 27.0 ],
+              "look_position": [ -15.0, 0.0, 26.0 ]
+            },
+            {
+              "position": [ -16.0, 0.0, 33.0 ],
+              "look_position": [ -15.0, 0.0, 32.0 ]
+            },
+            {
+              "position": [ -14.0, 0.0, 39.0 ],
+              "look_position": [ -15.0, 0.0, 38.0 ]
+            },
+            {
+              "position": [ -14.0, 0.0, 45.0 ],
+              "look_position": [ -15.0, 0.0, 44.0 ]
+            },
+            {
+              "position": [ -14.0, 0.0, 51.0 ],
+              "look_position": [ -15.0, 0.0, 50.0 ]
+            },
+            {
+              "position": [ -16.0, 0.0, 57.0 ],
+              "look_position": [ -15.0, 0.0, 56.0 ]
+            },
+            {
+              "position": [ -16.0, 0.0, 63.0 ],
+              "look_position": [ -15.0, 0.0, 62.0 ]
+            },
+            {
+              "position": [ -14.0, 0.0, 3.0 ],
+              "look_position": [ -15.0, 0.0, 2.0 ]
+            }
+          ]
+        },
+        {
+          "id": "drapes_camera_track_1",
+          "Nodes": [
+            {
+              "position": [ -11.0, -1.5, -6.0 ],
+              "look_position": [ -15.0, -0.5, -3.0 ]
+            },
+            {
+              "position": [ -11.0, -1.5, 3.0 ],
+              "look_position": [ -15.0, -0.5, 6.0 ]
+            },
+            {
+              "position": [ -11.0, -1.5, 9.0 ],
+              "look_position": [ -15.0, -0.5, 12.0 ]
+            },
+            {
+              "position": [ -11.0, -1.5, 15.0 ],
+              "look_position": [ -15.0, -0.5, 18.0 ]
+            },
+            {
+              "position": [ -11.0, -1.5, 21.0 ],
+              "look_position": [ -15.0, -0.5, 24.0 ]
+            },
+            {
+              "position": [ -11.0, -1.5, 27.0 ],
+              "look_position": [ -15.0, -0.5, 30.0 ]
+            },
+            {
+              "position": [ -11.0, -1.5, 33.0 ],
+              "look_position": [ -15.0, -0.5, 36.0 ]
+            },
+            {
+              "position": [ -11.0, -1.5, 39.0 ],
+              "look_position": [ -15.0, -0.5, 42.0 ]
+            },
+            {
+              "position": [ -11.0, -1.5, 45.0 ],
+              "look_position": [ -15.0, -0.5, 48.0 ]
+            },
+            {
+              "position": [ -11.0, -1.5, 51.0 ],
+              "look_position": [ -15.0, -0.5, 54.0 ]
+            },
+            {
+              "position": [ -11.0, -1.5, 57.0 ],
+              "look_position": [ -15.0, -0.5, 60.0 ]
+            },
+            {
+              "position": [ -11.0, -1.5, -6.0 ],
+              "look_position": [ -15.0, -0.5, -3.0 ]
+            }
+          ]
+        }
+      ],
         "GameObjects": [
             {
                 "id": "test_point_light_3",
@@ -734,16 +763,24 @@
                     "outer_cutoff": 39.2659988
                 }
             },
-            {
-                "id": "Viking",
-                "type": "Skinned",
-                "position": [-44.0901069, -2.2301821, -40.6183776],
-                "orientation": [-0.0119991, -0.5084894, -0.0069453, 0.8609566],
-                "RenderableData": {
-                    "model_path": "res/models/skinned_models/Free_Warriors_Turbosquid/models/FBX (animated)/blue/viking_C.fbx",
-                    "scale": [0.025, 0.025, 0.025]
-                }
+          {
+            "id": "Viking",
+            "type": "Skinned",
+            "position": [ -44.0901069, -2.2301821, -40.6183776 ],
+            "orientation": [ -0.0119991, -0.5084894, -0.0069453, 0.8609566 ],
+            "RenderableData": {
+              "model_path": "res/models/skinned_models/Free_Warriors_Turbosquid/models/FBX (animated)/blue/viking_C.fbx",
+              "scale": [ 0.025, 0.025, 0.025 ]
             },
+            "ObjectTracks": [
+              {
+                "id": "lad_runner_track",
+                "is_following": true,
+                "track_delta": 1.5461472,
+                "track_speed": 0.2
+              }
+            ]
+          },
             {
                 "id": "Terrain Spotlight",
                 "type": "SpotLight",

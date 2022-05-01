@@ -15,21 +15,6 @@ namespace hrzn::gfx
     {
     }
 
-    /***********************************************
-
-    MARKING SCHEME: Simple Screen Space Effect
-
-    DESCRIPTION: This class enables the blurring of textures using the post processing pipeline.
-    This class can also be instantiated outside of the post processing pipeline if necessary.
-
-    It sets the input texture as a shader resource then runs two shaders while slowly lowering
-    the resolution of the textures to increase the blur effect with a minimal effect on performance
-    due to the shader working on a smaller texture.
-
-    COMMENT INDEX: 7
-
-    ***********************************************/
-
     void GaussianBlurPostProcess::run(RenderTexture* input)
     {
         ID3D11DeviceContext* deviceContext = GraphicsHandler::it().getDeviceContext();
